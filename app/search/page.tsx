@@ -19,6 +19,7 @@ interface SearchResult {
   duration: string;
   image: string;
   description: string;
+  country: { id: number; title: string }[];
 }
 
 async function getSearchResults(query: string) {
