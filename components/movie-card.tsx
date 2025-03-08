@@ -13,6 +13,7 @@ interface MovieCardProps {
     year: number;
     imdb: number;
     genres: { title: string }[];
+    country: { id: number; title: string; image: string }[];
   };
 }
 
@@ -49,6 +50,12 @@ export function MovieCard({ movie }: MovieCardProps) {
               <Star className="w-4 h-4 text-yellow-400 inline mr-1" />
               <span>{movie.imdb}</span>
             </div>
+            {movie.country?.[0] && (
+              <>
+                <span>•</span>
+                <span className="text-sm text-gray-200">{movie.country[0].title}</span>
+              </>
+            )}
           </div>
           <div className="flex flex-wrap gap-1">
             {movie.genres.slice(0, 2).map((genre, index) => (

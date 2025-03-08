@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Vazirmatn } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
+import PrivacyCheck from './components/PrivacyCheck';
 
 const vazirmatn = Vazirmatn({ subsets: ['arabic'] });
 
@@ -64,6 +65,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <PrivacyCheck />
           {children}
         </ThemeProvider>
       </body>

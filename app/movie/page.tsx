@@ -39,6 +39,7 @@ interface MovieDetails {
   cover: string;
   genres: Array<{ id: number; title: string }>;
   sources: Array<{ id: number; quality: string; type: string; url: string }>;
+  country: Array<{ id: number; title: string; image: string }>;
 }
 
 export default function MoviePage() {
@@ -191,6 +192,31 @@ export default function MoviePage() {
                       <span className="text-sm">{movie.imdb}</span>
                     </div>
                   </div>
+
+                  {/* Country Slider */}
+                  {movie.country && movie.country.length > 0 && (
+                    <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                      {movie.country.map((country) => (
+                        <div
+                          key={country.id}
+                          className="flex items-center gap-2 bg-muted/50 backdrop-blur-sm px-3 py-1.5 rounded-full flex-shrink-0"
+                        >
+                          <div className="relative w-5 h-5 rounded-full overflow-hidden">
+                            <Image
+                              src={country.image}
+                              alt={country.title}
+                              fill
+                              className="object-cover"
+                              sizes="20px"
+                            />
+                          </div>
+                          <span className="text-sm text-foreground/90 whitespace-nowrap">
+                            {country.title}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {movie.genres.map((genre) => (

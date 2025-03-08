@@ -40,6 +40,9 @@ export function SerieCard({ serie }: SerieCardProps) {
               <span>{serie.imdb}</span>
             </div>
           )}
+          <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-black/60 text-xs text-white backdrop-blur-sm">
+            سریال
+          </div>
         </div>
       </div>
       <div className="mt-3 space-y-1">
@@ -52,6 +55,12 @@ export function SerieCard({ serie }: SerieCardProps) {
             <>
               <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
               <span>{serie.duration}</span>
+            </>
+          )}
+          {serie.country?.[0] && (
+            <>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+              <span>{serie.country[0].title}</span>
             </>
           )}
         </div>
