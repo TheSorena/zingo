@@ -25,7 +25,7 @@ export default function SettingsPage() {
           </Link>
           <div className="hidden md:flex items-center space-x-4 space-x-reverse">
             <NavItems />
-            <SearchInput placeholder="جستجوی سریال..." />
+            <SearchInput placeholder="جستجو..." />
             <ThemeToggle />
           </div>
         </div>
