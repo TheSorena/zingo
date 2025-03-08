@@ -23,15 +23,6 @@ export default function PrivacyPage() {
   });
 
   useEffect(() => {
-    try {
-      const accepted = localStorage.getItem('privacy-accepted');
-      if (accepted === 'true') {
-        router.replace('/');
-      }
-    } catch (error) {
-      console.error('Error checking localStorage:', error);
-    }
-
     const handleScroll = () => {
       scrollY.set(window.scrollY);
     };
