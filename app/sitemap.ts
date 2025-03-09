@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 
-async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   // Add your dynamic routes here
@@ -22,7 +22,7 @@ async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
-      url: `${baseUrl}/movies`,
+      url: `${baseUrl}/privacy`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.8,
