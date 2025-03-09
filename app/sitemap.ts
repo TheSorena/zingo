@@ -2,42 +2,28 @@ import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://cinemaplus-app.vercel.app';
+  const lastMod = new Date().toISOString();
 
-  // Define your static routes
-  const staticRoutes = [
+  return [
     {
-      url: baseUrl,
-      lastModified: new Date(),
-      changefreq: 'daily',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
-      changefreq: 'daily',
-      priority: 0.8,
+      url: `${baseUrl}/`,
+      lastModified: lastMod,
+      priority: 1.00
     },
     {
       url: `${baseUrl}/series`,
-      lastModified: new Date(),
-      changefreq: 'daily',
-      priority: 0.8,
+      lastModified: lastMod,
+      priority: 0.80
     },
     {
       url: `${baseUrl}/search`,
-      lastModified: new Date(),
-      changefreq: 'weekly',
-      priority: 0.5,
+      lastModified: lastMod,
+      priority: 0.80
     },
     {
-      url: `${baseUrl}/about`,
-      lastModified: new Date(),
-      changefreq: 'monthly',
-      priority: 0.3,
-    },
+      url: `${baseUrl}/settings`,
+      lastModified: lastMod,
+      priority: 0.80
+    }
   ];
-
-  // Combine static and dynamic routes
-  // return [...staticRoutes, ...movieUrls];
-  return staticRoutes;
 } 
