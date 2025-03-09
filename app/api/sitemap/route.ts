@@ -36,10 +36,13 @@ export async function GET() {
   </url>
 </urlset>`;
 
-  // Return the XML with the correct content type
+  // Return the XML with the correct content type and cache headers
   return new NextResponse(xml, {
     headers: {
       'Content-Type': 'application/xml',
+      'Cache-Control': 'public, max-age=3600',
+      'Access-Control-Allow-Origin': '*'
     },
+    status: 200
   });
 } 
