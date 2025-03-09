@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Vazirmatn } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import PrivacyCheck from './components/PrivacyCheck';
+import GoogleAnalytics from './components/GoogleAnalytics';
 
 const vazirmatn = Vazirmatn({ subsets: ['arabic'] });
 
@@ -12,6 +13,9 @@ export const metadata: Metadata = {
   description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
   keywords: ['movie', 'cinema', 'film', 'series', 'فیلم', 'سریال', 'سینما'],
   authors: [{ name: 'Hossein Pira' }],
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
   openGraph: {
     type: 'website',
     locale: 'fa_IR',
@@ -59,6 +63,9 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body className={vazirmatn.className} suppressHydrationWarning>
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics GA_MEASUREMENT_ID={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
