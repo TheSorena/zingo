@@ -8,9 +8,9 @@ interface AnalyticsProps {
 export function Analytics({ data }: AnalyticsProps) {
   const metrics = data.rows?.[0]?.metricValues ?? [];
   const stats = [
-    { label: 'Page Views', value: metrics[0]?.value ?? '0' },
-    { label: 'Sessions', value: metrics[1]?.value ?? '0' },
-    { label: 'Unique Visitors', value: metrics[2]?.value ?? '0' },
+    { label: 'بازدید صفحه', value: metrics[0]?.value ?? '0' },
+    { label: 'نشست‌ها', value: metrics[1]?.value ?? '0' },
+    { label: 'کاربران منحصر به فرد', value: metrics[2]?.value ?? '0' },
   ];
 
   return (
@@ -20,8 +20,8 @@ export function Analytics({ data }: AnalyticsProps) {
           key={stat.label}
           className="bg-white p-6 rounded-lg shadow"
         >
-          <h2 className="text-lg font-semibold text-gray-700">{stat.label}</h2>
-          <p className="text-3xl font-bold text-blue-600">{stat.value}</p>
+          <h2 className="text-lg font-semibold text-gray-700 text-right">{stat.label}</h2>
+          <p className="text-3xl font-bold text-blue-600 text-right">{stat.value}</p>
         </div>
       ))}
     </div>

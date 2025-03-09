@@ -5,16 +5,26 @@ import { Analytics } from './components/Analytics';
 
 async function getAnalyticsData() {
   try {
+    if (!process.env.GA_CLIENT_EMAIL || !process.env.GA_PRIVATE_KEY || !process.env.GA_PROPERTY_ID) {
+      console.error('Missing required Google Analytics credentials');
+      return null;
+    }
+
     const analyticsDataClient = new BetaAnalyticsDataClient({
       credentials: {
-        client_email: process.env.GA_CLIENT_EMAIL!,
-        private_key: process.env.GA_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+        client_email: process.env.GA_CLIENT_EMAIL,
+        private_key: process.env.GA_PRIVATE_KEY.replace(/\\n/g, '\n'),
       },
     });
 
     const [response] = await analyticsDataClient.runReport({
       property: process.env.GA_PROPERTY_ID,
-      dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+      dateRanges: [
+        {
+          startDate: '30daysAgo',
+          endDate: 'today',
+        },
+      ],
       metrics: [
         { name: 'screenPageViews' },
         { name: 'sessions' },
@@ -44,16 +54,17 @@ export default async function Page() {
 
   if (!analyticsData) {
     return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-        <p className="text-red-500">Failed to load analytics data</p>
+      <div className="p-8" dir="rtl">
+        <h1 className="text-2xl font-bold mb-6 text-right">پنل مدیریت</h1>
+        <p className="text-red-500 text-right">خطا در دریافت اطلاعات آنالیتیکس</p>
+        <p className="text-gray-600 text-right mt-2">لطفاً تنظیمات گوگل آنالیتیکس را بررسی کنید</p>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+    <div className="p-8" dir="rtl">
+      <h1 className="text-2xl font-bold mb-6 text-right">پنل مدیریت</h1>
       <Analytics data={analyticsData} />
     </div>
   );

@@ -26,40 +26,42 @@ export default function LoginPage() {
       router.push('/admin');
       router.refresh();
     } else {
-      setError('Invalid credentials');
+      setError('نام کاربری یا رمز عبور اشتباه است');
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100" dir="rtl">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-6">Admin Login</h1>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <h1 className="text-2xl font-bold mb-6 text-right">ورود به پنل مدیریت</h1>
+        {error && <p className="text-red-500 mb-4 text-right">{error}</p>}
         <div className="mb-4">
-          <label htmlFor="username" className="block mb-2 text-gray-700">Username</label>
+          <label htmlFor="username" className="block mb-2 text-gray-700 text-right">نام کاربری</label>
           <input
             type="text"
             id="username"
             name="username"
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right"
             required
+            dir="ltr"
           />
         </div>
         <div className="mb-6">
-          <label htmlFor="password" className="block mb-2 text-gray-700">Password</label>
+          <label htmlFor="password" className="block mb-2 text-gray-700 text-right">رمز عبور</label>
           <input
             type="password"
             id="password"
             name="password"
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right"
             required
+            dir="ltr"
           />
         </div>
         <button
           type="submit"
           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          Login
+          ورود
         </button>
       </form>
     </div>
