@@ -8,7 +8,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SearchInput } from "../components/search-input";
 import { apiUrl } from '../lib/config';
-import type { Metadata } from 'next';
 
 async function getMovies() {
   try {
@@ -33,19 +32,6 @@ async function getMovies() {
   }
 }
 
-export const metadata: Metadata = {
-  title: 'خانه | Cinema Plus | خانه | سینما پلاس',
-  description: 'Discover the latest movies and series | کشف جدیدترین فیلم‌ها و سریال‌ها',
-  openGraph: {
-    title: 'خانه | Cinema Plus | خانه | سینما پلاس',
-    description: 'Discover the latest movies and series | کشف جدیدترین فیلم‌ها و سریال‌ها',
-  },
-  twitter: {
-    title: 'خانه | Cinema Plus | خانه | سینما پلاس',
-    description: 'Discover the latest movies and series | کشف جدیدترین فیلم‌ها و سریال‌ها',
-  },
-};
-
 export default async function Home() {
   const movies = await getMovies();
 
@@ -61,7 +47,7 @@ export default async function Home() {
           </Link>
           <div className="hidden md:flex items-center space-x-4 space-x-reverse">
             <NavItems />
-            <SearchInput placeholder="جستجوی فیلم..." />
+            <SearchInput placeholder="جستجو..." />
             <ThemeToggle />
           </div>
         </div>
@@ -71,7 +57,7 @@ export default async function Home() {
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl md:text-2xl font-semibold">فیلم‌های جدید</h2>
           <div className="md:hidden relative">
-            <SearchInput placeholder="جستجوی فیلم..." className="w-48" />
+            <SearchInput placeholder="جستجو..." className="w-48" />
           </div>
         </div>
         

@@ -79,7 +79,7 @@ export default async function SeriesPage() {
           </Link>
           <div className="hidden md:flex items-center space-x-4 space-x-reverse">
             <NavItems />
-            <SearchInput placeholder="جستجوی سریال..." />
+            <SearchInput placeholder="جستجو..." />
             <ThemeToggle />
           </div>
         </div>
@@ -89,7 +89,7 @@ export default async function SeriesPage() {
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl md:text-2xl font-semibold">سریال‌های جدید</h2>
           <div className="md:hidden relative">
-            <SearchInput placeholder="جستجوی سریال..." className="w-48" />
+            <SearchInput placeholder="جستجو..." className="w-48" />
           </div>
         </div>
 

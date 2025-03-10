@@ -244,7 +244,7 @@ export default function MoviePage() {
                       className="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-sm"
                       variant="ghost"
                     >
-                      {source.quality.includes("تیزر") ? (
+                      {!source.quality || source.quality.includes("تیزر") ? (
                         <>
                           <Play className="ml-2 w-4 h-4" />
                           دانلود تریلر
@@ -266,7 +266,7 @@ export default function MoviePage() {
                       <Copy className="ml-2 w-4 h-4" />
                       کپی لینک
                     </Button>
-                    {!source.quality.includes("تیزر") && (
+                    {!source.quality?.includes("تیزر") && (
                       <Dialog open={showVlcGuide} onOpenChange={setShowVlcGuide}>
                         <DialogTrigger asChild>
                           <Button

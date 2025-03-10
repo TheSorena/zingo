@@ -15,6 +15,7 @@ import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiUrl } from '../../../lib/config';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 
 async function getSerieSeasons(id: string) {
   try {
@@ -230,37 +231,55 @@ export default function SerieDetailPage({
           {serie.description}
         </p>
 
-        <div id="episodes" className="space-y-6 scroll-mt-8">
-          {seasons.map((season: SerieSeason) => (
-            <Card key={season.id} className="bg-card/50 backdrop-blur">
-              <CardHeader>
-                <CardTitle>{season.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Accordion type="single" collapsible className="w-full">
-                  {season.episodes.map((episode) => (
-                    <AccordionItem key={episode.id} value={episode.id.toString()}>
-                      <AccordionTrigger className="text-right">
-                        {episode.title}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="grid gap-2">
-                          {episode.sources.map((source) => (
-                            <DownloadLink
-                              key={source.id}
-                              url={source.url}
-                              type={source.type}
-                              quality={source.quality}
-                            />
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </CardContent>
-            </Card>
-          ))}
+        <div id="episodes" className="scroll-mt-8">
+          <Tabs defaultValue={seasons[0]?.id.toString()} className="w-full">
+            <TabsList className="w-full flex flex-wrap h-auto gap-2 bg-background/50 backdrop-blur p-2">
+              {seasons.map((season) => (
+                <TabsTrigger
+                  key={season.id}
+                  value={season.id.toString()}
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  onClick={() => {
+                    const downloadSection = document.getElementById('episodes');
+                    if (downloadSection) {
+                      downloadSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  {season.title}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {seasons.map((season) => (
+              <TabsContent key={season.id} value={season.id.toString()}>
+                <Card className="bg-card/50 backdrop-blur border-0">
+                  <CardContent className="pt-6">
+                    <Accordion type="single" collapsible className="w-full">
+                      {season.episodes.map((episode) => (
+                        <AccordionItem key={episode.id} value={episode.id.toString()}>
+                          <AccordionTrigger className="text-right">
+                            {episode.title}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="grid gap-2">
+                              {episode.sources.map((source) => (
+                                <DownloadLink
+                                  key={source.id}
+                                  url={source.url}
+                                  type={source.type}
+                                  quality={source.quality}
+                                />
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            ))}
+          </Tabs>
         </div>
       </div>
     </main>
