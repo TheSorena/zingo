@@ -101,7 +101,7 @@ export default function SettingsPage() {
             <CardContent>
               <div className="space-y-4">
                 <a 
-                  href="https://t.me/h3dev" 
+                  href="https://t.me/CinemaPlusApp" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-sm hover:underline"
