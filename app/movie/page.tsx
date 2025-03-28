@@ -110,7 +110,7 @@ export default function MoviePage() {
       setMovie(parsedMovie);
       // Find trailer URL if available
       const trailerSource = parsedMovie.sources?.find(
-        (source: { quality: string }) => source.quality?.includes("تیزر")
+        (source: { quality: string }) => !source.quality || source.quality.includes("تیزر")
       );
       if (trailerSource) {
         setTrailerUrl(trailerSource.url);
