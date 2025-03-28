@@ -85,6 +85,15 @@ export default function RootLayout({
             />
           </>
         )}
+        {/* Native City Analytics */}
+        <script
+          data-host="https://analytics.nativecity.io"
+          data-dnt="false"
+          src="https://analytics.nativecity.io/js/script.js"
+          id="ZwSg9rf6GA"
+          async
+          defer
+        />
       </head>
       <body className={vazirmatn.className} suppressHydrationWarning>
         <ThemeProvider
