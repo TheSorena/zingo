@@ -163,7 +163,7 @@ export default function PrivacyPage() {
                     قوانین و حریم خصوصی
                   </CardTitle>
                   <CardDescription className="text-base md:text-lg lg:text-xl text-muted-foreground/90">
-                    لطفاً قبل از استفاده از سایت، قوانین زیر را مطالعه کنید
+                    لطفاً قبل از استفاده از سینما پلاس، قوانین زیر را مطالعه کنید
                   </CardDescription>
                 </motion.div>
               </div>
