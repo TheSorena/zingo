@@ -27,13 +27,6 @@ import {
 import { toast } from "sonner";
 import { Toaster } from "sonner";
 import { isChromeBrowser, getDownloadMessage } from "../../lib/utils";
-import { apiUrl } from '../../lib/config';
-
-const isFirefoxMobile = () => {
-  if (typeof window === 'undefined') return false;
-  const userAgent = window.navigator.userAgent;
-  return userAgent.includes('Firefox') && userAgent.includes('Mobile');
-};
 
 interface MovieDetails {
   id: number;
@@ -53,7 +46,6 @@ export default function MoviePage() {
   const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [showVlcGuide, setShowVlcGuide] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
-  const [trailerUrl, setTrailerUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
   const [currentUrl, setCurrentUrl] = useState("");
@@ -107,17 +99,7 @@ export default function MoviePage() {
   useEffect(() => {
     const movieData = localStorage.getItem("selectedMovie");
     if (movieData) {
-      const parsedMovie = JSON.parse(movieData);
-      setMovie(parsedMovie);
-      // Find trailer URL if available
-      const trailerSource = parsedMovie.sources?.find(
-        (source: { quality: string }) => !source.quality || source.quality.includes("تیزر")
-      );
-      if (trailerSource) {
-        // Create proxy URL for the trailer
-        const proxyUrl = `${apiUrl}/api/proxy/video?url=${encodeURIComponent(trailerSource.url)}`;
-        setTrailerUrl(proxyUrl);
-      }
+      setMovie(JSON.parse(movieData));
     }
     setIsLoading(false);
   }, []);
@@ -253,23 +235,6 @@ export default function MoviePage() {
 
           {/* Content Section */}
           <div className="container max-w-6xl mx-auto px-4 py-6">
-            {/* Trailer Video Player for Firefox Mobile */}
-            {isFirefoxMobile() && trailerUrl && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold mb-3 text-foreground">تریلر فیلم</h2>
-                <div className="relative aspect-video rounded-lg overflow-hidden">
-                  <video
-                    controls
-                    className="w-full h-full"
-                    poster={movie.cover || movie.image}
-                  >
-                    <source src={trailerUrl} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              </div>
-            )}
-
             {/* Download/Watch Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
               {movie.sources?.map((source) => (
