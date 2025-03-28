@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SearchInput } from "../components/search-input";
 import { apiUrl } from '../lib/config';
+import Image from "next/image";
 
 async function getMovies() {
   try {
@@ -54,6 +55,18 @@ export default async function Home() {
       </header>
 
       <div className="container py-8 pb-24 md:pb-8 px-4 md:px-6 lg:px-8">
+        {/* Help Image for Mobile/Tablet */}
+        <div className="lg:hidden mb-6">
+          <Image
+            src="/help.jpg"
+            alt="راهنمای استفاده"
+            width={1200}
+            height={300}
+            className="w-full rounded-xl object-cover"
+            priority
+          />
+        </div>
+
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl md:text-2xl font-semibold">فیلم‌های جدید</h2>
           <div className="md:hidden relative">
