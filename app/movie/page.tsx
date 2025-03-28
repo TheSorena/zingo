@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { Toaster } from "sonner";
 import { isChromeBrowser, getDownloadMessage } from "../../lib/utils";
+import ReactPlayer from "react-player";
 
 interface MovieDetails {
   id: number;
@@ -40,6 +41,7 @@ interface MovieDetails {
   genres: Array<{ id: number; title: string }>;
   sources: Array<{ id: number; quality: string; type: string; url: string }>;
   country: Array<{ id: number; title: string; image: string }>;
+  trailer_url?: string;
 }
 
 export default function MoviePage() {
@@ -49,6 +51,7 @@ export default function MoviePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
   const [currentUrl, setCurrentUrl] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false);
   const router = useRouter();
 
   const ensureHttps = (url: string) => {
@@ -96,10 +99,23 @@ export default function MoviePage() {
     }
   };
 
+  const getProxyUrl = (url: string) => {
+    if (!url) return "";
+    return `https://http-video.liara.run/?url=${encodeURIComponent(url)}`;
+  };
+
   useEffect(() => {
     const movieData = localStorage.getItem("selectedMovie");
     if (movieData) {
-      setMovie(JSON.parse(movieData));
+      const parsedMovie = JSON.parse(movieData);
+      // Find trailer URL from sources
+      const trailerSource = parsedMovie.sources?.find(
+        (source: { quality?: string }) => !source.quality || source.quality.includes("تیزر")
+      );
+      if (trailerSource) {
+        parsedMovie.trailer_url = trailerSource.url;
+      }
+      setMovie(parsedMovie);
     }
     setIsLoading(false);
   }, []);
@@ -235,6 +251,33 @@ export default function MoviePage() {
 
           {/* Content Section */}
           <div className="container max-w-6xl mx-auto px-4 py-6">
+            {/* Video Player Section */}
+            {movie?.trailer_url && (
+              <div className="mb-6">
+                <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/50">
+                  <ReactPlayer
+                    url={getProxyUrl(movie.trailer_url)}
+                    width="100%"
+                    height="100%"
+                    playing={isPlaying}
+                    controls={true}
+                    playsinline={true}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    config={{
+                      file: {
+                        attributes: {
+                          controlsList: "nodownload",
+                          disablePictureInPicture: true,
+                        },
+                      },
+                    }}
+                    style={{ position: "absolute", top: 0, left: 0 }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Download/Watch Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
               {movie.sources?.map((source) => (
@@ -289,8 +332,10 @@ export default function MoviePage() {
                                 <li>از منوی Media گزینه Open Network Stream را انتخاب کنید</li>
                                 <li>لینک کپی شده را در قسمت URL وارد کنید</li>
                                 <li>روی دکمه Play کلیک کنید</li>
-                                توجه !!
-                                دکمه‌ی تماشا با VLC ممکن است به خوبی کار نکند !
+                                <p className="text-blue-500 mt-2">
+                                  توجه !!
+                                  دکمه‌ی تماشا با VLC ممکن است به خوبی کار نکند !
+                                </p>
                               </ol>
                               <div className="flex gap-2 mt-4">
                                 <Button
