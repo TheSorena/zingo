@@ -77,6 +77,12 @@ export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
             <Badge variant="outline">{quality}</Badge>
           )}
         </a>
+        <Button className="flex-2">
+          <a href={'vlc://' + url}>
+         VLC تماشا با
+          </a>
+        </Button>
+
         <Button
           onClick={() => copyToClipboard(url)}
           variant="outline"
@@ -85,6 +91,7 @@ export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
         >
           <Copy className="h-4 w-4" />
         </Button>
+
       </div>
 
       <AlertDialog open={showAlert} onOpenChange={setShowAlert}>

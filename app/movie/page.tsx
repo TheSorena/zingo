@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { MobileNav } from "../../components/mobile-nav";
 import Image from "next/image";
 import { Button } from "../../components/ui/button";
-import { Play, Download, Star, Clock, Calendar, Copy, Video, Youtube } from "lucide-react";
+import { Play, Download, Star, Clock, Calendar, Copy, Video, Eye } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -279,7 +279,7 @@ export default function MoviePage() {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle className="text-right">راهنمای پخش با VLC</DialogTitle>
+                            <DialogTitle className="text-right mt-5">راهنمای پخش با VLC</DialogTitle>
                             <DialogDescription className="space-y-4 text-right">
                               <p>برای پخش فیلم با VLC:</p>
                               <ol className="list-decimal list-inside space-y-2 text-right">
@@ -289,6 +289,8 @@ export default function MoviePage() {
                                 <li>از منوی Media گزینه Open Network Stream را انتخاب کنید</li>
                                 <li>لینک کپی شده را در قسمت URL وارد کنید</li>
                                 <li>روی دکمه Play کلیک کنید</li>
+                                توجه !!
+                                دکمه‌ی تماشا با VLC ممکن است به خوبی کار نکند !
                               </ol>
                               <div className="flex gap-2 mt-4">
                                 <Button
@@ -298,6 +300,14 @@ export default function MoviePage() {
                                   <Copy className="ml-2 w-4 h-4" />
                                   کپی لینک
                                 </Button>
+
+                                <Button className="flex-1">
+                                  <Eye className="ml-2 w-4 h-4" />
+                                  <a href={'vlc://' + source.url}>
+                                  تماشا با VLC
+                                  </a>
+                                </Button>
+
                                 <Button
                                   onClick={() => window.open("https://www.videolan.org/vlc/", "_blank")}
                                   className="flex-1"
