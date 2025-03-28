@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { Toaster } from "sonner";
 import { isChromeBrowser, getDownloadMessage } from "../../lib/utils";
+import { apiUrl } from '../../lib/config';
 
 const isFirefoxMobile = () => {
   if (typeof window === 'undefined') return false;
@@ -113,7 +114,9 @@ export default function MoviePage() {
         (source: { quality: string }) => !source.quality || source.quality.includes("تیزر")
       );
       if (trailerSource) {
-        setTrailerUrl(trailerSource.url);
+        // Create proxy URL for the trailer
+        const proxyUrl = `${apiUrl}/api/proxy/video?url=${encodeURIComponent(trailerSource.url)}`;
+        setTrailerUrl(proxyUrl);
       }
     }
     setIsLoading(false);
