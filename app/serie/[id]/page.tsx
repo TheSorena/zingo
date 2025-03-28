@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiUrl } from '../../../lib/config';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
+import ReactPlayer from "react-player";
 
 async function getSerieSeasons(id: string) {
   try {
@@ -54,6 +55,13 @@ export default function SerieDetailPage({
   const [seasons, setSeasons] = useState<SerieSeason[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [trailerUrl, setTrailerUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const getProxyUrl = (url: string) => {
+    if (!url) return "";
+    return `https://http-video.liara.run/?url=${encodeURIComponent(url)}`;
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -82,6 +90,20 @@ export default function SerieDetailPage({
         setSerie(serieData);
         const seasonsData = await getSerieSeasons(params.id);
         setSeasons(seasonsData);
+
+        // Find trailer URL from episodes
+        for (const season of seasonsData) {
+          for (const episode of season.episodes) {
+            if (!episode.title || episode.title.includes("تیزر")) {
+              const trailerSource = episode.sources[0];
+              if (trailerSource) {
+                setTrailerUrl(trailerSource.url);
+                break;
+              }
+            }
+          }
+          if (trailerUrl) break;
+        }
       } catch (err) {
         setError('خطا در دریافت اطلاعات');
       } finally {
@@ -227,6 +249,33 @@ export default function SerieDetailPage({
       </div>
 
       <div className="container max-w-7xl mx-auto px-4 mt-8">
+        {/* Video Player Section */}
+        {trailerUrl && (
+          <div className="mb-6">
+            <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/50">
+              <ReactPlayer
+                url={getProxyUrl(trailerUrl)}
+                width="100%"
+                height="100%"
+                playing={isPlaying}
+                controls={true}
+                playsinline={true}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                config={{
+                  file: {
+                    attributes: {
+                      controlsList: "nodownload",
+                      disablePictureInPicture: true,
+                    },
+                  },
+                }}
+                style={{ position: "absolute", top: 0, left: 0 }}
+              />
+            </div>
+          </div>
+        )}
+
         <p className="text-muted-foreground mb-8 whitespace-pre-line">
           {serie.description}
         </p>
