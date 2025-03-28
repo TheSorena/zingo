@@ -140,7 +140,7 @@ export default function SettingsPage() {
                     <Star className="w-5 h-5 text-primary" />
                     <h3 className="font-semibold text-lg">سینما پلاس</h3>
                   </div>
-                  <p className="text-muted-foreground">دانلود رایگان فیلم و سریال</p>
+                  <p className="text-muted-foreground">دانلود رایگان فیلم و سریال با کیفیت بالا و سریع و بدون سابقه حساب و هیچگونه هزینه ای و بدون سانسور.</p>
                 </div>
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <p className="font-medium mb-1">نسخه</p>
