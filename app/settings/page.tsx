@@ -91,7 +91,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
               <Wrench className="w-5 h-5" />
-                توسعه دهندگان
+                توسعه دهندگان سینما پلاس
               </CardTitle>
               <CardDescription>
               <a 
