@@ -4,7 +4,7 @@ import { SearchInput } from "@/components/search-input";
 import { MobileNav } from "../../components/mobile-nav";
 import { ThemeToggle } from "../../components/theme-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { Settings, Sun, Moon, Monitor, Info, Share2, Command } from "lucide-react";
+import { Settings, Sun, Moon, Monitor, Info, Share2, Command, Wrench } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NavItems } from "@/components/nav-items-client";
 import Link from "next/link";
@@ -85,6 +85,32 @@ export default function SettingsPage() {
                 </div>
               </div>
             </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+              <Wrench className="w-5 h-5" />
+                توسعه دهندگان
+              </CardTitle>
+              <CardDescription>
+              <a 
+                href="https://github.com/code3-dev"
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm hover:underline"
+              >
+                حسین پیرا</a> 
+
+              <a 
+                href="https://github.com/MamdMehrabi"
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm hover:underline"
+                >محمد مهرابی راد</a>
+              
+              </CardDescription>
+            </CardHeader>
           </Card>
 
           {/* Social Links */}
