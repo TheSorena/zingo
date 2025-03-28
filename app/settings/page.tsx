@@ -121,7 +121,7 @@ export default function SettingsPage() {
                   ایمیل
                 </a>
                 <a 
-                  href="https://instagram.com/h3dev.pira" 
+                  href="https://instagram.com/cinemaplus_app" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-sm hover:underline"
