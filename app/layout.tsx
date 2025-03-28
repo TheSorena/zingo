@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Vazirmatn } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import PrivacyCheck from './components/PrivacyCheck';
+import DownloadAppPopup from './components/DownloadAppPopup';
 
 const vazirmatn = Vazirmatn({ subsets: ['arabic'] });
 
@@ -93,6 +94,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <PrivacyCheck />
+          <DownloadAppPopup />
           {children}
         </ThemeProvider>
       </body>
