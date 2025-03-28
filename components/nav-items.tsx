@@ -1,4 +1,4 @@
-import { Home, Clapperboard, Search, User, Settings } from "lucide-react";
+import { Home, Clapperboard, Search, User, Settings, HelpCircle } from "lucide-react";
 
 export const navItems = [
   {

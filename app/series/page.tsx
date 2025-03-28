@@ -97,14 +97,16 @@ export default async function SeriesPage() {
       <div className="container py-8 pb-24 md:pb-8 px-4 md:px-6 lg:px-8">
         {/* Help Image for Mobile/Tablet */}
         <div className="lg:hidden mb-6">
-          <Image
-            src="/help.jpg"
-            alt="راهنمای استفاده"
-            width={1200}
-            height={300}
-            className="w-full rounded-xl object-cover"
-            priority
-          />
+          <Link href="/help" className="block transition-transform hover:scale-[1.01]">
+            <Image
+              src="/help.jpg"
+              alt="راهنمای استفاده"
+              width={1200}
+              height={300}
+              className="w-full rounded-xl object-cover"
+              priority
+            />
+          </Link>
         </div>
 
         <div className="flex items-center justify-between mb-8">
