@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: 'Cinema Plus | سینما پلاس',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Cinema Plus - Modern Movie Application | سینما پلاس - اپلیکیشن مدرن فیلم و سریال',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Cinema Plus | سینما پلاس',
     description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,

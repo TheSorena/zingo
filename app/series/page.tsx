@@ -32,10 +32,19 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'سریال‌ها | Cinema Plus | سریال‌ها | سینما پلاس',
     description: 'Watch your favorite TV series | تماشای سریال‌های مورد علاقه شما',
+    images: [
+      {
+        url: '/series.png',
+        width: 1200,
+        height: 630,
+        alt: 'Cinema Plus - Modern Movie Application | سینما پلاس - اپلیکیشن مدرن فیلم و سریال',
+      },
+    ],
   },
   twitter: {
     title: 'سریال‌ها | Cinema Plus | سریال‌ها | سینما پلاس',
     description: 'Watch your favorite TV series | تماشای سریال‌های مورد علاقه شما',
+    images: ['/series.png']
   },
 };
 
