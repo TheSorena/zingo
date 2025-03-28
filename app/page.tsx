@@ -7,6 +7,7 @@ import { NavItems } from "../components/nav-items-client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SearchInput } from "../components/search-input";
+import { SerieCard } from "./series/serie-card";
 import { apiUrl } from '../lib/config';
 import Image from "next/image";
 
@@ -23,7 +24,7 @@ async function getMovies() {
     );
     
     if (!response.ok) {
-      throw new Error('خطا در دریافت اطلاعات');
+      throw new Error('خطا در دریافت اطلاعات از سرور');
     }
     
     return response.json();
@@ -33,8 +34,31 @@ async function getMovies() {
   }
 }
 
+async function getBestSeries() {
+  try {
+    const result = await fetch(
+    `${apiUrl}/api/poster/by/filtres/27/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+    {
+      headers: {
+        'Accept': 'application/json'
+      },
+      cache: 'no-store'
+    }
+    );
+    if (!result.ok) {
+      throw new Error('خطا در دریافت اطلاعات از سرور')
+    }
+
+    return result.json();
+  } catch (error) {
+    console.error('Error fetching info: ', error);
+    return null;
+  }
+}
+
 export default async function Home() {
   const movies = await getMovies();
+  const bestSeries = await getBestSeries();
 
   return (
     <main className="min-h-screen bg-background">
@@ -70,7 +94,7 @@ export default async function Home() {
         </div>
 
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl md:text-2xl font-semibold">فیلم‌های جدید</h2>
+          <h2 className="text-xl md:text-2xl font-semibold text-center">فیلم‌های جدید</h2>
           <div className="md:hidden relative">
             <SearchInput placeholder="جستجو..." className="w-48" />
           </div>
@@ -85,8 +109,21 @@ export default async function Home() {
         ) : (
           <ErrorState />
         )}
-      </div>
 
+      <hr className="mt-4 mb-4" />
+
+      <h2 className="text-xl md:text-2xl font-semibold mb-4 text-center">سریال های برتر</h2>
+
+      {bestSeries ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
+          {bestSeries.map((serie: any) => (
+            <SerieCard key={serie.id} serie={serie} />
+          ))}
+        </div>
+      ) : (
+        <ErrorState />
+      )}
+    </div>
       <MobileNav />
     </main>
   );
