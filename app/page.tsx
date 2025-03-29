@@ -100,6 +100,28 @@ async function getBestSeries() {
   }
 }
 
+async function getUpdateSeries() {
+  try {
+    const result = await fetch(
+    `${apiUrl}/api/poster/by/filtres/31/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+    {
+      headers: {
+        'Accept': 'application/json'
+      },
+      cache: 'no-store'
+    }
+    );
+    if (!result.ok) {
+      throw new Error('خطا در دریافت اطلاعات از سرور')
+    }
+
+    return result.json();
+  } catch (error) {
+    console.error('Error fetching top rated series:', error);
+    return null;
+  }
+}
+
 async function getTopRatedSeries() {
   try {
     const result = await fetch(
@@ -128,6 +150,9 @@ export default async function Home() {
   const newSeries = await getNewSeries();
   const topRatedSeries = await getTopRatedSeries();
   const bestSeries = await getBestSeries();
+  const updateSerie = await getUpdateSeries();
+
+
   return (
     <main className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -173,12 +198,24 @@ export default async function Home() {
           ) : (
             <ErrorState />
           )}
+
+          <hr />
           
           {topRatedMovies ? (
-            <MovieSlider title="30 فیلم برتر (بر اساس IMDB)" movies={topRatedMovies} />
+            <MovieSlider title="30 سینمایی برتر (بر اساس IMDB)" movies={topRatedMovies} />
           ) : (
             <ErrorState />
           )}
+
+          <hr />
+
+          {updateSerie ? (
+            <SerieSlider title="30 سریال آپدیت شده" series={updateSerie} />
+          ) : (
+            <ErrorState />
+          )}
+
+          <hr />
 
           {newSeries ? (
             <SerieSlider title="30 سریال جدید اضافه شده" series={newSeries} />
@@ -186,11 +223,15 @@ export default async function Home() {
             <ErrorState />
           )}
 
+          <hr />
+
           {bestSeries ? (
             <SerieSlider title="30 سریال برتر" series={bestSeries} />
           ) : (
             <ErrorState />
           )}
+
+          <hr />
           
           {topRatedSeries ? (
             <SerieSlider title="30 سریال برتر (بر اساس IMDB)" series={topRatedSeries} />
