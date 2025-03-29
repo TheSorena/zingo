@@ -1,17 +1,16 @@
 import { MobileNav } from "../components/mobile-nav";
-import { MovieCard } from "../components/movie-card";
-import { Command, Search } from "lucide-react";
+import { Command, FilmIcon, TrendingUp, Clock, Star } from "lucide-react";
 import { ThemeToggle } from "../components/theme-toggle";
 import { ErrorState } from "../components/error-state";
 import { NavItems } from "../components/nav-items-client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { SearchInput } from "../components/search-input";
-import { SerieCard } from "./series/serie-card";
 import { apiUrl } from '../lib/config';
 import Image from "next/image";
+import { MovieSlider } from "../components/movie-slider";
+import { SerieSlider } from "../components/serie-slider";
 
-async function getMovies() {
+async function getNewMovies() {
   try {
     const response = await fetch(
       `${apiUrl}/api/movie/by/filtres/0/created/0/4F5A9C3D9A86FA54EACEDDD635185`,
@@ -29,7 +28,52 @@ async function getMovies() {
     
     return response.json();
   } catch (error) {
-    console.error('Error fetching movies:', error);
+    console.error('Error fetching new movies:', error);
+    return null;
+  }
+}
+
+async function getTopRatedMovies() {
+  try {
+    const response = await fetch(
+      `${apiUrl}/api/movie/by/filtres/0/imdb/0/4F5A9C3D9A86FA54EACEDDD635185`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-store'
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('خطا در دریافت اطلاعات از سرور');
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching top rated movies:', error);
+    return null;
+  }
+}
+
+async function getNewSeries() {
+  try {
+    const result = await fetch(
+    `${apiUrl}/api/serie/by/filtres/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+    {
+      headers: {
+        'Accept': 'application/json'
+      },
+      cache: 'no-store'
+    }
+    );
+    if (!result.ok) {
+      throw new Error('خطا در دریافت اطلاعات از سرور')
+    }
+
+    return result.json();
+  } catch (error) {
+    console.error('Error fetching series:', error);
     return null;
   }
 }
@@ -51,15 +95,39 @@ async function getBestSeries() {
 
     return result.json();
   } catch (error) {
-    console.error('Error fetching info: ', error);
+    console.error('Error fetching top rated series:', error);
+    return null;
+  }
+}
+
+async function getTopRatedSeries() {
+  try {
+    const result = await fetch(
+    `${apiUrl}/api/poster/by/filtres/27/0/imdb/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+    {
+      headers: {
+        'Accept': 'application/json'
+      },
+      cache: 'no-store'
+    }
+    );
+    if (!result.ok) {
+      throw new Error('خطا در دریافت اطلاعات از سرور')
+    }
+
+    return result.json();
+  } catch (error) {
+    console.error('Error fetching top rated series:', error);
     return null;
   }
 }
 
 export default async function Home() {
-  const movies = await getMovies();
+  const newMovies = await getNewMovies();
+  const topRatedMovies = await getTopRatedMovies();
+  const newSeries = await getNewSeries();
+  const topRatedSeries = await getTopRatedSeries();
   const bestSeries = await getBestSeries();
-
   return (
     <main className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -93,37 +161,44 @@ export default async function Home() {
           </Link>
         </div>
 
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl md:text-2xl font-semibold text-center">فیلم‌های جدید</h2>
-          <div className="md:hidden relative">
-            <SearchInput placeholder="جستجو..." className="w-48" />
-          </div>
+        {/* Mobile Search */}
+        <div className="md:hidden mb-8 relative">
+          <SearchInput placeholder="جستجو..." className="w-full" />
         </div>
         
-        {movies ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
-            {movies.map((movie: any) => (
-              <MovieCard key={movie.id} movie={movie} />
-            ))}
-          </div>
-        ) : (
-          <ErrorState />
-        )}
+        {/* Content Sliders */}
+        <div className="space-y-12">
+          {newMovies ? (
+            <MovieSlider title="30 فیلم جدید اضافه شده" movies={newMovies} />
+          ) : (
+            <ErrorState />
+          )}
+          
+          {topRatedMovies ? (
+            <MovieSlider title="30 فیلم برتر (بر اساس IMDB)" movies={topRatedMovies} />
+          ) : (
+            <ErrorState />
+          )}
 
-      <hr className="mt-4 mb-4" />
+          {newSeries ? (
+            <SerieSlider title="30 سریال جدید اضافه شده" series={newSeries} />
+          ) : (
+            <ErrorState />
+          )}
 
-      <h2 className="text-xl md:text-2xl font-semibold mb-4 text-center">سریال های برتر</h2>
-
-      {bestSeries ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
-          {bestSeries.map((serie: any) => (
-            <SerieCard key={serie.id} serie={serie} />
-          ))}
+          {bestSeries ? (
+            <SerieSlider title="30 سریال برتر" series={bestSeries} />
+          ) : (
+            <ErrorState />
+          )}
+          
+          {topRatedSeries ? (
+            <SerieSlider title="30 سریال برتر (بر اساس IMDB)" series={topRatedSeries} />
+          ) : (
+            <ErrorState />
+          )}
         </div>
-      ) : (
-        <ErrorState />
-      )}
-    </div>
+      </div>
       <MobileNav />
     </main>
   );
