@@ -194,7 +194,7 @@ export default async function Home() {
         {/* Content Sliders */}
         <div className="space-y-12">
           {newMovies ? (
-            <MovieSlider title="30 فیلم جدید اضافه شده" movies={newMovies} />
+            <MovieSlider title="30 سینمایی جدید اضافه شده" movies={newMovies} />
           ) : (
             <ErrorState />
           )}

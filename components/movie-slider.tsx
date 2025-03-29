@@ -11,6 +11,7 @@ import {
   type CarouselApi
 } from "./ui/carousel";
 import { cn } from "@/lib/utils";
+import { SearchResultCard } from "./search-result-card";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
@@ -67,7 +68,8 @@ export function MovieSlider({ title, movies, className }: MovieSliderProps) {
             {movies.map((movie) => (
               <CarouselItem key={movie.id} className="pr-4 basis-[calc(50%-16px)] sm:basis-[calc(33.333%-16px)] md:basis-[calc(25%-16px)] lg:basis-[calc(20%-16px)] xl:basis-[calc(16.666%-16px)]">
                 <div className="overflow-hidden rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-                  <MovieCard movie={movie} />
+                  {/* <MovieCard movie={movie} /> */}
+                  <SearchResultCard key={movie.id} result={movie} />
                 </div>
               </CarouselItem>
             ))}
