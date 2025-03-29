@@ -72,8 +72,8 @@ export function SerieSlider({ title, series, className }: SerieSliderProps) {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent z-10" />
-          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent z-10" />
+          <div className="absolute inset-y-0 left-0 w-16 z-10" />
+          <div className="absolute inset-y-0 right-0 w-16 z-10" />
           {current > 0 && (
             <CarouselPrevious className="absolute left-2 h-9 w-9 bg-background/90 hover:bg-background border-primary/20 z-20" />
           )}
