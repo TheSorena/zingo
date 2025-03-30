@@ -3,17 +3,27 @@ import { apiUrl } from '../../lib/config';
 import { decodeShareTitle } from '../../lib/utils';
 import { ClientRedirect } from './client-redirect';
 
-interface SearchResult {
+interface BaseSearchResult {
   id: number;
   title: string;
-  type: string;
   year: number;
   imdb: number;
   duration: string;
   image: string;
   description: string;
-  country: { id: number; title: string, image?: string }[];
 }
+
+interface MovieSearchResult extends BaseSearchResult {
+  type: 'movie';
+  country: { id: number; title: string; image: string }[];
+}
+
+interface SerieSearchResult extends BaseSearchResult {
+  type: 'serie';
+  country: { id: number; title: string }[];
+}
+
+type SearchResult = MovieSearchResult | SerieSearchResult;
 
 async function searchContent(title: string, targetId: string) {
   try {
