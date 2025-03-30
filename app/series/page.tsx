@@ -94,7 +94,7 @@ export default async function SeriesPage() {
         </div>
       </header>
 
-      <div className="container py-8 pb-24 md:pb-8 px-4 md:px-6 lg:px-8">
+      <div className="container py-8 pb-24 md:pb-8 px-4 md:px-6 lg:px-8 max-w-[2000px] mx-auto">
         {/* Help Image for Mobile/Tablet */}
         <div className="lg:hidden mb-6">
           <Link href="/help" className="block transition-transform hover:scale-[1.01]">
@@ -116,7 +116,7 @@ export default async function SeriesPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
           {series.map((serie: Serie) => (
             <SerieCard key={serie.id} serie={serie} />
           ))}

@@ -72,7 +72,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </div>
       </header>
 
-      <div className="container max-w-6xl mx-auto py-8 md:py-12 px-4 mb-20 md:mb-0">
+      <div className="container max-w-[2000px] mx-auto py-8 md:py-12 px-4 mb-20 md:mb-0">
         <div className="space-y-8 md:space-y-12">
           {/* Search Header */}
           <div className="text-center space-y-4 max-w-2xl mx-auto">
@@ -125,7 +125,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 md:gap-6">
                 {results.map((result: SearchResult) => (
                   <SearchResultCard key={result.id} result={result} />
                 ))}

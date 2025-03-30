@@ -171,7 +171,7 @@ export default async function Home() {
         </div>
       </header>
 
-      <div className="container py-8 pb-24 md:pb-8 px-4 md:px-6 lg:px-8">
+      <div className="container py-8 pb-24 md:pb-8 px-4 md:px-6 lg:px-8 max-w-[2000px] mx-auto">
         {/* Help Image for Mobile/Tablet */}
         <div className="lg:hidden mb-6">
           <Link href="/help" className="block transition-transform hover:scale-[1.01]">
@@ -192,7 +192,7 @@ export default async function Home() {
         </div>
         
         {/* Content Sliders */}
-        <div className="space-y-12">
+        <div className="space-y-8 md:space-y-12">
           {newMovies ? (
             <MovieSlider title="30 سینمایی جدید اضافه شده" movies={newMovies} />
           ) : (
