@@ -199,6 +199,8 @@ export default async function Home() {
             <ErrorState />
           )}
 
+          <hr />
+
           {/* Donation Banner */}
           <div className="my-6">
             <Link href="https://daramet.com/cinemaplus" target="_blank" rel="noopener noreferrer" className="block transition-transform hover:scale-[1.01]">
