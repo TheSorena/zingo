@@ -79,7 +79,7 @@ export function AndroidDownloadDialog({
         <div className="flex flex-col space-y-4 mt-5">
           <Button 
             onClick={handleDownloadWithADM}
-            className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 h-14 text-base"
+            className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 h-14 text-base text-white"
           >
             <Smartphone className="h-6 w-6" />
             <span>دانلود با ADM</span>
