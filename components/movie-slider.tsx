@@ -64,9 +64,9 @@ export function MovieSlider({ title, movies, className }: MovieSliderProps) {
           className="w-full"
           setApi={setApi}
         >
-          <CarouselContent className="-ml-2 -mr-2">
+          <CarouselContent className="-ml-4 -mr-4">
             {movies.map((movie) => (
-              <CarouselItem key={movie.id} className="pr-4 basis-[calc(50%-16px)] sm:basis-[calc(33.333%-16px)] md:basis-[calc(25%-16px)] lg:basis-[calc(20%-16px)] xl:basis-[calc(16.666%-16px)]">
+              <CarouselItem key={movie.id} className="pr-1 basis-[calc(50%-16px)] sm:basis-[calc(33.333%-16px)] md:basis-[calc(25%-16px)] lg:basis-[calc(20%-16px)] xl:basis-[calc(16.666%-16px)]">
                 <div className="overflow-hidden rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
                   {/* <MovieCard movie={movie} /> */}
                   <SearchResultCard key={movie.id} result={movie} />
