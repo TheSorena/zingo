@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
-import { isChromeBrowser, getDownloadMessage } from "../lib/utils";
+import { isChromeBrowser, getDownloadMessage, isAndroidDevice } from "../lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import { useState } from "react";
+import { AndroidDownloadDialog } from "./android-download-dialog";
 
 interface DownloadLinkProps {
   url: string;
@@ -24,6 +25,7 @@ interface DownloadLinkProps {
 
 export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
   const [showAlert, setShowAlert] = useState(false);
+  const [showAndroidDialog, setShowAndroidDialog] = useState(false);
 
   const copyToClipboard = async (url: string) => {
     try {
@@ -45,9 +47,26 @@ export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
     }
   };
 
+  const handleChromeDownload = (downloadUrl: string) => {
+    // Make sure we're using the correct URL
+    const urlToUse = downloadUrl || url;
+    
+    // Show the Chrome alert dialog with a small delay to ensure UI updates properly
+    setTimeout(() => {
+      setShowAlert(true);
+    }, 100);
+  };
+
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     
+    // If it's an Android device, show the Android-specific dialog
+    if (isAndroidDevice()) {
+      setShowAndroidDialog(true);
+      return;
+    }
+    
+    // Otherwise handle as before
     if (isChromeBrowser()) {
       setShowAlert(true);
       return;
@@ -94,6 +113,15 @@ export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
 
       </div>
 
+      {/* Android Download Dialog */}
+      <AndroidDownloadDialog 
+        url={url}
+        isOpen={showAndroidDialog}
+        onClose={() => setShowAndroidDialog(false)}
+        onChromeDownload={handleChromeDownload}
+      />
+
+      {/* Chrome Alert Dialog */}
       <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>

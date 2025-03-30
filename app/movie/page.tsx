@@ -26,9 +26,10 @@ import {
 } from "../../components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
-import { isChromeBrowser, getDownloadMessage } from "../../lib/utils";
+import { isChromeBrowser, getDownloadMessage, isAndroidDevice } from "../../lib/utils";
 import ReactPlayer from "react-player";
 import { ShareButton } from "../../components/share-button";
+import { AndroidDownloadDialog } from "../../components/android-download-dialog";
 
 interface MovieDetails {
   id: number;
@@ -51,6 +52,7 @@ export default function MoviePage() {
   const [showTrailer, setShowTrailer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
+  const [showAndroidDialog, setShowAndroidDialog] = useState(false);
   const [currentUrl, setCurrentUrl] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const router = useRouter();
@@ -62,11 +64,31 @@ export default function MoviePage() {
     return url;
   };
 
+  const handleChromeDownload = (downloadUrl: string) => {
+    // Make sure we're using the correct URL
+    const urlToUse = downloadUrl || currentUrl;
+    setCurrentUrl(urlToUse);
+    
+    // Show the Chrome alert dialog with a small delay to ensure UI updates properly
+    setTimeout(() => {
+      setShowAlert(true);
+    }, 100);
+  };
+
   const handleDownload = (e: React.MouseEvent, url: string) => {
     e.preventDefault();
     
+    // Set the current URL for dialogs
+    setCurrentUrl(url);
+    
+    // Check if Android device
+    if (isAndroidDevice()) {
+      setShowAndroidDialog(true);
+      return;
+    }
+    
+    // Chrome Browser handling
     if (isChromeBrowser()) {
-      setCurrentUrl(url);
       setShowAlert(true);
       return;
     }
@@ -387,6 +409,14 @@ export default function MoviePage() {
 
       <MobileNav />
       <Toaster richColors closeButton position="top-center" />
+
+      {/* Android Download Dialog */}
+      <AndroidDownloadDialog 
+        url={currentUrl}
+        isOpen={showAndroidDialog}
+        onClose={() => setShowAndroidDialog(false)}
+        onChromeDownload={handleChromeDownload}
+      />
 
       <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
         <AlertDialogContent>

@@ -10,6 +10,11 @@ export function isChromeBrowser(): boolean {
   return /Chrome/.test(navigator.userAgent) && !/Chromium/.test(navigator.userAgent);
 }
 
+export function isAndroidDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  return /android/i.test(navigator.userAgent);
+}
+
 export function getDeviceType(): 'desktop' | 'android' | 'ios' | 'other' {
   if (typeof window === 'undefined') return 'other';
   
