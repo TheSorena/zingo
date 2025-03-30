@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { Toaster } from "sonner";
 import { isChromeBrowser, getDownloadMessage } from "../../lib/utils";
 import ReactPlayer from "react-player";
+import { ShareButton } from "../../components/share-button";
 
 interface MovieDetails {
   id: number;
@@ -165,6 +166,17 @@ export default function MoviePage() {
               />
             </svg>
           </button>
+
+          {/* Share Button */}
+          <div className="fixed top-4 left-4 z-50">
+            {movie && (
+              <ShareButton
+                title={movie.title}
+                type="movie"
+                id={movie.id}
+              />
+            )}
+          </div>
 
           {/* Hero Section */}
           <div className="relative h-[50vh] w-full overflow-hidden">

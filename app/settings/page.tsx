@@ -144,7 +144,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <p className="font-medium mb-1">نسخه</p>
-                  <p className="text-sm text-primary">1.0.0</p>
+                  <p className="text-sm text-primary">{process.env.APP_VERSION || '1.0.0'}</p>
                 </div>
               </div>
             </CardContent>

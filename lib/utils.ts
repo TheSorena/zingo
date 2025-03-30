@@ -48,3 +48,20 @@ export function getDownloadMessage(): string {
              '۲. کپی لینک و استفاده در برنامه‌های دانلود منیجر';
   }
 }
+
+export function encodeShareTitle(title: string): string {
+  return Buffer.from(title).toString('base64');
+}
+
+export function decodeShareTitle(encodedTitle: string): string {
+  try {
+    return Buffer.from(encodedTitle, 'base64').toString();
+  } catch (error) {
+    return '';
+  }
+}
+
+export function generateShareUrl(title: string, type: 'movie' | 'serie', id: string | number): string {
+  const encodedTitle = encodeShareTitle(title);
+  return `/share?t=${encodedTitle}&type=${type}&id=${id}`;
+}

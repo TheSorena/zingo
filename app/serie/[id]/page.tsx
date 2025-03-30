@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { apiUrl } from '../../../lib/config';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import ReactPlayer from "react-player";
+import { ShareButton } from "../../../components/share-button";
 
 async function getSerieSeasons(id: string) {
   try {
@@ -161,20 +162,31 @@ export default function SerieDetailPage({
         href="/series"
         className="fixed top-4 right-4 z-50 bg-background/80 backdrop-blur-sm p-2 rounded-full hover:bg-background/90 transition-all duration-300 hover:scale-110"
       >
-                  <svg
-            className="w-6 h-6 rotate-180"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+        <svg
+          className="w-6 h-6 rotate-180"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
       </Link>
+
+      {/* Share Button */}
+      <div className="fixed top-4 left-4 z-50">
+        {serie && (
+          <ShareButton
+            title={serie.title}
+            type="serie"
+            id={serie.id}
+          />
+        )}
+      </div>
 
       {/* Hero Section */}
       <div className="relative h-[50vh] w-full overflow-hidden">
