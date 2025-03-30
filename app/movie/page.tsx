@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { MobileNav } from "../../components/mobile-nav";
 import Image from "next/image";
 import { Button } from "../../components/ui/button";
-import { Play, Download, Star, Clock, Calendar, Copy, Video, Eye } from "lucide-react";
+import { Play, Download, Star, Clock, Calendar, Copy, Video, Eye, Globe2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -221,27 +221,16 @@ export default function MoviePage() {
                     </div>
                   </div>
 
-                  {/* Country Slider */}
                   {movie.country && movie.country.length > 0 && (
-                    <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                    <div className="flex flex-wrap gap-1.5 mt-2">
                       {movie.country.map((country) => (
-                        <div
+                        <span
                           key={country.id}
-                          className="flex items-center gap-2 bg-muted/50 backdrop-blur-sm px-3 py-1.5 rounded-full flex-shrink-0"
+                          className="bg-muted dark:bg-white/10 backdrop-blur-sm text-foreground dark:text-white px-2.5 py-0.5 rounded-full text-xs flex items-center gap-1"
                         >
-                          <div className="relative w-5 h-5 rounded-full overflow-hidden">
-                            <Image
-                              src={country.image}
-                              alt={country.title}
-                              fill
-                              className="object-cover"
-                              sizes="20px"
-                            />
-                          </div>
-                          <span className="text-sm text-foreground/90 whitespace-nowrap">
-                            {country.title}
-                          </span>
-                        </div>
+                          <Globe2 className="w-3 h-3" />
+                          {country.title}
+                        </span>
                       ))}
                     </div>
                   )}

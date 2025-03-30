@@ -156,7 +156,7 @@ export default function SerieDetailPage({
 
   return (
     <main className="min-h-screen pb-20 md:pb-0">
-      <Toaster />
+      <Toaster richColors closeButton position="top-center" />
       {/* Back Button */}
       <Link
         href="/series"
