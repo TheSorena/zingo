@@ -169,18 +169,7 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-lg mb-2">جستجو و پیدا کردن فیلم‌ها</h3>
-                  <p className="text-muted-foreground mb-4">از نوار جستجو در بالای صفحه برای پیدا کردن فیلم‌ها و سریال‌های مورد نظر خود استفاده کنید. می‌توانید بر اساس نام، ژانر یا سال انتشار جستجو کنید.</p>
-                  
-                  <h3 className="font-semibold text-lg mb-2">دانلود محتوا</h3>
-                  <p className="text-muted-foreground mb-4">پس از پیدا کردن فیلم یا سریال مورد نظر، روی آن کلیک کنید تا وارد صفحه جزئیات شوید. در آنجا می‌توانید کیفیت مورد نظر خود را انتخاب کرده و دانلود را شروع کنید.</p>
-                  
-                  <h3 className="font-semibold text-lg mb-2">تنظیمات شخصی‌سازی</h3>
-                  <p className="text-muted-foreground">می‌توانید از بخش تنظیمات تم، ظاهر برنامه را به دلخواه خود تغییر دهید. همچنین می‌توانید اعلان‌های جدیدترین فیلم‌ها و سریال‌ها را از طریق شبکه‌های اجتماعی ما دنبال کنید.</p>
-                </div>
-                
+              <div className="grid gap-4">                
                 <Link 
                   href="/help"
                   className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
