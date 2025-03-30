@@ -150,6 +150,55 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
+          {/* How to Use */}
+          <Card className="group hover:shadow-md transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <svg 
+                  className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                راهنمای استفاده
+              </CardTitle>
+              <CardDescription className="text-base">
+                نحوه استفاده از سینما پلاس
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2">جستجو و پیدا کردن فیلم‌ها</h3>
+                  <p className="text-muted-foreground mb-4">از نوار جستجو در بالای صفحه برای پیدا کردن فیلم‌ها و سریال‌های مورد نظر خود استفاده کنید. می‌توانید بر اساس نام، ژانر یا سال انتشار جستجو کنید.</p>
+                  
+                  <h3 className="font-semibold text-lg mb-2">دانلود محتوا</h3>
+                  <p className="text-muted-foreground mb-4">پس از پیدا کردن فیلم یا سریال مورد نظر، روی آن کلیک کنید تا وارد صفحه جزئیات شوید. در آنجا می‌توانید کیفیت مورد نظر خود را انتخاب کرده و دانلود را شروع کنید.</p>
+                  
+                  <h3 className="font-semibold text-lg mb-2">تنظیمات شخصی‌سازی</h3>
+                  <p className="text-muted-foreground">می‌توانید از بخش تنظیمات تم، ظاهر برنامه را به دلخواه خود تغییر دهید. همچنین می‌توانید اعلان‌های جدیدترین فیلم‌ها و سریال‌ها را از طریق شبکه‌های اجتماعی ما دنبال کنید.</p>
+                </div>
+                
+                <Link 
+                  href="/help"
+                  className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <svg 
+                    className="w-5 h-5 text-primary" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-medium">مشاهده راهنمای کامل</span>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Legal Information */}
           <Card className="group hover:shadow-md transition-all duration-300">
             <CardHeader>
