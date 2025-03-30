@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { NavItems } from "@/components/nav-items-client";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
 
 const developers = [
   {
@@ -54,6 +55,22 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid gap-6">
+          {/* Donation Banner */}
+          <div className="my-4">
+            <Link href="https://daramet.com/cinemaplus" target="_blank" rel="noopener noreferrer" className="block transition-transform hover:scale-[1.01]">
+              <div className="md:max-w-[60%] lg:max-w-[50%] mx-auto">
+                <Image
+                  src="/donate.png"
+                  alt="حمایت مالی"
+                  width={1200}
+                  height={300}
+                  className="w-full rounded-xl object-cover"
+                  priority
+                />
+              </div>
+            </Link>
+          </div>
+          
           {/* Theme Settings */}
           <Card className="group hover:shadow-md transition-all duration-300">
             <CardHeader>

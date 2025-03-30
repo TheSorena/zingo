@@ -26,7 +26,7 @@ export default function HelpPage() {
       <div className="container max-w-4xl mx-auto py-8 px-4 md:px-6 lg:px-8">
         <div className="prose prose-lg dark:prose-invert max-w-none">
           <h1 className="text-3xl font-bold mb-8 text-center">راهنمای استفاده از سینما پلاس</h1>
-          
+
           {/* Help Image */}
           <div className="mb-8">
             <Image
@@ -64,6 +64,22 @@ export default function HelpPage() {
               </ul>
             </div>
 
+            {/* Donation Banner */}
+            <div className="my-6 mb-8">
+              <Link href="https://daramet.com/cinemaplus" target="_blank" rel="noopener noreferrer" className="block transition-transform hover:scale-[1.01]">
+                <div className="md:max-w-[60%] lg:max-w-[50%] mx-auto">
+                  <Image
+                    src="/donate.png"
+                    alt="حمایت مالی"
+                    width={1200}
+                    height={300}
+                    className="w-full rounded-xl object-cover"
+                    priority
+                  />
+                </div>
+              </Link>
+            </div>
+
             {/* Question 3 */}
             <div className="bg-card/50 backdrop-blur p-6 rounded-xl border">
               <h2 className="text-xl font-semibold mb-4">نحوه دانلود و تماشای فیلم‌ها و سریال‌ها</h2>
@@ -98,7 +114,7 @@ export default function HelpPage() {
 
             {/* Back to Home Button */}
             <div className="text-center mt-8">
-              <Link 
+              <Link
                 href="/"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors"
               >

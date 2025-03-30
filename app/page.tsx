@@ -21,11 +21,11 @@ async function getNewMovies() {
         cache: 'no-store'
       }
     );
-    
+
     if (!response.ok) {
       throw new Error('خطا در دریافت اطلاعات از سرور');
     }
-    
+
     return response.json();
   } catch (error) {
     console.error('Error fetching new movies:', error);
@@ -44,11 +44,11 @@ async function getTopRatedMovies() {
         cache: 'no-store'
       }
     );
-    
+
     if (!response.ok) {
       throw new Error('خطا در دریافت اطلاعات از سرور');
     }
-    
+
     return response.json();
   } catch (error) {
     console.error('Error fetching top rated movies:', error);
@@ -59,13 +59,13 @@ async function getTopRatedMovies() {
 async function getNewSeries() {
   try {
     const result = await fetch(
-    `${apiUrl}/api/serie/by/filtres/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
-    {
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-store'
-    }
+      `${apiUrl}/api/serie/by/filtres/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-store'
+      }
     );
     if (!result.ok) {
       throw new Error('خطا در دریافت اطلاعات از سرور')
@@ -81,13 +81,13 @@ async function getNewSeries() {
 async function getBestSeries() {
   try {
     const result = await fetch(
-    `${apiUrl}/api/poster/by/filtres/27/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
-    {
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-store'
-    }
+      `${apiUrl}/api/poster/by/filtres/27/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-store'
+      }
     );
     if (!result.ok) {
       throw new Error('خطا در دریافت اطلاعات از سرور')
@@ -103,13 +103,13 @@ async function getBestSeries() {
 async function getUpdateSeries() {
   try {
     const result = await fetch(
-    `${apiUrl}/api/poster/by/filtres/31/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
-    {
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-store'
-    }
+      `${apiUrl}/api/poster/by/filtres/31/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-store'
+      }
     );
     if (!result.ok) {
       throw new Error('خطا در دریافت اطلاعات از سرور')
@@ -125,13 +125,13 @@ async function getUpdateSeries() {
 async function getTopRatedSeries() {
   try {
     const result = await fetch(
-    `${apiUrl}/api/poster/by/filtres/27/0/imdb/0/4F5A9C3D9A86FA54EACEDDD635185/`,
-    {
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-store'
-    }
+      `${apiUrl}/api/poster/by/filtres/27/0/imdb/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-store'
+      }
     );
     if (!result.ok) {
       throw new Error('خطا در دریافت اطلاعات از سرور')
@@ -157,7 +157,7 @@ export default async function Home() {
     <main className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group">
             <Command className="h-8 w-8 text-primary transition-transform group-hover:rotate-12" />
             <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
               Cinema Plus
@@ -190,7 +190,7 @@ export default async function Home() {
         <div className="md:hidden mb-8 relative">
           <SearchInput placeholder="جستجو..." className="w-full" />
         </div>
-        
+
         {/* Content Sliders */}
         <div className="space-y-8 md:space-y-12">
           {newMovies ? (
@@ -199,8 +199,24 @@ export default async function Home() {
             <ErrorState />
           )}
 
+          {/* Donation Banner */}
+          <div className="my-6">
+            <Link href="https://daramet.com/cinemaplus" target="_blank" rel="noopener noreferrer" className="block transition-transform hover:scale-[1.01]">
+              <div className="md:max-w-[60%] lg:max-w-[50%] mx-auto">
+                <Image
+                  src="/donate.png"
+                  alt="حمایت مالی"
+                  width={1200}
+                  height={300}
+                  className="w-full rounded-xl object-cover"
+                  priority
+                />
+              </div>
+            </Link>
+          </div>
+
           <hr />
-          
+
           {topRatedMovies ? (
             <MovieSlider title="30 سینمایی برتر (بر اساس IMDB)" movies={topRatedMovies} />
           ) : (
@@ -232,7 +248,25 @@ export default async function Home() {
           )}
 
           <hr />
-          
+
+          {/* Donation Banner */}
+          <div className="my-6">
+            <Link href="https://daramet.com/cinemaplus" target="_blank" rel="noopener noreferrer" className="block transition-transform hover:scale-[1.01]">
+              <div className="md:max-w-[60%] lg:max-w-[50%] mx-auto">
+                <Image
+                  src="/donate.png"
+                  alt="حمایت مالی"
+                  width={1200}
+                  height={300}
+                  className="w-full rounded-xl object-cover"
+                  priority
+                />
+              </div>
+            </Link>
+          </div>
+
+          <hr />
+
           {topRatedSeries ? (
             <SerieSlider title="30 سریال برتر (بر اساس IMDB)" series={topRatedSeries} />
           ) : (
