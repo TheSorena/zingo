@@ -1,7 +1,8 @@
-import { Command } from "lucide-react";
+import { Command, Search } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from 'next';
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: 'راهنمای استفاده | Cinema Plus | سینما پلاس',
@@ -13,13 +14,20 @@ export default function HelpPage() {
     <main className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center px-4 md:px-6 lg:px-8">
+        <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group">
             <Command className="h-8 w-8 text-primary transition-transform group-hover:rotate-12" />
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
               Cinema Plus
             </h1>
           </Link>
+          <div className="flex items-center">
+            <Link href="/search">
+              <Button variant="ghost" size="icon" aria-label="Search">
+                <Search className="h-6 w-6" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
