@@ -271,7 +271,7 @@ export default function FavoritesPage() {
               </p>
               <Link href="/">
                 <Button 
-                  className="mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
                 >
                   مشاهده فیلم‌ها و سریال‌ها
                 </Button>
