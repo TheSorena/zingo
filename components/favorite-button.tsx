@@ -99,7 +99,7 @@ export function FavoriteButton({
         className={`h-5 w-5 transition-all duration-300 ${
           isFavorite 
             ? 'text-red-500 fill-red-500' 
-            : 'text-foreground group-hover:text-red-500'
+            : 'text-foreground group-hover:text-red-500 text-white'
         }`} 
       />
     </Button>
