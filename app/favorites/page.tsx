@@ -39,14 +39,15 @@ export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   useEffect(() => {
     const loadFavorites = () => {
       try {
         const storedFavorites = localStorage.getItem('favorites');
         if (storedFavorites) {
-          setFavorites(JSON.parse(storedFavorites));
+          // Sort by newest first (assuming the most recently added items are at the end of the array)
+          const parsedFavorites = JSON.parse(storedFavorites);
+          setFavorites(parsedFavorites.reverse());
         }
       } catch (error) {
         console.error('Error loading favorites:', error);
@@ -69,26 +70,13 @@ export default function FavoritesPage() {
   const removeFavorite = (id: number) => {
     const updatedFavorites = favorites.filter(item => item.id !== id);
     setFavorites(updatedFavorites);
-    localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+    localStorage.setItem('favorites', JSON.stringify(updatedFavorites.slice().reverse()));
   };
 
   const removeAllFavorites = () => {
     setFavorites([]);
     localStorage.removeItem('favorites');
   };
-
-  const toggleSortOrder = () => {
-    setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest');
-  };
-
-  // Sort favorites based on order
-  const sortedFavorites = [...favorites].sort((a, b) => {
-    if (sortOrder === 'newest') {
-      return b.id - a.id; // Assuming higher IDs are newer items
-    } else {
-      return a.id - b.id;
-    }
-  });
 
   return (
     <main className="min-h-screen bg-background overflow-hidden">
@@ -141,21 +129,7 @@ export default function FavoritesPage() {
 
           {/* Favorites Management */}
           {favorites.length > 0 && (
-            <div className="flex justify-between">
-              <Button
-                variant="outline"
-                onClick={toggleSortOrder}
-                className="flex items-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  {sortOrder === 'newest' ? (
-                    <path d="m3 16 4 4 4-4M7 20V4M21 8l-4-4-4 4M17 4v16" />
-                  ) : (
-                    <path d="m3 8 4-4 4 4M7 4v16M21 16l-4 4-4-4M17 20V4" />
-                  )}
-                </svg>
-                {sortOrder === 'newest' ? 'جدیدترین' : 'قدیمی‌ترین'}
-              </Button>
+            <div className="flex justify-end">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button 
@@ -194,7 +168,7 @@ export default function FavoritesPage() {
             </div>
           ) : favorites.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 md:gap-6">
-              {sortedFavorites.map((item) => (
+              {favorites.map((item) => (
                 <Card 
                   key={item.id}
                   className="group relative overflow-hidden border-0 bg-transparent"
