@@ -18,6 +18,7 @@ import { apiUrl } from '../../../lib/config';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import ReactPlayer from "react-player";
 import { ShareButton } from "../../../components/share-button";
+import { FavoriteButton } from "../../../components/favorite-button";
 
 async function getSerieSeasons(id: string) {
   try {
@@ -208,10 +209,18 @@ export default function SerieDetailPage({
               <Image
                 src={serie.image}
                 alt={serie.title}
-                width={96}
-                height={144}
+                fill
                 className="object-cover"
               />
+              {/* Favorite Button */}
+              <div className="absolute top-1 left-1">
+                <FavoriteButton 
+                  item={serie}
+                  variant="ghost"
+                  size="icon"
+                  className="bg-black/50 rounded-full hover:bg-black/70 w-8 h-8 p-0"
+                />
+              </div>
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-foreground dark:text-white">{serie.title}</h1>

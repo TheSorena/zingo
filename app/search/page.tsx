@@ -65,6 +65,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               Cinema Plus
             </h1>
           </Link>
+          <div className="md:hidden flex items-center">
+            <Link href="/search">
+              <Button variant="ghost" size="icon" aria-label="Search">
+                <Search className="h-6 w-6" />
+              </Button>
+            </Link>
+          </div>
           <div className="hidden md:flex items-center space-x-4 space-x-reverse">
             <NavItems />
             <ThemeToggle />

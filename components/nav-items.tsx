@@ -1,4 +1,4 @@
-import { Home, Clapperboard, Search, User, Settings, HelpCircle } from "lucide-react";
+import { Home, Clapperboard, Search, User, Settings, HelpCircle, Heart } from "lucide-react";
 
 export const navItems = [
   {
@@ -12,9 +12,9 @@ export const navItems = [
     icon: Clapperboard,
   },
   {
-    title: "جستجو",
-    href: "/search",
-    icon: Search,
+    title: "علاقه‌مندی‌ها",
+    href: "/favorites",
+    icon: Heart,
   },
   {
     title: "تنظیمات",

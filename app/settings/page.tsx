@@ -4,12 +4,13 @@ import { SearchInput } from "@/components/search-input";
 import { MobileNav } from "../../components/mobile-nav";
 import { ThemeToggle } from "../../components/theme-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { Settings, Sun, Moon, Monitor, Info, Share2, Command, Wrench, Github, Mail, Code2, Star } from "lucide-react";
+import { Settings, Sun, Moon, Monitor, Info, Share2, Command, Wrench, Github, Mail, Code2, Star, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NavItems } from "@/components/nav-items-client";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 const developers = [
   {
@@ -40,6 +41,13 @@ export default function SettingsPage() {
               Cinema Plus
             </h1>
           </Link>
+          <div className="md:hidden flex items-center">
+            <Link href="/search">
+              <Button variant="ghost" size="icon" aria-label="Search">
+                <Search className="h-6 w-6" />
+              </Button>
+            </Link>
+          </div>
           <div className="hidden md:flex items-center space-x-4 space-x-reverse">
             <NavItems />
             <SearchInput placeholder="جستجو..." />

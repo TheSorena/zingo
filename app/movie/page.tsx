@@ -29,6 +29,7 @@ import { Toaster } from "sonner";
 import { isChromeBrowser, getDownloadMessage } from "../../lib/utils";
 import ReactPlayer from "react-player";
 import { ShareButton } from "../../components/share-button";
+import { FavoriteButton } from "../../components/favorite-button";
 
 interface MovieDetails {
   id: number;
@@ -39,6 +40,7 @@ interface MovieDetails {
   duration: string;
   image: string;
   cover: string;
+  type: string;
   genres: Array<{ id: number; title: string }>;
   sources: Array<{ id: number; quality: string; type: string; url: string }>;
   country: Array<{ id: number; title: string; image: string }>;
@@ -194,14 +196,22 @@ export default function MoviePage() {
             <div className="absolute bottom-0 left-0 right-0 p-6">
               <div className="flex items-start gap-4">
                 {/* Movie Poster */}
-                <div className="w-24 h-36 rounded-lg overflow-hidden flex-shrink-0 shadow-lg">
+                <div className="w-24 h-36 rounded-lg overflow-hidden flex-shrink-0 shadow-lg relative">
                   <Image
                     src={movie.image}
                     alt={movie.title}
-                    width={96}
-                    height={144}
+                    fill
                     className="object-cover"
                   />
+                  {/* Favorite Button */}
+                  <div className="absolute top-1 left-1">
+                    <FavoriteButton 
+                      item={movie}
+                      variant="ghost"
+                      size="icon"
+                      className="bg-black/50 rounded-full hover:bg-black/70 w-8 h-8 p-0"
+                    />
+                  </div>
                 </div>
                 <div className="flex-1">
                   <h1 className="text-2xl font-bold text-foreground dark:text-white">{movie.title}</h1>

@@ -1,7 +1,7 @@
 import { Serie } from "../../types";
 import { Card } from "../../components/ui/card";
 import Image from "next/image";
-import { Command, Star } from "lucide-react";
+import { Command, Star, Search } from "lucide-react";
 import { MobileNav } from "../../components/mobile-nav";
 import { ThemeToggle } from "../../components/theme-toggle";
 import { NavItems } from "../../components/nav-items-client";
@@ -9,6 +9,7 @@ import { SearchInput } from "../../components/search-input";
 import { SerieCard } from "./serie-card";
 import { apiUrl } from '../../lib/config';
 import Link from "next/link";
+import { Button } from "../../components/ui/button";
 import type { Metadata } from 'next';
 
 async function getSeries() {
@@ -86,6 +87,13 @@ export default async function SeriesPage() {
               Cinema Plus
             </h1>
           </Link>
+          <div className="md:hidden flex items-center">
+            <Link href="/search">
+              <Button variant="ghost" size="icon" aria-label="Search">
+                <Search className="h-6 w-6" />
+              </Button>
+            </Link>
+          </div>
           <div className="hidden md:flex items-center space-x-4 space-x-reverse">
             <NavItems />
             <SearchInput placeholder="جستجو..." />
