@@ -112,6 +112,14 @@ export default function ExplorePage() {
 
   const scrollToItem = (index: number) => {
     if (itemRefs.current[index]) {
+      // Pause current video if it's playing
+      if (activeItem?.type === 'video' && videoRef.current) {
+        videoRef.current.pause();
+      }
+      
+      // Change active index before scrolling
+      setActiveIndex(index);
+      
       itemRefs.current[index]?.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
@@ -149,6 +157,14 @@ export default function ExplorePage() {
 
   useEffect(() => {
     if (!activeItem) return;
+    
+    // Pause any previously playing videos
+    const videos = document.querySelectorAll('video');
+    videos.forEach(video => {
+      if (video !== videoRef.current) {
+        video.pause();
+      }
+    });
     
     // Reset video state when activeIndex changes
     setIsPlaying(true); // Default to playing
