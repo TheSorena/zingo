@@ -291,7 +291,7 @@ export default function ExplorePage() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-14 w-14 rounded-full bg-black/40 backdrop-blur-sm border-white/10 text-white hover:bg-black/60 transition-all duration-300"
+                  className="h-14 w-14 rounded-full bg-black/40 backdrop-blur-sm border-white/10 text-white hover:bg-black/60 transition-all duration-300 mb-3"
                   onClick={handleDownload}
                 >
                   <Download className="h-7 w-7" />
