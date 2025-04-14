@@ -45,7 +45,7 @@ export default function ExplorePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/app/explore.json');
+        const response = await fetch('https://code3-dev.github.io/c-explore/api.json');
         if (!response.ok) {
           throw new Error('Failed to fetch explore content');
         }
