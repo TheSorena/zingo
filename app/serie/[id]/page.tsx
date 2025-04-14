@@ -128,8 +128,8 @@ export default function SerieDetailPage({
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <div className="text-lg text-red-500">{error}</div>
-        <Button onClick={() => router.push('/series')}>
-          بازگشت به صفحه سریال‌ها
+        <Button onClick={() => router.push('/')}>
+          بازگشت به صفحه اضلی
         </Button>
       </div>
     );
@@ -160,7 +160,7 @@ export default function SerieDetailPage({
       <Toaster richColors closeButton position="top-center" />
       {/* Back Button */}
       <Link
-        href="/series"
+        href="/"
         className="fixed top-4 right-4 z-50 bg-background/80 backdrop-blur-sm p-2 rounded-full hover:bg-background/90 transition-all duration-300 hover:scale-110"
       >
         <svg
