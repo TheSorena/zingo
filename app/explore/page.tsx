@@ -22,11 +22,24 @@ export default function ExplorePage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(true);
+  const [isFirefoxMobile, setIsFirefoxMobile] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   const activeItem = exploreContent[activeIndex];
+
+  // Check if user is on Firefox Mobile
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      setIsFirefoxMobile(
+        userAgent.includes('android') && 
+        userAgent.includes('firefox') && 
+        userAgent.includes('mobile')
+      );
+    }
+  }, []);
 
   // Load data from explore.json
   useEffect(() => {
@@ -285,7 +298,11 @@ export default function ExplorePage() {
                   <span className="absolute -bottom-6 text-xs text-white">دانلود</span>
                 </Button>
                 
-                <Link href={item.link} target="_blank" rel="noopener noreferrer">
+                <Link 
+                  href={item.link} 
+                  target={isFirefoxMobile ? "_self" : "_blank"} 
+                  rel={isFirefoxMobile ? "" : "noopener noreferrer"}
+                >
                   <Button
                     variant="outline"
                     size="icon"
