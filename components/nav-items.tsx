@@ -7,8 +7,8 @@ export const navItems = [
     icon: Home,
   },
   {
-    title: "اکسپلور",
-    href: "/explore",
+    title: "تلویزیون",
+    href: "/tv",
     icon: Compass,
   },
   {
