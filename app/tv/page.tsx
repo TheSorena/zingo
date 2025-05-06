@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Search, Tv2, Home } from 'lucide-react';
+import { Search, Tv2, ChevronLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Channel {
@@ -80,6 +80,14 @@ export default function TVPage() {
 
   return (
     <main className="min-h-screen bg-background">
+      {/* Back Link */}
+      <div className="container mx-auto max-w-7xl px-6 pt-6 mb-6">
+        <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+          <ChevronLeft className="h-5 w-5" />
+          <span>بازگشت به خانه</span>
+        </Link>
+      </div>
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-purple-900 via-blue-900 to-purple-900">
         <div className="container mx-auto max-w-7xl px-6 py-12">
@@ -90,23 +98,15 @@ export default function TVPage() {
             بیش از {channels.length} کانال تلویزیونی زنده از سراسر ایران
           </p>
           
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="secondary" size="lg" className="flex items-center gap-2">
-                <Home className="w-4 h-4" />
-                بازگشت به خانه
-              </Button>
-            </Link>
-            <div className="relative w-full md:w-96">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-              <Input
-                type="search"
-                placeholder="جستجوی کانال..."
-                className="w-full pl-4 pr-12 py-6 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+          <div className="relative w-full md:w-96">
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+            <Input
+              type="search"
+              placeholder="جستجوی کانال..."
+              className="w-full pl-4 pr-12 py-6 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
       </div>

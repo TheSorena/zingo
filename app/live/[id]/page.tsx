@@ -10,8 +10,6 @@ import {
   VolumeX, 
   Maximize2, 
   Minimize2,
-  Share2,
-  Settings,
   Radio,
   Loader2
 } from 'lucide-react';
@@ -144,18 +142,6 @@ export default function LivePage() {
     }, 3000);
   };
 
-  const shareChannel = async () => {
-    try {
-      await navigator.share({
-        title: channel?.name,
-        text: `Watch ${channel?.name} live on CinemaPlus`,
-        url: window.location.href
-      });
-    } catch (error) {
-      console.log('Error sharing:', error);
-    }
-  };
-
   if (isLoading) {
     return (
       <main className="fixed inset-0 bg-background flex items-center justify-center">
@@ -232,14 +218,6 @@ export default function LivePage() {
                 <h1 className="text-2xl font-bold text-white">
                   {channel.name}
                 </h1>
-                
-                <Button
-                  variant="ghost"
-                  className="text-white hover:bg-white/10"
-                  onClick={shareChannel}
-                >
-                  <Share2 className="h-5 w-5" />
-                </Button>
               </div>
 
               {/* Bottom Controls */}
@@ -252,14 +230,6 @@ export default function LivePage() {
                     onClick={toggleMute}
                   >
                     {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-sm border-white/10 text-white hover:bg-primary/80"
-                  >
-                    <Settings className="h-6 w-6" />
                   </Button>
                 </div>
 
