@@ -9,6 +9,7 @@ import { Search, Tv2, ChevronLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { CountryButton } from '../components/CountryDialog';
 import { ChannelConfirmDialog } from '../components/ChannelConfirmDialog';
+import { FirstTimeMessage } from '../components/FirstTimeMessage';
 
 interface Channel {
   nanoid: string;
@@ -90,13 +91,14 @@ export default function TVPage() {
 
   return (
     <main className="min-h-screen bg-background">
+      <FirstTimeMessage />
       {/* Back Link */}
       <div className="container mx-auto max-w-7xl px-6 pt-6 mb-6">
         <div className="flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-            <ChevronLeft className="h-5 w-5" />
-            <span>بازگشت به خانه</span>
-          </Link>
+        <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+          <ChevronLeft className="h-5 w-5" />
+          <span>بازگشت به خانه</span>
+        </Link>
           <CountryButton currentCountry={selectedCountry} />
         </div>
       </div>

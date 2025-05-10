@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Hls from 'hls.js';
 import { motion, AnimatePresence } from 'framer-motion';
+import YouTube from 'react-youtube';
 
 interface Channel {
   nanoid: string;
@@ -43,6 +44,8 @@ export default function LivePage() {
   const hlsRef = useRef<Hls | null>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isYouTube, setIsYouTube] = useState(false);
+  const [youtubeId, setYoutubeId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchChannel = async () => {
@@ -75,13 +78,34 @@ export default function LivePage() {
 
     const video = videoRef.current;
     const streamUrl = channel.iptv_urls[0];
+    const youtubeUrl = channel.youtube_urls[0];
 
-    // Validate stream URL before attempting to load
+    // Function to extract YouTube video ID
+    const getYouTubeId = (url: string) => {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const match = url?.match(regExp);
+      return match && match[2].length === 11 ? match[2] : null;
+    };
+
+    // Check if we have a YouTube URL and no IPTV URL
+    if (!streamUrl && youtubeUrl) {
+      const ytId = getYouTubeId(youtubeUrl);
+      if (ytId) {
+        setIsYouTube(true);
+        setYoutubeId(ytId);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // If we have an IPTV URL, proceed with HLS setup
     if (!streamUrl) {
       setError('آدرس پخش زنده در دسترس نیست');
       setIsLoading(false);
       return;
     }
+
+    setIsYouTube(false);
 
     if (Hls.isSupported()) {
       const hls = new Hls({
@@ -221,6 +245,41 @@ export default function LivePage() {
             بازگشت به لیست کانال‌ها
           </Button>
         </Link>
+      </main>
+    );
+  }
+
+  if (isYouTube && youtubeId) {
+    return (
+      <main className="fixed inset-0 bg-black">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-full h-full">
+            <YouTube
+              videoId={youtubeId}
+              opts={{
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                  autoplay: 1,
+                  controls: 1,
+                  modestbranding: 1,
+                  rel: 0,
+                },
+              }}
+              className="w-full h-full"
+            />
+          </div>
+          
+          {/* Top Controls */}
+          <div className="absolute top-0 inset-x-0 p-4">
+            <Link href={`/tv?c=${selectedCountry}`}>
+              <Button variant="ghost" className="text-white hover:bg-white/10">
+                <ChevronLeft className="h-5 w-5 ml-2" />
+                بازگشت
+              </Button>
+            </Link>
+          </div>
+        </div>
       </main>
     );
   }

@@ -28,5 +28,11 @@ export const countries = [
     name: 'ایالات متحده',
     flag: 'us',
     description: 'تماشای کانال‌های تلویزیونی زنده از ایالات متحده'
+  },
+  { 
+    code: 'fr',
+    name: 'فرانسه',
+    flag: 'fr',
+    description: 'تماشای کانال‌های تلویزیونی زنده از فرانسه'
   }
 ]; 
