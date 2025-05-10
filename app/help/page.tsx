@@ -72,22 +72,6 @@ export default function HelpPage() {
               </ul>
             </div>
 
-            {/* Donation Banner */}
-            <div className="my-6 mb-8">
-              <Link href="https://daramet.com/cinemaplus" target="_blank" rel="noopener noreferrer" className="block transition-transform hover:scale-[1.01]">
-                <div className="md:max-w-[60%] lg:max-w-[50%] mx-auto">
-                  <Image
-                    src="/donate.png"
-                    alt="حمایت مالی"
-                    width={1200}
-                    height={300}
-                    className="w-full rounded-xl object-cover"
-                    priority
-                  />
-                </div>
-              </Link>
-            </div>
-
             {/* Question 3 */}
             <div className="bg-card/50 backdrop-blur p-6 rounded-xl border">
               <h2 className="text-xl font-semibold mb-4">نحوه دانلود و تماشای فیلم‌ها و سریال‌ها</h2>

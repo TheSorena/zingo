@@ -207,26 +207,6 @@ export default async function Home() {
             <ErrorState />
           )}
 
-          <hr />
-
-          {/* Donation Banner */}
-          <div className="my-6">
-            <Link href="https://daramet.com/cinemaplus" target="_blank" rel="noopener noreferrer" className="block transition-transform hover:scale-[1.01]">
-              <div className="md:max-w-[60%] lg:max-w-[50%] mx-auto">
-                <Image
-                  src="/donate.png"
-                  alt="حمایت مالی"
-                  width={1200}
-                  height={300}
-                  className="w-full rounded-xl object-cover"
-                  priority
-                />
-              </div>
-            </Link>
-          </div>
-
-          <hr />
-
           {topRatedMovies ? (
             <MovieSlider title="30 سینمایی برتر (بر اساس IMDB)" movies={topRatedMovies} />
           ) : (
@@ -256,26 +236,6 @@ export default async function Home() {
           ) : (
             <ErrorState />
           )}
-
-          <hr />
-
-          {/* Donation Banner */}
-          <div className="my-6">
-            <Link href="https://daramet.com/cinemaplus" target="_blank" rel="noopener noreferrer" className="block transition-transform hover:scale-[1.01]">
-              <div className="md:max-w-[60%] lg:max-w-[50%] mx-auto">
-                <Image
-                  src="/donate.png"
-                  alt="حمایت مالی"
-                  width={1200}
-                  height={300}
-                  className="w-full rounded-xl object-cover"
-                  priority
-                />
-              </div>
-            </Link>
-          </div>
-
-          <hr />
 
           {topRatedSeries ? (
             <SerieSlider title="30 سریال برتر (بر اساس IMDB)" series={topRatedSeries} />
