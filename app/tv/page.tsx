@@ -155,7 +155,10 @@ export default function TVPage() {
                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
                     {channel.language === 'fas' ? 'فارسی' : 
                      channel.language === 'eng' ? 'انگلیسی' : 
-                     channel.language === 'ara' ? 'عربی' : 'نامشخص'}
+                     channel.language === 'ara' ? 'عربی' :
+                     channel.language === 'tur' ? 'ترکی' :
+                     channel.language === 'por' ? 'پرتغالی' :
+                     channel.language === 'fra' ? 'فرانسوی' : 'نامشخص'}
                   </p>
                 </div>
               </div>
