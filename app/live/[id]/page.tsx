@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Button } from '../../../components/ui/button';
+import { Button } from '@/components/ui/button';
 import { 
   ChevronLeft, 
   Volume2, 
@@ -28,6 +28,8 @@ interface Channel {
 
 export default function LivePage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const selectedCountry = searchParams.get('c') || 'ir';
   const router = useRouter();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +38,7 @@ export default function LivePage() {
   const [showControls, setShowControls] = useState(true);
   const [currentQuality, setCurrentQuality] = useState('auto');
   const [isBuffering, setIsBuffering] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
@@ -44,7 +47,7 @@ export default function LivePage() {
   useEffect(() => {
     const fetchChannel = async () => {
       try {
-        const response = await fetch('https://raw.githubusercontent.com/TVGarden/tv-garden-channel-list/refs/heads/main/channels/raw/countries/ir.json');
+        const response = await fetch(`https://raw.githubusercontent.com/TVGarden/tv-garden-channel-list/refs/heads/main/channels/raw/countries/${selectedCountry}.json`);
         if (!response.ok) {
           throw new Error('Failed to fetch channels');
         }
@@ -65,13 +68,20 @@ export default function LivePage() {
     };
 
     fetchChannel();
-  }, [params.id, router]);
+  }, [params.id, router, selectedCountry]);
 
   useEffect(() => {
     if (!channel || !videoRef.current) return;
 
     const video = videoRef.current;
     const streamUrl = channel.iptv_urls[0];
+
+    // Validate stream URL before attempting to load
+    if (!streamUrl) {
+      setError('آدرس پخش زنده در دسترس نیست');
+      setIsLoading(false);
+      return;
+    }
 
     if (Hls.isSupported()) {
       const hls = new Hls({
@@ -82,23 +92,37 @@ export default function LivePage() {
 
       hlsRef.current = hls;
 
-      hls.loadSource(streamUrl);
-      hls.attachMedia(video);
-      
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(error => {
-          console.log("Auto-play was prevented:", error);
+      try {
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(error => {
+            console.log("Auto-play was prevented:", error);
+            setError('خطا در پخش خودکار ویدیو');
+          });
         });
-      });
 
-      // Add buffering detection
-      hls.on(Hls.Events.BUFFER_APPENDING, () => {
-        setIsBuffering(true);
-      });
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            console.error('Fatal HLS error:', data);
+            setError('خطا در بارگذاری پخش زنده');
+            setIsLoading(false);
+          }
+        });
 
-      hls.on(Hls.Events.FRAG_BUFFERED, () => {
-        setIsBuffering(false);
-      });
+        hls.on(Hls.Events.BUFFER_APPENDING, () => {
+          setIsBuffering(true);
+        });
+
+        hls.on(Hls.Events.FRAG_BUFFERED, () => {
+          setIsBuffering(false);
+        });
+      } catch (error) {
+        console.error('Error initializing HLS:', error);
+        setError('خطا در راه‌اندازی پخش زنده');
+        setIsLoading(false);
+      }
 
       return () => {
         hls.destroy();
@@ -107,6 +131,7 @@ export default function LivePage() {
       video.src = streamUrl;
       video.play().catch(error => {
         console.log("Auto-play was prevented:", error);
+        setError('خطا در پخش خودکار ویدیو');
       });
     }
   }, [channel]);
@@ -142,6 +167,40 @@ export default function LivePage() {
     }, 3000);
   };
 
+  if (error) {
+    return (
+      <main className="fixed inset-0 bg-background flex flex-col items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl mb-4 text-destructive">خطا در پخش</p>
+          <p className="text-muted-foreground mb-6">{error}</p>
+          <div className="flex gap-4 justify-center">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setError(null);
+                setIsLoading(true);
+                if (hlsRef.current) {
+                  hlsRef.current.destroy();
+                }
+                if (videoRef.current) {
+                  videoRef.current.src = '';
+                }
+                router.refresh();
+              }}
+            >
+              تلاش مجدد
+            </Button>
+            <Link href={`/tv?c=${selectedCountry}`}>
+              <Button variant="default">
+                بازگشت به لیست کانال‌ها
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (isLoading) {
     return (
       <main className="fixed inset-0 bg-background flex items-center justify-center">
@@ -157,7 +216,7 @@ export default function LivePage() {
     return (
       <main className="fixed inset-0 bg-background flex flex-col items-center justify-center">
         <p className="text-2xl mb-4">کانال یافت نشد</p>
-        <Link href="/tv">
+        <Link href={`/tv?c=${selectedCountry}`}>
           <Button variant="default">
             بازگشت به لیست کانال‌ها
           </Button>
@@ -208,7 +267,7 @@ export default function LivePage() {
             >
               {/* Top Controls */}
               <div className="absolute top-0 inset-x-0 p-4 flex justify-between items-center">
-                <Link href="/tv">
+                <Link href={`/tv?c=${selectedCountry}`}>
                   <Button variant="ghost" className="text-white hover:bg-white/10">
                     <ChevronLeft className="h-5 w-5 ml-2" />
                     بازگشت
@@ -228,6 +287,7 @@ export default function LivePage() {
                     size="icon"
                     className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-sm border-white/10 text-white hover:bg-primary/80"
                     onClick={toggleMute}
+                    title={isMuted ? "فعال کردن صدا" : "قطع صدا"}
                   >
                     {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
                   </Button>
@@ -238,6 +298,7 @@ export default function LivePage() {
                   size="icon"
                   className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-sm border-white/10 text-white hover:bg-primary/80"
                   onClick={toggleFullscreen}
+                  title={isFullscreen ? "خروج از تمام صفحه" : "نمایش تمام صفحه"}
                 >
                   {isFullscreen ? (
                     <Minimize2 className="h-6 w-6" />

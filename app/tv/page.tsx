@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import Link from 'next/link';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
+import { useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Search, Tv2, ChevronLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { CountryButton } from '../components/CountryDialog';
+import { ChannelConfirmDialog } from '../components/ChannelConfirmDialog';
 
 interface Channel {
   nanoid: string;
@@ -33,14 +36,21 @@ const item = {
 };
 
 export default function TVPage() {
+  const searchParams = useSearchParams();
+  const selectedCountry = searchParams.get('c') || 'ir';
   const [channels, setChannels] = useState<Channel[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchChannels = async () => {
+      if (!selectedCountry) return;
+      
       try {
-        const response = await fetch('https://raw.githubusercontent.com/TVGarden/tv-garden-channel-list/refs/heads/main/channels/raw/countries/ir.json');
+        setIsLoading(true);
+        const response = await fetch(`https://raw.githubusercontent.com/TVGarden/tv-garden-channel-list/refs/heads/main/channels/raw/countries/${selectedCountry}.json`);
         if (!response.ok) {
           throw new Error('Failed to fetch channels');
         }
@@ -54,7 +64,7 @@ export default function TVPage() {
     };
 
     fetchChannels();
-  }, []);
+  }, [selectedCountry]);
 
   const filteredChannels = channels.filter(channel =>
     channel.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -82,10 +92,13 @@ export default function TVPage() {
     <main className="min-h-screen bg-background">
       {/* Back Link */}
       <div className="container mx-auto max-w-7xl px-6 pt-6 mb-6">
-        <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-          <ChevronLeft className="h-5 w-5" />
-          <span>بازگشت به خانه</span>
-        </Link>
+        <div className="flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+            <ChevronLeft className="h-5 w-5" />
+            <span>بازگشت به خانه</span>
+          </Link>
+          <CountryButton currentCountry={selectedCountry} />
+        </div>
       </div>
 
       {/* Hero Section */}
@@ -95,7 +108,7 @@ export default function TVPage() {
             تلویزیون زنده
           </h1>
           <p className="text-white/80 text-lg mb-8">
-            بیش از {channels.length} کانال تلویزیونی زنده از سراسر ایران
+            {channels.length} کانال تلویزیونی زنده
           </p>
           
           <div className="relative w-full md:w-96">
@@ -105,7 +118,7 @@ export default function TVPage() {
               placeholder="جستجوی کانال..."
               className="w-full pl-4 pr-12 py-6 bg-white/10 border-white/20 text-white placeholder:text-white/60"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -119,9 +132,14 @@ export default function TVPage() {
           animate="show"
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
         >
-          {filteredChannels.map((channel) => (
-            <motion.div key={channel.nanoid} variants={item}>
-              <Link href={`/live/${channel.nanoid}`}>
+          {filteredChannels.map((channel, index) => (
+            <motion.div key={`${channel.nanoid}-${index}`} variants={item}>
+              <div
+                onClick={() => {
+                  setSelectedChannel(channel);
+                  setIsDialogOpen(true);
+                }}
+              >
                 <div className="group relative bg-card hover:bg-accent rounded-xl p-4 transition-all duration-300 cursor-pointer border border-border hover:border-primary hover:shadow-lg hover:shadow-primary/5">
                   <div className="aspect-video bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg flex items-center justify-center mb-3 group-hover:from-purple-500/20 group-hover:to-blue-500/20 transition-all">
                     <div className="text-4xl font-bold text-primary/40 group-hover:text-primary transition-colors">
@@ -138,10 +156,21 @@ export default function TVPage() {
                      channel.language === 'ara' ? 'عربی' : 'نامشخص'}
                   </p>
                 </div>
-              </Link>
+              </div>
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Channel Confirmation Dialog */}
+        {selectedChannel && (
+          <ChannelConfirmDialog
+            isOpen={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            channelName={selectedChannel.name}
+            channelId={selectedChannel.nanoid}
+            selectedCountry={selectedCountry}
+          />
+        )}
 
         {filteredChannels.length === 0 && (
           <div className="text-center py-12">
