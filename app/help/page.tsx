@@ -104,6 +104,25 @@ export default function HelpPage() {
               </div>
             </div>
 
+            {/* Question 5 - TV Channels */}
+            <div className="bg-card/50 backdrop-blur p-6 rounded-xl border">
+              <h2 className="text-xl font-semibold mb-4">راهنمای پیدا کردن شبکه‌های تلویزیونی</h2>
+              <div className="space-y-4">
+                <p className="text-muted-foreground leading-relaxed">
+                  بعضی شبکه‌های ماهواره‌ای فارسی زبان ممکنه در کشورهای دیگه باشن.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  پس برای اینکه بدونید در کدوم کشور کانال مورد نظر شما وجود داره، اونو داخل اینترنت جستجو کنید و کشور مورد نظر رو انتخاب کنید و عنوان شبکه رو جستجو کنید.
+                </p>
+                <div className="bg-accent/50 p-4 rounded-lg mt-4">
+                  <h3 className="font-medium mb-2">مثال:</h3>
+                  <p className="text-muted-foreground">
+                    شبکه Persiana در فرانسه وجود دارد. چون دفتر مرکزی این شبکه اونجاست.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Back to Home Button */}
             <div className="text-center mt-8">
               <Link
