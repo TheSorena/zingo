@@ -40,5 +40,29 @@ export const countries = [
     name: 'روسیه',
     flag: 'ru',
     description: 'تماشای کانال‌های تلویزیونی زنده از روسیه'
+  },
+  { 
+    code: 'ca',
+    name: 'کانادا',
+    flag: 'ca',
+    description: 'تماشای کانال‌های تلویزیونی زنده از کانادا'
+  },
+  { 
+    code: 'de',
+    name: 'آلمان',
+    flag: 'de',
+    description: 'تماشای کانال‌های تلویزیونی زنده از آلمان'
+  },
+  { 
+    code: 'mx',
+    name: 'مکزیک',
+    flag: 'mx',
+    description: 'تماشای کانال‌های تلویزیونی زنده از مکزیک'
+  },
+  { 
+    code: 'in',
+    name: 'هندوستان',
+    flag: 'in',
+    description: 'تماشای کانال‌های تلویزیونی زنده از هندوستان'
   }
 ]; 

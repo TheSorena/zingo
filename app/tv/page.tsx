@@ -158,7 +158,20 @@ export default function TVPage() {
                      channel.language === 'ara' ? 'عربی' :
                      channel.language === 'tur' ? 'ترکی' :
                      channel.language === 'por' ? 'پرتغالی' :
-                     channel.language === 'fra' ? 'فرانسوی' : 'نامشخص'}
+                     channel.language === 'fra' ? 'فرانسوی' :
+                     channel.language === 'aze' ? 'آذری' :
+                     channel.language === 'hin' ? 'هندی' :
+                     channel.language === 'rus' ? 'روسی' :
+                     channel.language === 'deu' ? 'آلمانی' :
+                     channel.language === 'spa' ? 'اسپانیایی' :
+                     channel.language === 'ben' ? 'بنگالی' :
+                     channel.language === 'mal' ? 'مالایالام' :
+                     channel.language === 'gom' ? 'کنکانی' :
+                     channel.language === 'kan' ? 'کانادا' :
+                     channel.language === 'tam' ? 'تامیل' :
+                     channel.language === 'urd' ? 'اردو' :
+                     channel.language === 'mar' ? 'مراتی' :
+                     channel.language === 'bho' ? 'بوجپوری' : 'نامشخص'}
                   </p>
                 </div>
               </div>
