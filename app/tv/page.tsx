@@ -174,7 +174,9 @@ export default function TVPage() {
                      channel.language === 'bho' ? 'بوجپوری' :
                      channel.language === 'tel' ? 'تلوگو' :
                      channel.language === 'pan' ? 'پنجابی' :
-                     channel.language === 'guj' ? 'گجراتی' : 'نامشخص'}
+                     channel.language === 'guj' ? 'گجراتی' :
+                     channel.language === 'ksm' ? 'کشمیری' :
+                     channel.language === 'asm' ? 'آسامی' : 'نامشخص'}
                   </p>
                 </div>
               </div>
