@@ -4,7 +4,7 @@ import { SearchInput } from "@/components/search-input";
 import { MobileNav } from "../../components/mobile-nav";
 import { ThemeToggle } from "../../components/theme-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { Settings, Sun, Moon, Monitor, Info, Share2, Command, Code2, Star, Search, BadgeCheck } from "lucide-react";
+import { Settings, Sun, Moon, Monitor, Info, Share2, Command, Code2, Star, Search, Wrench, Github, Mail} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NavItems } from "@/components/nav-items-client";
 import Link from "next/link";
@@ -12,20 +12,20 @@ import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
-// const developers = [
-//   {
-//     name: "حسین پیرا",
-//     role: "طراح و مدیر سیستم",
-//     github: "https://github.com/code3-dev",
-//     email: "h3dev.pira@gmail.com",
-//   },
-//   {
-//     name: "محمد مهرابی راد",
-//     role: "طراح و مدیر سیستم",
-//     github: "https://github.com/MamdMehrabi",
-//     email: "mohammadmehrabi175@gmail.com",
-//   }
-// ];
+const developers = [
+  {
+    name: "حسین پیرا",
+    role: "طراح و مدیر سیستم",
+    github: "https://github.com/code3-dev",
+    email: "h3dev.pira@gmail.com",
+  },
+  {
+    name: "محمد مهرابی راد",
+    role: "طراح و مدیر سیستم",
+    github: "https://github.com/MamdMehrabi",
+    email: "mohammadmehrabi175@gmail.com",
+  }
+];
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -87,26 +87,47 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Channel Telegram In Setting */}
+          {/* Develooper Section */}
           <Card className="group hover:shadow-md transition-all duration-300">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
-                <BadgeCheck className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300" />
-                کانال تلگرام
+                <Code2 className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300" />
+                توسعه دهندگان
               </CardTitle>
               <CardDescription className="text-base">
-                برای حمایت از تیم ما میتونید در کانال تلگرام جوین شوید.
+                تیم توسعه دهندگان سینما پلاس
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6">
-              <Link  href="https://t.me/CinemaPlusApp">
-              
-            <div className="space-y-6">
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <p className="text-muted-foreground">برای جوین دادن کلیک کنید.</p>
+              {developers.map((dev, index) => (
+                <div key={dev.name} className="space-y-4">
+                  {index > 0 && <Separator className="my-4" />}
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg">{dev.name}</h3>
+                        <p className="text-sm text-muted-foreground">{dev.role}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <a
+                          href={dev.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 hover:bg-background rounded-full transition-colors"
+                        >
+                          <Github className="w-5 h-5" />
+                        </a>
+                        <a
+                          href={`mailto:${dev.email}`}
+                          className="p-2 hover:bg-background rounded-full transition-colors"
+                        >
+                          <Mail className="w-5 h-5" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-            </div>
-              </Link>
+              ))}
             </CardContent>
           </Card>
 
