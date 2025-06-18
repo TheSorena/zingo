@@ -260,7 +260,7 @@ export default function SettingsPage() {
                   <span className="font-medium">تلگرام</span>
                 </a>
                 <a 
-                  href="https://instagram.com/cinemaplus_app" 
+                  href="https://instagram.com/CinemaPlusApp" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
