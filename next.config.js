@@ -12,7 +12,7 @@ const nextConfig = {
   },
   images: { 
     unoptimized: true,
-    domains: ['hostinnegar.com']
+    domains: ['hostinnegar.com', 'server-hi-speed-iran.info']
   },
 };
 
