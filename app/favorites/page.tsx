@@ -94,7 +94,7 @@ export default function FavoritesPage() {
           <Link href="/" className="flex items-center gap-2 group">
             <Command className="h-8 w-8 text-primary transition-transform group-hover:rotate-12" />
             <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-              Cinema Plus
+              سینما پلاس
             </h1>
           </Link>
           <div className="md:hidden flex items-center">

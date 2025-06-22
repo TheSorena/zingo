@@ -77,10 +77,10 @@ export function MovieSlider({ title, movies, className }: MovieSliderProps) {
           <div className="absolute inset-y-0 left-0 w-16 z-10" />
           <div className="absolute inset-y-0 right-0 w-16 z-10" />
           {current > 0 && (
-            <CarouselPrevious className="absolute left-2 h-9 w-9 bg-background/90 hover:bg-background border-primary/20 z-20" />
+            <CarouselPrevious className="absolute left-2 w-9 bg-background/90 hover:bg-background border-primary/20 z-20" />
           )}
           {current < count - 1 && (
-            <CarouselNext className="absolute right-2 h-9 w-9 bg-background/90 hover:bg-background border-primary/20 z-20" />
+            <CarouselNext className="absolute right-2 w-9 bg-background/90 hover:bg-background border-primary/20 z-20" />
           )}
         </Carousel>
       </div>
