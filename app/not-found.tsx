@@ -18,9 +18,9 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <a href="/" className="flex items-center gap-2 group mb-8">
-        <Command className="h-8 w-8 text-primary transition-transform group-hover:rotate-12" />
+        <img src="https://uploadkon.ir/uploads/59e123_25logo.png" alt="logo" className="h-9 w-9 text-primary transition-transform group-hover:rotate-12" />
         <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-          Cinema Plus
+          سینما پلاس
         </h1>
       </a>
       <h2 className="text-3xl font-bold mb-4">404 | صفحه پیدا نشد</h2>
