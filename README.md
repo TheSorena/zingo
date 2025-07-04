@@ -64,7 +64,7 @@ It's a lightweight backend used to support video previews within the app.
 
 ## 📢 Join the Community
 
-📣 Telegram Channel: CinemaPlusApp
+📣 Telegram Channel: [@CinemaPlusApp](https://t.me/CinemaPlusApp)
 
 
 ## 📌 Project Status
