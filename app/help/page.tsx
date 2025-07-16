@@ -16,7 +16,7 @@ export default function HelpPage() {
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <img src="https://uploadkon.ir/uploads/59e123_25logo.png" alt="logo" className="h-9 w-9 text-primary transition-transform group-hover:rotate-12" />
+            <img src="/59e123_25logo.png" alt="logo" className="h-9 w-9 text-primary transition-transform group-hover:rotate-12" />
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
               سینما پلاس
             </h1>
@@ -49,19 +49,46 @@ export default function HelpPage() {
 
           {/* FAQ Section */}
           <div className="space-y-8">
-            {/* Question 1 */}
+            {/* Question 1 - Updated for pagination */}
             <div className="bg-card/50 backdrop-blur p-6 rounded-xl border">
-              <h2 className="text-xl font-semibold mb-4">چرا تعداد فیلم‌ها و سریال‌ها در صفحه اصلی و سریال‌ها کم است؟</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                ما در صفحه اصلی و صفحه سریال‌ها فقط 30 مورد از جدیدترین فیلم‌ها و سریال‌ها را نمایش می‌دهیم. برای دسترسی به همه موارد، می‌توانید از قسمت جستجو استفاده کنید و عنوان فیلم، سریال، توضیحات، کارگردان یا بازیگر مورد نظر خود را جستجو کنید.
+              <h2 className="text-xl font-semibold mb-4">چگونه می‌توانم فیلم‌ها و سریال‌های بیشتری مشاهده کنم؟</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                در صفحه اصلی، هر بخش شامل صفحه‌بندی است که به شما امکان مشاهده فیلم‌ها و سریال‌های بیشتری را می‌دهد. برای دسترسی به صفحات بعدی:
               </p>
+              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                <li>از دکمه‌های شماره صفحه (۱، ۲، ۳، ...) استفاده کنید</li>
+                <li>با فلش‌های راست و چپ بین صفحات جابجا شوید</li>
+                <li>هر صفحه شامل تا ۳۰ مورد جدید است</li>
+                <li>برای دسترسی سریع، از قسمت جستجو استفاده کنید</li>
+              </ul>
+            </div>
+
+            {/* New Question - How to use pagination */}
+            <div className="bg-card/50 backdrop-blur p-6 rounded-xl border">
+              <h2 className="text-xl font-semibold mb-4">نحوه استفاده از صفحه‌بندی</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                سیستم صفحه‌بندی هوشمند ما به شما کمک می‌کند تا به راحتی بین صفحات مختلف حرکت کنید:
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                <li><strong>صفحه فعلی:</strong> با رنگ پررنگ نشان داده می‌شود</li>
+                <li><strong>صفحات مجاور:</strong> کلیک کنید تا به صفحه بعدی یا قبلی بروید</li>
+                <li><strong>نقطه‌ها (...):</strong> نشان‌دهنده وجود صفحات بیشتر است</li>
+                <li><strong>فلش‌ها:</strong> برای حرکت سریع به صفحه بعدی یا قبلی</li>
+                <li><strong>بارگیری:</strong> هنگام تغییر صفحه، منتظر بمانید تا محتوا بارگیری شود</li>
+              </ul>
+              <div className="bg-accent/50 p-4 rounded-lg mt-4">
+                <h3 className="font-medium mb-2">مثال:</h3>
+                <p className="text-muted-foreground">
+                  اگر در صفحه ۵ هستید، ممکن است صفحه‌بندی به این صورت باشد: ۱ ... ۴ ۵ ۶ ... ۱۲
+                </p>
+              </div>
             </div>
 
             {/* Question 2 */}
             <div className="bg-card/50 backdrop-blur p-6 rounded-xl border">
               <h2 className="text-xl font-semibold mb-4">چگونه می‌توانم فیلم یا سریال مورد نظرم را پیدا کنم؟</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                شما می‌توانید از طریق:
+                شما می‌توانید از طریق چند روش مختلف محتوا پیدا کنید:
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                 <li>جستجوی نام فیلم یا سریال</li>
@@ -69,6 +96,7 @@ export default function HelpPage() {
                 <li>جستجوی نام بازیگران</li>
                 <li>جستجو در توضیحات</li>
                 <li>مشاهده جدیدترین‌ها در صفحه اصلی</li>
+                <li>گشت زدن در صفحات مختلف با استفاده از صفحه‌بندی</li>
               </ul>
             </div>
 
@@ -99,6 +127,12 @@ export default function HelpPage() {
                   <h3 className="font-medium mb-2">مشکل در پخش با VLC:</h3>
                   <p className="text-muted-foreground">
                     در صورت عدم کارکرد صحیح دکمه تماشا با VLC، می‌توانید لینک را کپی کرده و مستقیماً در VLC باز کنید.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-medium mb-2">بارگیری کند صفحات:</h3>
+                  <p className="text-muted-foreground">
+                    هنگام تغییر صفحه، کمی صبر کنید تا محتوا بارگیری شود. اگر صفحه بارگیری نمی‌شود، صفحه را رفرش کنید.
                   </p>
                 </div>
               </div>

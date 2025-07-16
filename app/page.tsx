@@ -9,12 +9,39 @@ import { apiUrl } from '../lib/config';
 import Image from "next/image";
 import { MovieSlider } from "../components/movie-slider";
 import { SerieSlider } from "../components/serie-slider";
+import { PaginatedMovieSlider } from "../components/paginated-movie-slider";
+import { PaginatedSerieSlider } from "../components/paginated-serie-slider";
 import { Button } from "../components/ui/button";
+
+// Get the base URL for internal API calls
+const getBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    // Client-side
+    return window.location.origin;
+  }
+  
+  // Server-side
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000';
+  }
+  
+  // Production - try to get from environment variables
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL;
+  }
+  
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // Fallback - you should set NEXT_PUBLIC_BASE_URL in production
+  return 'http://localhost:3000';
+};
 
 async function getNewMovies() {
   try {
     const response = await fetch(
-      `${apiUrl}/api/movie/by/filtres/0/created/0/4F5A9C3D9A86FA54EACEDDD635185`,
+      `${getBaseUrl()}/api/movies/new`,
       {
         headers: {
           'Accept': 'application/json'
@@ -37,7 +64,7 @@ async function getNewMovies() {
 async function getTopRatedMovies() {
   try {
     const response = await fetch(
-      `${apiUrl}/api/movie/by/filtres/0/imdb/0/4F5A9C3D9A86FA54EACEDDD635185`,
+      `${getBaseUrl()}/api/movies/top-rated`,
       {
         headers: {
           'Accept': 'application/json'
@@ -60,7 +87,7 @@ async function getTopRatedMovies() {
 async function getNewSeries() {
   try {
     const result = await fetch(
-      `${apiUrl}/api/serie/by/filtres/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+      `${getBaseUrl()}/api/series/new`,
       {
         headers: {
           'Accept': 'application/json'
@@ -82,7 +109,7 @@ async function getNewSeries() {
 async function getBestSeries() {
   try {
     const result = await fetch(
-      `${apiUrl}/api/poster/by/filtres/27/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+      `${getBaseUrl()}/api/series/best`,
       {
         headers: {
           'Accept': 'application/json'
@@ -104,7 +131,7 @@ async function getBestSeries() {
 async function getUpdateSeries() {
   try {
     const result = await fetch(
-      `${apiUrl}/api/poster/by/filtres/31/0/created/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+      `${getBaseUrl()}/api/series/updated`,
       {
         headers: {
           'Accept': 'application/json'
@@ -126,7 +153,7 @@ async function getUpdateSeries() {
 async function getTopRatedSeries() {
   try {
     const result = await fetch(
-      `${apiUrl}/api/poster/by/filtres/27/0/imdb/0/4F5A9C3D9A86FA54EACEDDD635185/`,
+      `${getBaseUrl()}/api/series/top-rated`,
       {
         headers: {
           'Accept': 'application/json'
@@ -159,7 +186,7 @@ export default async function Home() {
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <img src="https://uploadkon.ir/uploads/59e123_25logo.png" alt="logo" className="h-9 w-9 text-primary transition-transform group-hover:rotate-12" />
+            <img src="/59e123_25logo.png" alt="logo" className="h-9 w-9 text-primary transition-transform group-hover:rotate-12" />
             <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
               سینما پلاس
             </h1>
@@ -202,7 +229,11 @@ export default async function Home() {
         {/* Content Sliders */}
         <div className="space-y-8 md:space-y-12">
           {newMovies ? (
-            <MovieSlider title="30 سینمایی جدید اضافه شده" movies={newMovies} />
+            <PaginatedMovieSlider 
+              title="سینمایی جدید اضافه شده" 
+              initialMovies={newMovies} 
+              apiEndpoint="/api/movies/new"
+            />
           ) : (
             <ErrorState />
           )}
@@ -210,7 +241,11 @@ export default async function Home() {
           <hr />
 
           {topRatedMovies ? (
-            <MovieSlider title="30 سینمایی برتر (بر اساس IMDB)" movies={topRatedMovies} />
+            <PaginatedMovieSlider 
+              title="سینمایی برتر (بر اساس IMDB)" 
+              initialMovies={topRatedMovies} 
+              apiEndpoint="/api/movies/top-rated"
+            />
           ) : (
             <ErrorState />
           )}
@@ -218,7 +253,11 @@ export default async function Home() {
           <hr />
 
           {updateSerie ? (
-            <SerieSlider title="30 سریال آپدیت شده" series={updateSerie} />
+            <PaginatedSerieSlider 
+              title="سریال آپدیت شده" 
+              initialSeries={updateSerie} 
+              apiEndpoint="/api/series/updated"
+            />
           ) : (
             <ErrorState />
           )}
@@ -226,7 +265,11 @@ export default async function Home() {
           <hr />
 
           {newSeries ? (
-            <SerieSlider title="30 سریال جدید اضافه شده" series={newSeries} />
+            <PaginatedSerieSlider 
+              title="سریال جدید اضافه شده" 
+              initialSeries={newSeries} 
+              apiEndpoint="/api/series/new"
+            />
           ) : (
             <ErrorState />
           )}
@@ -234,13 +277,21 @@ export default async function Home() {
           <hr />
 
           {bestSeries ? (
-            <SerieSlider title="30 سریال برتر" series={bestSeries} />
+            <PaginatedSerieSlider 
+              title="سریال برتر" 
+              initialSeries={bestSeries} 
+              apiEndpoint="/api/series/best"
+            />
           ) : (
             <ErrorState />
           )}
 
           {topRatedSeries ? (
-            <SerieSlider title="30 سریال برتر (بر اساس IMDB)" series={topRatedSeries} />
+            <PaginatedSerieSlider 
+              title="سریال برتر (بر اساس IMDB)" 
+              initialSeries={topRatedSeries} 
+              apiEndpoint="/api/series/top-rated"
+            />
           ) : (
             <ErrorState />
           )}
