@@ -15,27 +15,7 @@ import { Button } from "../components/ui/button";
 
 // Get the base URL for internal API calls
 const getBaseUrl = () => {
-  if (typeof window !== 'undefined') {
-    // Client-side
-    return window.location.origin;
-  }
-  
-  // Server-side
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000';
-  }
-  
-  // Production - try to get from environment variables
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL;
-  }
-  
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  
-  // Fallback - you should set NEXT_PUBLIC_BASE_URL in production
-  return 'http://localhost:3000';
+  return 'https://cinemaplus-app.vercel.app';
 };
 
 async function getNewMovies() {
