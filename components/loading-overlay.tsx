@@ -53,10 +53,10 @@ export function LoadingOverlay({ isVisible }: LoadingOverlayProps) {
               className="text-center"
             >
               <p className="text-lg font-medium text-foreground">در حال بارگذاری...</p>
-              <p dir='ltr' className="text-sm text-muted-foreground mt-1">Loading...</p>
+              {/* <p dir='ltr' className="text-sm text-muted-foreground mt-1">Loading...</p> */}
             </motion.div>
             
-            {/* Animated Dots */}
+            {/* Animated Dots
             <div dir='ltr' className="flex space-x-1">
               {[0, 1, 2].map((i) => (
                 <motion.div
@@ -70,7 +70,7 @@ export function LoadingOverlay({ isVisible }: LoadingOverlayProps) {
                   }}
                 />
               ))}
-            </div>
+            </div> */}
           </div>
         </motion.div>
       )}
