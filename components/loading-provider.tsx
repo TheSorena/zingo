@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { LoadingOverlay } from './loading-overlay';
 
@@ -25,60 +25,174 @@ interface LoadingProviderProps {
 
 export function LoadingProvider({ children }: LoadingProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
   const pathname = usePathname();
   const router = useRouter();
 
+  // Force close loading with cleanup
+  const forceCloseLoading = useCallback(() => {
+    setIsLoading(false);
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+      setLoadingTimeout(null);
+    }
+  }, [loadingTimeout]);
+
+  // Start loading with safety timeout
+  const startLoading = useCallback(() => {
+    // Clear any existing timeout
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+    }
+
+    setIsLoading(true);
+    
+    // Safety timeout to prevent stuck loading (5 seconds max)
+    const timeout = setTimeout(() => {
+      console.warn('Loading timeout reached, forcing close');
+      forceCloseLoading();
+    }, 5000);
+    
+    setLoadingTimeout(timeout);
+  }, [loadingTimeout, forceCloseLoading]);
+
+  // Enhanced setIsLoading with timeout management
+  const enhancedSetIsLoading = useCallback((loading: boolean) => {
+    if (loading) {
+      startLoading();
+    } else {
+      forceCloseLoading();
+    }
+  }, [startLoading, forceCloseLoading]);
+
+  // Handle pathname changes - always close loading
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    forceCloseLoading();
+  }, [pathname, forceCloseLoading]);
 
-    const handleStart = () => {
-      // Add a small delay to prevent flickering on fast navigations
-      timeoutId = setTimeout(() => {
-        setIsLoading(true);
-      }, 150);
-    };
-
-    const handleComplete = () => {
-      clearTimeout(timeoutId);
-      setIsLoading(false);
-    };
-
-    // Listen for navigation events
+  // Enhanced router method override
+  useEffect(() => {
     const originalPush = router.push;
     const originalReplace = router.replace;
+    const originalBack = router.back;
+    const originalForward = router.forward;
 
-    router.push = (...args) => {
-      handleStart();
-      return originalPush.apply(router, args);
+    // Override push method
+    router.push = (href, options) => {
+      // Only show loading if navigating to a different page
+      const currentPath = window.location.pathname;
+      const targetPath = typeof href === 'string' ? href : String(href);
+      
+      if (currentPath !== targetPath && targetPath) {
+        startLoading();
+      }
+      
+      return originalPush.call(router, href, options);
     };
 
-    router.replace = (...args) => {
-      handleStart();
-      return originalReplace.apply(router, args);
+    // Override replace method
+    router.replace = (href, options) => {
+      const currentPath = window.location.pathname;
+      const targetPath = typeof href === 'string' ? href : String(href);
+      
+      if (currentPath !== targetPath && targetPath) {
+        startLoading();
+      }
+      
+      return originalReplace.call(router, href, options);
     };
 
-    // Handle browser back/forward
+    // Override back method
+    router.back = () => {
+      startLoading();
+      return originalBack.call(router);
+    };
+
+    // Override forward method
+    router.forward = () => {
+      startLoading();
+      return originalForward.call(router);
+    };
+
+    // Handle browser navigation events
     const handlePopState = () => {
-      handleStart();
+      startLoading();
     };
 
-    window.addEventListener('popstate', handlePopState);
+    const handleBeforeUnload = () => {
+      forceCloseLoading();
+    };
 
+    // Handle visibility change (tab switching)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        forceCloseLoading();
+      }
+    };
+
+    // Handle page focus/blur
+    const handleFocus = () => {
+      // Small delay to ensure page is fully loaded
+      setTimeout(() => {
+        forceCloseLoading();
+      }, 100);
+    };
+
+    // Add event listeners
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup function
     return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('popstate', handlePopState);
+      // Restore original methods
       router.push = originalPush;
       router.replace = originalReplace;
-    };
-  }, [router]);
+      router.back = originalBack;
+      router.forward = originalForward;
 
-  // Clear loading when pathname changes
+      // Remove event listeners
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+      // Clear any pending timeout
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+    };
+  }, [router, startLoading, forceCloseLoading, loadingTimeout]);
+
+  // Handle page load complete
   useEffect(() => {
-    setIsLoading(false);
-  }, [pathname]);
+    // Ensure loading is closed when component mounts
+    const handleLoad = () => {
+      setTimeout(() => {
+        forceCloseLoading();
+      }, 100);
+    };
+
+    if (document.readyState === 'complete') {
+      handleLoad();
+    } else {
+      window.addEventListener('load', handleLoad);
+      return () => window.removeEventListener('load', handleLoad);
+    }
+  }, [forceCloseLoading]);
+
+  // Emergency cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+    };
+  }, [loadingTimeout]);
 
   return (
-    <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
+    <LoadingContext.Provider value={{ isLoading, setIsLoading: enhancedSetIsLoading }}>
       {children}
       <LoadingOverlay isVisible={isLoading} />
     </LoadingContext.Provider>
