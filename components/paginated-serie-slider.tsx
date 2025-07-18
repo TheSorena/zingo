@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { SerieSlider } from "./serie-slider";
+import { useState, useEffect, useRef } from "react";
+import { SerieSlider, SerieSliderRef } from "./serie-slider";
 import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight, Loader2, MoreHorizontal } from "lucide-react";
 
@@ -23,10 +23,15 @@ export function PaginatedSerieSlider({
   const [loading, setLoading] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [maxPageReached, setMaxPageReached] = useState(0);
+  const sliderRef = useRef<SerieSliderRef>(null);
 
   const fetchPage = async (page: number) => {
     if (page === 0) {
       setSeries(initialSeries);
+      // Scroll to first item after updating series
+      setTimeout(() => {
+        sliderRef.current?.scrollToFirst();
+      }, 100);
       return;
     }
 
@@ -42,6 +47,10 @@ export function PaginatedSerieSlider({
         setSeries(data);
         setMaxPageReached(Math.max(maxPageReached, page));
         setHasNextPage(data.length === 30); // Assume full page means more pages exist
+        // Scroll to first item after updating series
+        setTimeout(() => {
+          sliderRef.current?.scrollToFirst();
+        }, 100);
       } else {
         setHasNextPage(false);
       }
@@ -186,7 +195,7 @@ export function PaginatedSerieSlider({
         </div>
       </div>
       
-      <SerieSlider title="" series={series} />
+      <SerieSlider ref={sliderRef} title="" series={series} />
       
       {loading && (
         <div className="flex justify-center items-center py-8">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useImperativeHandle, forwardRef } from "react";
 import { MovieCard } from "./movie-card";
 import {
   Carousel,
@@ -21,29 +21,42 @@ interface MovieSliderProps {
   className?: string;
 }
 
-export function MovieSlider({ title, movies, className }: MovieSliderProps) {
-  const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
-  const [count, setCount] = useState(0);
+export interface MovieSliderRef {
+  scrollToFirst: () => void;
+}
 
-  useEffect(() => {
-    if (!api) return;
+export const MovieSlider = forwardRef<MovieSliderRef, MovieSliderProps>(
+  ({ title, movies, className }, ref) => {
+    const [api, setApi] = useState<CarouselApi>();
+    const [current, setCurrent] = useState(0);
+    const [count, setCount] = useState(0);
 
-    setCount(api.scrollSnapList().length);
-    
-    const onSelect = () => {
-      setCurrent(api.selectedScrollSnap());
-    };
-    
-    api.on("select", onSelect);
-    
-    // Initialize
-    onSelect();
-    
-    return () => {
-      api.off("select", onSelect);
-    };
-  }, [api]);
+    useImperativeHandle(ref, () => ({
+      scrollToFirst: () => {
+        if (api) {
+          api.scrollTo(0);
+        }
+      },
+    }));
+
+    useEffect(() => {
+      if (!api) return;
+
+      setCount(api.scrollSnapList().length);
+      
+      const onSelect = () => {
+        setCurrent(api.selectedScrollSnap());
+      };
+      
+      api.on("select", onSelect);
+      
+      // Initialize
+      onSelect();
+      
+      return () => {
+        api.off("select", onSelect);
+      };
+    }, [api]);
 
   if (!movies || movies.length === 0) return null;
 
@@ -86,4 +99,6 @@ export function MovieSlider({ title, movies, className }: MovieSliderProps) {
       </div>
     </div>
   );
-} 
+});
+
+MovieSlider.displayName = "MovieSlider"; 

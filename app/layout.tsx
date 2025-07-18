@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Vazirmatn } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
+import { LoadingProvider } from '@/components/loading-provider';
 // import PrivacyCheck from './components/PrivacyCheck';
 import DownloadAppPopup from './components/DownloadAppPopup';
 
@@ -102,9 +103,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <LoadingProvider>
+            {children}
+            <DownloadAppPopup />
+          </LoadingProvider>
           {/* <PrivacyCheck /> */}
-          <DownloadAppPopup />
-          {children}
         </ThemeProvider>
       </body>
     </html>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useImperativeHandle, forwardRef } from "react";
 import { SerieCard } from "../app/series/serie-card";
 import {
   Carousel,
@@ -20,29 +20,42 @@ interface SerieSliderProps {
   className?: string;
 }
 
-export function SerieSlider({ title, series, className }: SerieSliderProps) {
-  const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
-  const [count, setCount] = useState(0);
+export interface SerieSliderRef {
+  scrollToFirst: () => void;
+}
 
-  useEffect(() => {
-    if (!api) return;
+export const SerieSlider = forwardRef<SerieSliderRef, SerieSliderProps>(
+  ({ title, series, className }, ref) => {
+    const [api, setApi] = useState<CarouselApi>();
+    const [current, setCurrent] = useState(0);
+    const [count, setCount] = useState(0);
 
-    setCount(api.scrollSnapList().length);
-    
-    const onSelect = () => {
-      setCurrent(api.selectedScrollSnap());
-    };
-    
-    api.on("select", onSelect);
-    
-    // Initialize
-    onSelect();
-    
-    return () => {
-      api.off("select", onSelect);
-    };
-  }, [api]);
+    useImperativeHandle(ref, () => ({
+      scrollToFirst: () => {
+        if (api) {
+          api.scrollTo(0);
+        }
+      },
+    }));
+
+    useEffect(() => {
+      if (!api) return;
+
+      setCount(api.scrollSnapList().length);
+      
+      const onSelect = () => {
+        setCurrent(api.selectedScrollSnap());
+      };
+      
+      api.on("select", onSelect);
+      
+      // Initialize
+      onSelect();
+      
+      return () => {
+        api.off("select", onSelect);
+      };
+    }, [api]);
 
   if (!series || series.length === 0) return null;
 
@@ -84,4 +97,6 @@ export function SerieSlider({ title, series, className }: SerieSliderProps) {
       </div>
     </div>
   );
-} 
+});
+
+SerieSlider.displayName = "SerieSlider"; 

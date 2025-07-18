@@ -4,13 +4,15 @@ import { SearchInput } from "@/components/search-input";
 import { MobileNav } from "../../components/mobile-nav";
 import { ThemeToggle } from "../../components/theme-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { Settings, Sun, Moon, Monitor, Info, Share2, Command, Code2, Star, Search, Wrench, Github, Mail} from "lucide-react";
+import { Settings, Sun, Moon, Monitor, Info, Share2, Command, Code2, Star, Search, Wrench, Github, Mail, MessageCircle, Check} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NavItems } from "@/components/nav-items-client";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
 
 const developers = [
   {
@@ -18,17 +20,50 @@ const developers = [
     role: "طراح و مدیر سیستم",
     github: "https://github.com/code3-dev",
     email: "h3dev.pira@gmail.com",
+    telegram: "https://t.me/h3dev",
   },
   {
     name: "محمد مهرابی راد",
     role: "طراح و مدیر سیستم",
     github: "https://github.com/MamdMehrabi",
     email: "mohammadmehrabi175@gmail.com",
+    telegram: "https://t.me/MamdMehrabi",
   }
 ];
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const themeOptions = [
+    {
+      value: "light",
+      label: "حالت روشن",
+      description: "استفاده از تم روشن",
+      icon: Sun,
+    },
+    {
+      value: "dark", 
+      label: "حالت تاریک",
+      description: "استفاده از تم تاریک",
+      icon: Moon,
+    },
+    {
+      value: "system",
+      label: "تنظیمات سیستم",
+      description: "تطبیق با تنظیمات سیستم عامل",
+      icon: Monitor,
+    },
+  ];
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen pb-20 md:pb-0 bg-background">
@@ -75,14 +110,50 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                <div className="space-y-1.5">
-                  <p className="font-medium">تم برنامه</p>
-                  <p className="text-sm text-muted-foreground">
-                    انتخاب بین حالت روشن، تاریک یا سیستم
-                  </p>
-                </div>
-                <ThemeToggle />
+              <div className="space-y-3">
+                {themeOptions.map((option) => {
+                  const Icon = option.icon;
+                  const isSelected = theme === option.value;
+                  
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => setTheme(option.value)}
+                      className={`w-full p-4 rounded-lg border-2 transition-all duration-300 text-right ${
+                        isSelected
+                          ? 'border-primary bg-primary/10 shadow-md'
+                          : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full ${
+                            isSelected 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'bg-muted text-muted-foreground'
+                          }`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div className="text-right">
+                            <div className={`font-semibold ${
+                              isSelected ? 'text-primary' : 'text-foreground'
+                            }`}>
+                              {option.label}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {option.description}
+                            </div>
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <div className="bg-primary text-primary-foreground rounded-full p-1">
+                            <Check className="w-4 h-4" />
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -102,26 +173,42 @@ export default function SettingsPage() {
               {developers.map((dev, index) => (
                 <div key={dev.name} className="space-y-4">
                   {index > 0 && <Separator className="my-4" />}
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
+                  <div className="bg-muted/50 p-6 rounded-lg">
+                    <div className="text-center space-y-4">
                       <div>
-                        <h3 className="font-semibold text-lg">{dev.name}</h3>
-                        <p className="text-sm text-muted-foreground">{dev.role}</p>
+                        <h3 className="font-semibold text-xl">{dev.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{dev.role}</p>
                       </div>
-                      <div className="flex gap-2">
+                      
+                      {/* Social Icons */}
+                      <div className="flex flex-wrap justify-center gap-3 pt-4 border-t border-border/50">
                         <a
                           href={dev.github}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 hover:bg-background rounded-full transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-background hover:bg-muted rounded-lg transition-colors shadow-sm min-w-fit"
+                          title="GitHub"
                         >
                           <Github className="w-5 h-5" />
+                          <span className="text-sm font-medium">GitHub</span>
                         </a>
                         <a
                           href={`mailto:${dev.email}`}
-                          className="p-2 hover:bg-background rounded-full transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-background hover:bg-muted rounded-lg transition-colors shadow-sm min-w-fit"
+                          title="Email"
                         >
                           <Mail className="w-5 h-5" />
+                          <span className="text-sm font-medium">Email</span>
+                        </a>
+                        <a
+                          href={dev.telegram}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-4 py-2 bg-background hover:bg-muted rounded-lg transition-colors shadow-sm min-w-fit"
+                          title="Telegram"
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                          <span className="text-sm font-medium">Telegram</span>
                         </a>
                       </div>
                     </div>
@@ -193,6 +280,42 @@ export default function SettingsPage() {
                   </svg>
                   <span className="font-medium">مشاهده راهنمای کامل</span>
                 </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* API Documentation */}
+          <Card className="group hover:shadow-md transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Code2 className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300" />
+                مستندات API
+              </CardTitle>
+              <CardDescription className="text-base">
+                راهنمای کامل API برای توسعه‌دهندگان
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                <Link 
+                  href="/api-docs"
+                  className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <svg 
+                    className="w-5 h-5 text-primary" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                  <span className="font-medium">مشاهده مستندات API</span>
+                </Link>
+                <div className="bg-muted/30 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    دسترسی به مستندات کامل API شامل endpoints، parameters، و نمونه‌های کد برای فیلم‌ها، سریال‌ها، فصل‌ها و جستجو
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { MovieSlider } from "./movie-slider";
+import { useState, useEffect, useRef } from "react";
+import { MovieSlider, MovieSliderRef } from "./movie-slider";
 import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight, Loader2, MoreHorizontal } from "lucide-react";
 
@@ -23,10 +23,15 @@ export function PaginatedMovieSlider({
   const [loading, setLoading] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [maxPageReached, setMaxPageReached] = useState(0);
+  const sliderRef = useRef<MovieSliderRef>(null);
 
   const fetchPage = async (page: number) => {
     if (page === 0) {
       setMovies(initialMovies);
+      // Scroll to first item after updating movies
+      setTimeout(() => {
+        sliderRef.current?.scrollToFirst();
+      }, 100);
       return;
     }
 
@@ -42,6 +47,10 @@ export function PaginatedMovieSlider({
         setMovies(data);
         setMaxPageReached(Math.max(maxPageReached, page));
         setHasNextPage(data.length === 30); // Assume full page means more pages exist
+        // Scroll to first item after updating movies
+        setTimeout(() => {
+          sliderRef.current?.scrollToFirst();
+        }, 100);
       } else {
         setHasNextPage(false);
       }
@@ -186,7 +195,7 @@ export function PaginatedMovieSlider({
         </div>
       </div>
       
-      <MovieSlider title="" movies={movies} />
+      <MovieSlider ref={sliderRef} title="" movies={movies} />
       
       {loading && (
         <div className="flex justify-center items-center py-8">
