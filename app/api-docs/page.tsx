@@ -83,7 +83,7 @@ const ApiDocumentationPage = () => {
             { name: 'page', type: 'number', required: false, description: 'Page number (default: 0)' },
           ],
           response: 'Returns an array of new movies',
-          example: `${baseUrl}/api/movies/new?page=1`
+          example: `${baseUrl}/api/movies/new?page=0`
         },
         {
           method: 'GET',
@@ -93,7 +93,7 @@ const ApiDocumentationPage = () => {
             { name: 'page', type: 'number', required: false, description: 'Page number (default: 0)' },
           ],
           response: 'Returns an array of top-rated movies',
-          example: `${baseUrl}/api/movies/top-rated?page=1`
+          example: `${baseUrl}/api/movies/top-rated?page=0`
         }
       ]
     },
@@ -109,7 +109,7 @@ const ApiDocumentationPage = () => {
             { name: 'page', type: 'number', required: false, description: 'Page number (default: 0)' },
           ],
           response: 'Returns an array of new series',
-          example: `${baseUrl}/api/series/new?page=1`
+          example: `${baseUrl}/api/series/new?page=0`
         },
         {
           method: 'GET',
@@ -119,7 +119,7 @@ const ApiDocumentationPage = () => {
             { name: 'page', type: 'number', required: false, description: 'Page number (default: 0)' },
           ],
           response: 'Returns an array of top-rated series',
-          example: `${baseUrl}/api/series/top-rated?page=1`
+          example: `${baseUrl}/api/series/top-rated?page=0`
         },
         {
           method: 'GET',
@@ -129,7 +129,7 @@ const ApiDocumentationPage = () => {
             { name: 'page', type: 'number', required: false, description: 'Page number (default: 0)' },
           ],
           response: 'Returns an array of recently updated series',
-          example: `${baseUrl}/api/series/updated?page=1`
+          example: `${baseUrl}/api/series/updated?page=0`
         },
         {
           method: 'GET',
@@ -139,7 +139,7 @@ const ApiDocumentationPage = () => {
             { name: 'page', type: 'number', required: false, description: 'Page number (default: 0)' },
           ],
           response: 'Returns an array of best series',
-          example: `${baseUrl}/api/series/best?page=1`
+          example: `${baseUrl}/api/series/best?page=0`
         }
       ]
     },
