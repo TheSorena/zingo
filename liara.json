@@ -1,0 +1,8 @@
+{
+    "app":"cinemaplus",
+    "port":3000,
+    "build":{
+    "location":"iran"
+    },
+    "disks":[]
+}
