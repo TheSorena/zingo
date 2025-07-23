@@ -67,7 +67,7 @@ export default function DownloadAppPopup() {
             </a>
             
             <a
-              href="https://cinemaplus-app.vercel.app/app/application-cplus.apk"
+              href="https://cinemaplus-app.vercel.app/app/application-v1.3.apk"
               onClick={handleClose}
               className="flex items-center justify-center gap-2 bg-muted hover:bg-muted/80 h-12 sm:h-10 px-4 py-2 rounded-md transition-colors text-lg sm:text-base"
             >
