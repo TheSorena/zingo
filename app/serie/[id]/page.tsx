@@ -271,7 +271,7 @@ export default function SerieDetailPage({
 
       <div className="container max-w-7xl mx-auto px-4 mt-8">
         {/* Video Player Section */}
-        {trailerUrl && (
+        {/* {trailerUrl && (
           <div className="mb-6">
             <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/50">
               <ReactPlayer
@@ -295,7 +295,7 @@ export default function SerieDetailPage({
               />
             </div>
           </div>
-        )}
+        )} */}
 
         <p className="text-muted-foreground mb-8 whitespace-pre-line">
           {serie.description}

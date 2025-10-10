@@ -262,7 +262,7 @@ export default function MoviePage() {
 
           {/* Content Section */}
           <div className="container max-w-6xl mx-auto px-4 py-6">
-            {/* Video Player Section */}
+            {/* Video Player Section
             {movie?.trailer_url && (
               <div className="mb-6">
                 <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/50">
@@ -287,7 +287,7 @@ export default function MoviePage() {
                   />
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Download/Watch Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
