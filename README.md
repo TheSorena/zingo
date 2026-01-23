@@ -39,8 +39,8 @@
 ### Clone the repository
 
 ```bash
-git clone https://github.com/code3-dev/cinemaplus-app.git
-cd cinemaplus-app
+git clone https://github.com/MamdMehrabi/CinemaPlus.git
+cd CinemaPlus
 ```
 ### Install dependencies
 ```bash
