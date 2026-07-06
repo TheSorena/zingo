@@ -283,6 +283,35 @@ app.get('/scrape/status', (_req, res) => {
   res.json(scrapeProgress);
 });
 
+// Quick test endpoint
+app.get('/scrape/test', async (_req, res) => {
+  const axios = (await import('axios')).default;
+  try {
+    const r = await axios.get('https://animex.click/movie/', { 
+      timeout: 15000, 
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      maxRedirects: 5
+    });
+    const cheerio = (await import('cheerio')).default;
+    const $ = cheerio.load(r.data);
+    const links: string[] = [];
+    $('a[href]').each(function(this: any, _: any, el: any) {
+      const href = $(el).attr('href') || '';
+      if (href.match(/animex\.(click|cc)\/(anime|movie|serial)\//)) {
+        links.push(href);
+      }
+    });
+    res.json({ 
+      status: r.status, 
+      linksFound: links.length, 
+      sample: links.slice(0, 5),
+      htmlLength: r.data.length 
+    });
+  } catch (err: any) {
+    res.json({ error: err.message });
+  }
+});
+
 // Helper functions
 function slugify(text: string): string {
   const persian: Record<string, string> = {'آ':'a','ا':'a','ب':'b','پ':'p','ت':'t','ث':'s','ج':'j','چ':'ch','ح':'h','خ':'kh','د':'d','ذ':'z','ر':'r','ز':'z','ژ':'zh','س':'s','ش':'sh','ص':'s','ض':'z','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f','ق':'gh','ک':'k','گ':'g','ل':'l','م':'m','ن':'n','و':'v','ه':'h','ی':'y'};
