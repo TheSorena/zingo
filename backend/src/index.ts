@@ -202,7 +202,7 @@ app.post('/scraper/trigger', async (_req, res) => {
   }
 });
 
-app.get('/api/scraper/status', async (_req, res) => {
+app.get('/scraper/status', async (_req, res) => {
   const movieCount = await prisma.movie.count();
   const seriesCount = await prisma.series.count();
   const genreCount = await prisma.genre.count();
