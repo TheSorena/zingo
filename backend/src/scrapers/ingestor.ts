@@ -165,18 +165,15 @@ export async function runScraper(): Promise<{ created: number; updated: number; 
   for (const { scraper, name } of scrapers) {
     console.log(`\n========== ${name.toUpperCase()} ==========`);
     try {
-      console.log(`  Fetching page 1...`);
-      const page1Urls = await scraper.getListings(1);
-      console.log(`  Page 1: ${page1Urls.length} URLs found`);
-
-      if (page1Urls.length === 0) {
-        console.log(`  ⚠ No URLs found on page 1. Site may be unreachable.`);
-        continue;
-      }
-
-      const urls = [...new Set(page1Urls)];
+      console.log(`  Fetching all pages...`);
+      const urls = await getAllUrls(scraper);
       totalUrls += urls.length;
       console.log(`  Total: ${urls.length} unique URLs\n`);
+
+      if (urls.length === 0) {
+        console.log(`  ⚠ No URLs found. Site may be unreachable.`);
+        continue;
+      }
 
       let processed = 0;
       for (const url of urls) {
