@@ -90,6 +90,25 @@ app.get('/', (_req, res) => {
   });
 });
 
+// ==================== Import from JSON ====================
+app.get('/scraper/import', async (_req, res) => {
+  if (scraperRunning) {
+    return res.json({ success: false, message: 'اسکرپر در حال اجراست' });
+  }
+  scraperRunning = true;
+  try {
+    const { execSync } = await import('child_process');
+    execSync('node dist/scrapers/importJson.js', { timeout: 300000 });
+    const movieCount = await prisma.movie.count();
+    const seriesCount = await prisma.series.count();
+    scraperRunning = false;
+    res.json({ success: true, message: 'Import completed', movies: movieCount, series: seriesCount });
+  } catch (error: any) {
+    scraperRunning = false;
+    res.status(500).json({ success: false, message: error.message?.substring(0, 200) });
+  }
+});
+
 // ==================== Scraper Test ====================
 app.get('/scraper/test', async (_req, res) => {
   const axios = (await import('axios')).default;
