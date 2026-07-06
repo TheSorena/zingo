@@ -96,34 +96,44 @@ app.get('/scraper/full', async (_req, res) => {
     return res.json({ success: false, message: 'اسکرپر در حال اجراست' });
   }
   scraperRunning = true;
-  try {
-    const { execSync } = await import('child_process');
-    execSync('node dist/scrapers/fullScrape.js', { timeout: 600000, stdio: 'inherit' });
+  res.json({ success: true, message: 'اسکرپر شروع شد. از /scraper/full/status وضعیت رو چک کن.' });
+  
+  // Run in background
+  const { exec } = await import('child_process');
+  exec('node dist/scrapers/fullScrape.js', { timeout: 600000 }, (error) => {
     scraperRunning = false;
-    
-    // Read the JSON file
-    const fs = require('fs');
-    const dataPath = path.join(__dirname, '../src/scrapers/scraped_data.json');
-    const distPath = path.join(__dirname, 'scrapers/scraped_data.json');
-    const filePath = fs.existsSync(dataPath) ? dataPath : distPath;
-    
-    if (fs.existsSync(filePath)) {
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-      const stats = {
-        total: data.length,
-        movies: data.filter((d: any) => d.type === 'movie').length,
-        series: data.filter((d: any) => d.type === 'series').length,
-        animex: data.filter((d: any) => d.source === 'animex').length,
-        donyayeserial: data.filter((d: any) => d.source === 'donyayeserial').length,
-      };
-      res.json({ success: true, stats, file: 'scraped_data.json' });
-    } else {
-      res.json({ success: false, message: 'JSON file not found' });
-    }
-  } catch (error: any) {
-    scraperRunning = false;
-    res.status(500).json({ success: false, message: error.message?.substring(0, 200) });
+    if (error) console.error('Full scrape error:', error.message);
+    else console.log('Full scrape completed!');
+  });
+});
+
+app.get('/scraper/full/status', async (_req, res) => {
+  const fs = require('fs');
+  const dataPath = path.join(__dirname, '../src/scrapers/scraped_data.json');
+  const distPath = path.join(__dirname, 'scrapers/scraped_data.json');
+  const filePath = fs.existsSync(dataPath) ? dataPath : distPath;
+  
+  if (!fs.existsSync(filePath)) {
+    return res.json({ running: scraperRunning, exists: false });
   }
+  
+  const stats = fs.statSync(filePath);
+  const ageMinutes = (Date.now() - stats.mtimeMs) / 60000;
+  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  
+  res.json({
+    running: scraperRunning,
+    exists: true,
+    lastModified: stats.mtime,
+    ageMinutes: Math.round(ageMinutes),
+    stats: {
+      total: data.length,
+      movies: data.filter((d: any) => d.type === 'movie').length,
+      series: data.filter((d: any) => d.type === 'series').length,
+      animex: data.filter((d: any) => d.source === 'animex').length,
+      donyayeserial: data.filter((d: any) => d.source === 'donyayeserial').length,
+    }
+  });
 });
 
 // ==================== Debug Scraper ====================
