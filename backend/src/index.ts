@@ -160,7 +160,7 @@ app.get('/scraper', async (_req, res) => {
       result.style.display = 'block';
       result.textContent = 'شروع اسکرپ...\\n';
       try {
-        const res = await fetch('/api/scraper/trigger', { method: 'POST' });
+        const res = await fetch('/scraper/trigger', { method: 'POST' });
         const data = await res.json();
         result.textContent += JSON.stringify(data, null, 2) + '\\n';
         status.textContent = data.message || 'اسکرپر شروع شد';
@@ -168,7 +168,7 @@ app.get('/scraper', async (_req, res) => {
         const interval = setInterval(async () => {
           checkCount++;
           try {
-            const r = await fetch('/api/scraper/status');
+            const r = await fetch('/scraper/status');
             const s = await r.json();
             result.textContent += new Date().toLocaleTimeString() + ' - فیلم‌ها: ' + s.movieCount + ' | سریال‌ها: ' + s.seriesCount + '\\n';
             result.scrollTop = result.scrollHeight;
