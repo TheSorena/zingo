@@ -109,7 +109,34 @@ app.get('/scraper/import', async (_req, res) => {
   }
 });
 
-// ==================== Scraper Test ====================
+// ==================== Debug Scraper ====================
+app.get('/scraper/debug', async (_req, res) => {
+  try {
+    const { AnimexScraper } = await import('./scrapers/animexScraper');
+    const scraper = new AnimexScraper();
+    
+    // Test getListings
+    const listings = await scraper.getListings(1);
+    
+    // Test scrapeContent on first URL
+    let firstItem = null;
+    if (listings.length > 0) {
+      try {
+        firstItem = await scraper.scrapeContent(listings[0]);
+      } catch (e: any) {
+        firstItem = { error: e.message };
+      }
+    }
+
+    res.json({
+      listingsCount: listings.length,
+      firstFewUrls: listings.slice(0, 5),
+      firstItem: firstItem ? { title: firstItem.title, type: firstItem.type, hasDownloadLinks: Object.keys(firstItem.downloadLinks || {}).length > 0 } : null,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.get('/scraper/test', async (_req, res) => {
   const axios = (await import('axios')).default;
   const tests: Array<{ name: string; url: string; status: string; code?: number; linksFound?: number }> = [];
