@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 
+export function generateStaticParams() {
+  return [{ id: '1' }];
+}
+
 export async function generateMetadata({
   params,
 }: {

@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+
+export function generateStaticParams() {
+  return [{ slug: 'action' }];
+}
 import { FiArrowLeft, FiGrid, FiRefreshCw } from 'react-icons/fi';
 import MovieCard from '@/components/movie/MovieCard';
 import { MovieRowSkeleton } from '@/components/common/Skeletons';
