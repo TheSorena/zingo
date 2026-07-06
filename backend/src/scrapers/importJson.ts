@@ -18,7 +18,7 @@ interface Season {
   episodes: Episode[];
 }
 
-interface SeriesItem {
+interface ScrapedItem {
   type: 'series' | 'movie';
   title: string;
   url: string;
@@ -57,125 +57,123 @@ function cleanTitle(title: string): string {
     .trim();
 }
 
-function extractYear(url: string): number | null {
-  const match = url.match(/\/(\d{4})\//);
-  return match ? parseInt(match[1]) : null;
-}
-
-function extractQualityLinks(episodes: Episode[]): Record<string, string> {
-  const links: Record<string, string> = {};
-  for (const ep of episodes) {
-    const q = ep.quality.toLowerCase().replace('p', '') + 'p';
-    if (!links[q]) links[q] = ep.url;
-  }
-  return links;
-}
-
-async function importItem(item: SeriesItem, index: number) {
-  const cleanName = cleanTitle(item.title);
-  const slug = slugify(cleanName);
-  const imdbRating = parseFloat(item.imdb) || null;
-  const year = extractYear(item.url);
-
-  if (item.type === 'series' && item.seasons) {
-    const existing = await prisma.series.findUnique({ where: { slug } });
-    
-    if (existing) {
-      await prisma.series.update({
-        where: { id: existing.id },
-        data: {
-          title: cleanName,
-          posterUrl: item.poster || existing.posterUrl,
-          description: item.description || existing.description,
-          releaseYear: year || existing.releaseYear,
-          imdbRating: imdbRating || existing.imdbRating,
-          source: 'donyayeserial',
-          sourceUrl: item.url,
-        }
-      });
-    } else {
-      await prisma.series.create({
-        data: {
-          title: cleanName,
-          slug,
-          posterUrl: item.poster || 'https://via.placeholder.com/300x450',
-          description: item.description || '',
-          releaseYear: year,
-          imdbRating,
-          source: 'donyayeserial',
-          sourceUrl: item.url,
-          cast: '[]',
-          screenshots: '[]',
-        }
-      });
-    }
-
-    for (const seasonData of item.seasons) {
-      const series = await prisma.series.findUnique({ where: { slug } });
-      if (!series) continue;
-
-      const season = await prisma.season.upsert({
-        where: { id: (await prisma.season.findFirst({ where: { seriesId: series.id, seasonNumber: seasonData.season } }))?.id || -1 },
-        update: {},
-        create: {
-          seriesId: series.id,
-          seasonNumber: seasonData.season,
-        }
-      });
-
-      if (season.id === -1) continue;
-
-      for (const ep of seasonData.episodes) {
-        await prisma.episode.upsert({
-          where: { id: (await prisma.episode.findFirst({ where: { seasonId: season.id, episodeNumber: ep.episode } }))?.id || -1 },
-          update: {
-            downloadLinks: JSON.stringify({ server1: { [ep.quality]: ep.url } }),
-          },
-          create: {
-            seasonId: season.id,
-            episodeNumber: ep.episode,
-            title: ep.filename,
-            downloadLinks: JSON.stringify({ server1: { [ep.quality]: ep.url } }),
-          }
-        });
-      }
-    }
-  }
-}
-
 async function main() {
   console.log('Reading scraped.json...');
   const filePath = path.join(__dirname, 'scraped.json');
   const rawData = fs.readFileSync(filePath, 'utf-8');
-  const items: SeriesItem[] = JSON.parse(rawData);
+  const items: ScrapedItem[] = JSON.parse(rawData);
   
   console.log(`Found ${items.length} items to import\n`);
 
-  let imported = 0;
+  let created = 0;
+  let updated = 0;
   let failed = 0;
 
   for (let i = 0; i < items.length; i++) {
+    const item = items[i];
     try {
-      await importItem(items[i], i);
-      imported++;
-      if (imported % 100 === 0) {
-        console.log(`  Progress: ${imported}/${items.length}`);
+      const cleanName = cleanTitle(item.title);
+      const slug = slugify(cleanName);
+      const imdbRating = parseFloat(item.imdb) || null;
+      
+      // Extract year from URL
+      const yearMatch = item.url.match(/\/(\d{4})\//);
+      const year = yearMatch ? parseInt(yearMatch[1]) : null;
+
+      if (item.type === 'series' && item.seasons) {
+        // Create or update series
+        const existingSeries = await prisma.series.findUnique({ where: { slug } });
+        
+        if (existingSeries) {
+          await prisma.series.update({
+            where: { id: existingSeries.id },
+            data: {
+              posterUrl: item.poster || existingSeries.posterUrl,
+              description: item.description || existingSeries.description,
+              releaseYear: year || existingSeries.releaseYear,
+              imdbRating: imdbRating || existingSeries.imdbRating,
+              source: 'donyayeserial',
+              sourceUrl: item.url,
+            }
+          });
+          updated++;
+        } else {
+          await prisma.series.create({
+            data: {
+              title: cleanName,
+              slug,
+              posterUrl: item.poster || 'https://via.placeholder.com/300x450',
+              description: item.description || '',
+              releaseYear: year,
+              imdbRating,
+              source: 'donyayeserial',
+              sourceUrl: item.url,
+              cast: '[]',
+              screenshots: '[]',
+            }
+          });
+          created++;
+        }
+
+        // Create seasons and episodes
+        const series = await prisma.series.findUnique({ where: { slug } });
+        if (!series) continue;
+
+        for (const seasonData of item.seasons) {
+          // Check if season exists
+          let season = await prisma.season.findFirst({
+            where: { seriesId: series.id, seasonNumber: seasonData.season }
+          });
+
+          if (!season) {
+            season = await prisma.season.create({
+              data: {
+                seriesId: series.id,
+                seasonNumber: seasonData.season,
+              }
+            });
+          }
+
+          // Create episodes
+          for (const ep of seasonData.episodes) {
+            const existingEp = await prisma.episode.findFirst({
+              where: { seasonId: season.id, episodeNumber: ep.episode }
+            });
+
+            if (!existingEp) {
+              await prisma.episode.create({
+                data: {
+                  seasonId: season.id,
+                  episodeNumber: ep.episode,
+                  title: ep.filename,
+                  downloadLinks: JSON.stringify({ server1: { [ep.quality]: ep.url } }),
+                }
+              });
+            }
+          }
+        }
       }
     } catch (err: any) {
       failed++;
-      if (failed <= 5) {
+      if (failed <= 10) {
         console.error(`  Error on item ${i}: ${err.message?.substring(0, 80)}`);
       }
+    }
+
+    if ((created + updated) % 100 === 0 && created + updated > 0) {
+      console.log(`  Progress: ${created + updated}/${items.length} (${created} created, ${updated} updated, ${failed} failed)`);
     }
   }
 
   const totalSeries = await prisma.series.count();
   const totalEpisodes = await prisma.episode.count();
+  const totalSeasons = await prisma.season.count();
   
   console.log(`\n========================================`);
   console.log(`✅ Import completed!`);
-  console.log(`   Imported: ${imported} | Failed: ${failed}`);
+  console.log(`   Created: ${created} | Updated: ${updated} | Failed: ${failed}`);
   console.log(`   Total series in DB: ${totalSeries}`);
+  console.log(`   Total seasons in DB: ${totalSeasons}`);
   console.log(`   Total episodes in DB: ${totalEpisodes}`);
   console.log(`========================================`);
 
