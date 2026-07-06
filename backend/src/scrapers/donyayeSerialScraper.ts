@@ -1,18 +1,6 @@
 import { BaseScraper } from './baseScraper';
 import * as cheerio from 'cheerio';
 
-export interface ScrapedEpisode {
-  episodeNumber: number;
-  title: string;
-  downloadLinks: Record<string, string>;
-}
-
-export interface ScrapedSeason {
-  seasonNumber: number;
-  title: string;
-  episodes: ScrapedEpisode[];
-}
-
 export interface ScrapedContent {
   title: string;
   originalTitle?: string;
@@ -21,8 +9,9 @@ export interface ScrapedContent {
   releaseYear?: number;
   imdbRating?: number;
   genreNames: string[];
+  country?: string;
+  quality?: string;
   downloadLinks: Record<string, Record<string, string>>;
-  seasons?: ScrapedSeason[];
   source: string;
   sourceUrl: string;
   screenshots: string[];
@@ -39,10 +28,15 @@ export class DonyayeSerialScraper extends BaseScraper {
     const $ = await this.fetchPage(`${this.baseUrl}/page/${page}/`);
     if (!$) return urls;
 
-    $('article h2 a').each((_, el) => {
+    // Find all content links (series, movie, film)
+    $('a[href]').each((_, el) => {
       const href = this.getAttr($(el), 'href');
-      if (href && !href.includes('/category/') && !href.includes('/tag/') && !href.includes('/page/')) {
-        urls.push(this.makeAbsoluteUrl(href));
+      if (!href) return;
+
+      // Match series/movie/film links
+      if (href.match(/donyayeserial\.com\/(series|movie|film|serial)\//) ||
+          href.match(/donyayeserial\.com\/\d+\//)) {
+        urls.push(href.startsWith('http') ? href : `${this.baseUrl}${href}`);
       }
     });
 
@@ -53,77 +47,118 @@ export class DonyayeSerialScraper extends BaseScraper {
     const $ = await this.fetchPage(url);
     if (!$) return null;
 
-    const title = this.getText($('h1'));
+    // Detect type from URL
+    const type = url.includes('/series/') || url.includes('/serial/') ? 'series' : 'movie';
+
+    // Title - try multiple selectors
+    let title = '';
+    const titleSelectors = [
+      'h1.entry-title',
+      'h1.title',
+      '.header h1',
+      'h1',
+    ];
+    for (const selector of titleSelectors) {
+      title = this.getText($(selector));
+      if (title) break;
+    }
+    if (!title) {
+      const ogTitle = $('meta[property="og:title"]').attr('content');
+      if (ogTitle) title = ogTitle;
+    }
     if (!title) return null;
 
-    const isSeries = url.includes('/series/') || title.includes('سریال') || title.includes('فصل');
+    // Clean title - remove Persian prefix
+    title = title.replace(/^دانلود\s+(سریال|فیلم|انیمه)\s+/i, '').trim();
 
-    let originalTitle: string | undefined;
-    const engMatch = title.match(/\(([A-Za-z\s\d:.-]+)\)/);
-    if (engMatch) {
-      originalTitle = engMatch[1].trim();
-    }
+    // Poster
+    const posterUrl = $('meta[property="og:image"]').attr('content') ||
+                      $('img.featured').attr('src') ||
+                      $('img.wp-post-image').attr('src') ||
+                      $('img').first().attr('src') || '';
 
-    const posterUrl = this.getAttr($('img.attachment-indexFilm, img.wp-post-image').first(), 'src') || '';
-    const description = this.getText($('.entry-content, .post-content'), '').substring(0, 2000);
+    // Description
+    const description = $('meta[name="description"]').attr('content') ||
+                       $('meta[property="og:description"]').attr('content') ||
+                       $('.entry-content p').first().text().trim() || '';
 
-    const data: ScrapedContent = {
-      title,
-      originalTitle,
-      posterUrl,
-      description,
-      genreNames: [],
-      downloadLinks: {},
-      screenshots: [],
-      source: this.name,
-      sourceUrl: url,
-      type: isSeries ? 'series' : 'movie'
-    };
+    // Year
+    const yearMatch = $('body').html()?.match(/\(?(\d{4})\)?/);
+    const releaseYear = yearMatch ? parseInt(yearMatch[1]) : null;
 
-    $('.cat-links a').each((_, el) => {
-      data.genreNames.push(this.getText($(el)));
+    // IMDB
+    const imdbMatch = $('body').text().match(/IMDB[:\s]*(\d+\.?\d*)/i);
+    const imdbRating = imdbMatch ? parseFloat(imdbMatch[1]) : null;
+
+    // Genres
+    const genreNames: string[] = [];
+    $('a[href*="/genre/"], a[href*="/tag/"]').each((_, el) => {
+      const genre = $(el).text().trim();
+      if (genre && genre.length > 1 && genre.length < 30) {
+        genreNames.push(genre);
+      }
     });
 
-    const bodyText = $('body').text();
-    const imdbMatch = bodyText.match(/IMDB[:\s]*(\d+\.?\d*)/i) || bodyText.match(/امتیاز[:\s]*(\d+\.?\d*)/);
-    if (imdbMatch) {
-      const rating = parseFloat(imdbMatch[1]);
-      if (!isNaN(rating) && rating > 0 && rating <= 10) {
-        data.imdbRating = rating;
-      }
-    }
+    // Download links - try multiple approaches
+    const downloadLinks: Record<string, Record<string, string>> = {};
+    let serverIdx = 1;
 
-    const yearMatch = title.match(/\b(19|20)\d{2}\b/);
-    if (yearMatch) {
-      data.releaseYear = parseInt(yearMatch[0]);
-    }
+    // Method 1: Look for download sections
+    $('div.download a, .download-link a, a[href*="download"], a[href*="dl="]').each((_, el) => {
+      const href = this.getAttr($(el), 'href');
+      const text = this.getText($(el));
+      if (!href || href.includes('donyayeserial.com')) return;
+      if (href.includes('preview=true')) return;
 
-    if (true) { // Always try to find download links
-      const dlHosts = ['donyayeserial', 'dl.donyayeserial', 'dl1.donyayeserial', 'dl2.donyayeserial'];
-      const hostSelector = dlHosts.map(h => `a[href*="${h}"]`).join(', ');
+      const quality = this.extractQualityFromText(text) || this.extractQualityFromText(href);
+      const serverName = `server${serverIdx}`;
 
-      $(hostSelector).each((_, el) => {
+      if (!downloadLinks[serverName]) downloadLinks[serverName] = {};
+      downloadLinks[serverName][quality] = href;
+      serverIdx++;
+    });
+
+    // Method 2: Scan all links for download patterns
+    if (Object.keys(downloadLinks).length === 0) {
+      $('a[href]').each((_, el) => {
         const href = this.getAttr($(el), 'href');
-        const text = this.getText($(el));
         if (!href) return;
+        if (href.includes('donyayeserial.com')) return;
 
-        // More robust check for download links
-        if (text.includes('دانلود') || href.includes('/dl/') || href.includes('/download/')) {
-          const quality = this.extractQualityFromUrl(href);
-          if (!data.downloadLinks['server1']) data.downloadLinks['server1'] = {};
-          data.downloadLinks['server1'][quality] = href;
+        // Check if it's a download link
+        if (href.match(/\.mkv|\.mp4|\.avi|download|dl=|iran-gamecenter|mega\.nz|google\.com|dropbox/i)) {
+          const quality = this.extractQualityFromText(href) || 'unknown';
+          const serverName = `server${serverIdx}`;
+
+          if (!downloadLinks[serverName]) downloadLinks[serverName] = {};
+          downloadLinks[serverName][quality] = href;
+          serverIdx++;
         }
       });
     }
 
-    $('.entry-content img, .gallery img').each((i, el) => {
-      if (i >= 8) return false;
-      const src = this.getAttr($(el), 'src');
-      if (src && !src.includes('logo')) {
-        data.screenshots.push(this.makeAbsoluteUrl(src));
-      }
-    });
+    return {
+      title,
+      posterUrl,
+      description,
+      releaseYear: releaseYear || undefined,
+      imdbRating: imdbRating || undefined,
+      genreNames: [...new Set(genreNames)],
+      downloadLinks,
+      source: this.name,
+      sourceUrl: url,
+      screenshots: [],
+      type,
+    };
+  }
 
-    return data;
+  private extractQualityFromText(text: string): string {
+    const t = text.toLowerCase();
+    if (t.includes('4k') || t.includes('2160p')) return '4K';
+    if (t.includes('1080p') || t.includes('fhd')) return '1080p';
+    if (t.includes('720p') || t.includes('hd')) return '720p';
+    if (t.includes('480p') || t.includes('sd')) return '480p';
+    if (t.includes('360p')) return '360p';
+    return 'unknown';
   }
 }

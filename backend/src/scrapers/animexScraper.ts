@@ -34,10 +34,16 @@ export class AnimexScraper extends BaseScraper {
     const $ = await this.fetchPage(`${this.baseUrl}/page/${page}/`);
     if (!$) return urls;
 
-    $('article a, .post-title a, h2 a, .entry-title a').each((_, el) => {
+    // Find all content links (anime, movie, serial)
+    $('a[href]').each((_, el) => {
       const href = this.getAttr($(el), 'href');
-      if (href && !href.includes('/category/') && !href.includes('/tag/') && !href.includes('/page/')) {
-        urls.push(this.makeAbsoluteUrl(href));
+      if (!href) return;
+
+      // Match anime/movie/serial links from both domains
+      if (href.match(/animex\.(click|cc)\/(anime|movie|serial)\//)) {
+        // Normalize to animex.click domain
+        const normalizedUrl = href.replace('animex.cc', 'animex.click');
+        urls.push(normalizedUrl);
       }
     });
 
