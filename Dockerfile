@@ -35,5 +35,5 @@ COPY --from=frontend-builder /app/.next/standalone ./frontend/
 COPY --from=frontend-builder /app/.next/static ./frontend/.next/static
 COPY --from=frontend-builder /app/public ./frontend/public
 RUN mkdir -p /data /app/uploads
-EXPOSE 5000
+EXPOSE 5000 3000
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]

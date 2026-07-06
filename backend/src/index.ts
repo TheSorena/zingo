@@ -1,4 +1,5 @@
 import path from 'path';
+import { execSync, spawn } from 'child_process';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -19,7 +20,20 @@ import { errorHandler } from './middleware/errorHandler';
 import './scheduler';
 
 const app = express();
-const frontendPath = path.join(__dirname, '../../frontend');
+
+// ==================== Start Next.js Frontend ====================
+const frontendDir = path.join(__dirname, '../../frontend');
+try {
+  console.log('Starting Next.js frontend on port 3000...');
+  const nextServer = spawn('node', [path.join(frontendDir, 'server.js')], {
+    cwd: frontendDir,
+    env: { ...process.env, PORT: '3000', HOSTNAME: '0.0.0.0' },
+    stdio: 'inherit',
+  });
+  nextServer.on('error', (err) => console.error('Next.js error:', err));
+} catch (err) {
+  console.error('Failed to start Next.js:', err);
+}
 
 // ==================== Middleware ====================
 app.use(helmet({
@@ -72,12 +86,13 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// ==================== Frontend Static Files ====================
-app.use(express.static(frontendPath));
-
-// ==================== SPA Fallback ====================
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+// ==================== Proxy Frontend ====================
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  const frontendUrl = `http://localhost:3000${req.path}`;
+  res.redirect(frontendUrl);
 });
 
 // ==================== Error Handler ====================
@@ -88,7 +103,8 @@ app.listen(config.port, () => {
   console.log(`
   ╔══════════════════════════════════════╗
   ║   🎬 Zingo Server Running          ║
-  ║   🌐 http://localhost:${config.port}        ║
+  ║   🌐 API: http://localhost:${config.port}     ║
+  ║   🌐 Frontend: http://localhost:3000 ║
   ║   📊 Environment: ${config.nodeEnv.padEnd(17)}║
   ╚══════════════════════════════════════╝
   `);
