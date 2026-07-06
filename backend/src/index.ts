@@ -98,13 +98,75 @@ app.get('/scraper/full', async (_req, res) => {
   scraperRunning = true;
   res.json({ success: true, message: 'اسکرپر شروع شد. از /scraper/full/status وضعیت رو چک کن.' });
   
-  // Run in background
-  const { exec } = await import('child_process');
-  exec('node dist/scrapers/fullScrape.js', { timeout: 600000 }, (error) => {
+  // Run inline
+  (async () => {
+    try {
+      const { AnimexScraper } = await import('./scrapers/animexScraper');
+      const { DonyayeSerialScraper } = await import('./scrapers/donyayeSerialScraper');
+      const { BaseScraper } = await import('./scrapers/baseScraper');
+      const fs = require('fs');
+      
+      await BaseScraper.checkStorage();
+      const allData: any[] = [];
+      
+      // Scraping function
+      const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+      
+      // ANIMEX
+      console.log('Scraping ANIMEX...');
+      const animex = new AnimexScraper();
+      for (const pageType of ['movie', 'serial', 'anime']) {
+        let page = 1;
+        let empty = 0;
+        while (page <= 50 && empty < 2) {
+          try {
+            const urls = await animex.getListings(page);
+            if (urls.length === 0) { empty++; page++; continue; }
+            empty = 0;
+            for (const url of urls.slice(0, 100)) {
+              try {
+                const item = await animex.scrapeContent(url);
+                if (item?.title) {
+                  allData.push({ source: 'animex', type: item.type, title: item.title, url, poster: item.posterUrl, description: item.description, year: item.releaseYear, imdb: item.imdbRating, genres: item.genreNames, country: item.country, downloadLinks: item.downloadLinks, screenshots: item.screenshots });
+                }
+                await sleep(500);
+              } catch {}
+            }
+            page++;
+            await sleep(1000);
+          } catch { empty++; page++; }
+        }
+      }
+      console.log(`Animex: ${allData.length} items`);
+      
+      // DONYAYESERIAL
+      console.log('Scraping DONYAYESERIAL...');
+      const donyaye = new DonyayeSerialScraper();
+      for (let page = 1; page <= 20; page++) {
+        try {
+          const urls = await donyaye.getListings(page);
+          if (urls.length === 0) break;
+          for (const url of urls.slice(0, 100)) {
+            try {
+              const item = await donyaye.scrapeContent(url);
+              if (item?.title) {
+                allData.push({ source: 'donyayeserial', type: item.type, title: item.title, url, poster: item.posterUrl, description: item.description, year: item.releaseYear, imdb: item.imdbRating, genres: item.genreNames, downloadLinks: item.downloadLinks, screenshots: item.screenshots });
+              }
+              await sleep(500);
+            } catch {}
+          }
+          await sleep(1000);
+        } catch { break; }
+      }
+      console.log(`Total: ${allData.length} items`);
+      
+      fs.writeFileSync(path.join(process.cwd(), 'scraped_data.json'), JSON.stringify(allData, null, 2));
+      console.log('File saved!');
+    } catch (err) {
+      console.error('Full scrape error:', err);
+    }
     scraperRunning = false;
-    if (error) console.error('Full scrape error:', error.message);
-    else console.log('Full scrape completed!');
-  });
+  })();
 });
 
 app.get('/scraper/full/status', async (_req, res) => {
