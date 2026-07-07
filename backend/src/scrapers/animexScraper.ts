@@ -82,70 +82,153 @@ export class AnimexScraper extends BaseScraper {
       type: 'movie'
     };
 
-    // --- Metadata: use text selectors that work with ANY HTML structure ---
-    const bodyHtml = $.html();
-    const bodyText = $.root().text().replace(/\s+/g, ' ').trim();
+    // === METADATA: Use proper cheerio selectors ===
 
-    // Country - extract text after "محصول"
-    const countryEl = $('.countsta, *:contains("محصول")').last();
-    if (countryEl.length) {
-      const t = countryEl.text().replace(/\s+/g, ' ');
-      const cm = t.match(/محصول\s*:?\s*(\S[\w\u0600-\u06FF\s]+)/i);
-      if (cm) data.country = cm[1].trim().replace(/\s+[|].*$/, '');
+    // Type: detect from URL path (/serial/ = series, /anime/ = series, /movie/ = movie)
+    if (url.includes('/serial/') || url.includes('/anime/')) {
+      data.type = 'series';
+    } else {
+      data.type = 'movie';
     }
 
-    // Quality
-    const mq = bodyText.match(/کیفیت\s*(?:نمایش|دانلود)?\s*:\s*([\w\s-]+?)(?:\s+\||$)/i);
-    if (mq) data.quality = mq[1].trim();
-
-    // Type (سریالی / فیلم / انیمه سریالی)
-    const mt = bodyText.match(/نوع\s*(?:انیمه|فیلم)?\s*:\s*(\S[\w\u0600-\u06FF\s]+?)(?:\s+\||\s*$)/i);
-    if (mt) {
-      data.contentType = mt[1].trim();
-      data.type = /سریال/i.test(mt[1]) ? 'series' : 'movie';
+    // Country: .countsta contains "محصول : <a>کشور</a>"
+    const countryLink = $('.countsta a').first();
+    if (countryLink.length) {
+      data.country = countryLink.text().trim();
+    } else {
+      // Fallback: look for /country/ link anywhere in header
+      const countryFallback = $('a[href*="/country/"]').first();
+      if (countryFallback.length) {
+        const t = countryFallback.text().trim();
+        if (t.length > 1 && t.length < 30) data.country = t;
+      }
     }
 
-    // Episode count
-    const epMatch = bodyText.match(/قسمت\s*:\s*(\d+)/i) || bodyText.match(/قسمت\s+(\d+)/i);
-    if (epMatch) data.episodeCount = parseInt(epMatch[1]);
+    // Quality: .keyfiatnam contains "کیفیت نمایش : WEB-DL"
+    const qualEl = $('.keyfiatnam').first();
+    if (qualEl.length) {
+      const qt = qualEl.text().replace(/\s+/g, ' ').trim();
+      const qm = qt.match(/کیفیت\s*(?:نمایش|دانلود)?\s*:\s*(.+)/i);
+      if (qm) data.quality = qm[1].trim();
+    }
 
-    // Season count
-    const seasonMatch = bodyText.match(/فصل\s*:\s*(\d+)/i) || bodyText.match(/فصل\s+(\d+)/i);
-    if (seasonMatch) data.seasonCount = parseInt(seasonMatch[1]);
+    // Episode count: .epsis contains the total episode count (e.g. "39")
+    // OR .notfseries contains "قسمت <span>16</span> فصل <span>5</span>"
+    const epsisEl = $('.epsis').first();
+    if (epsisEl.length) {
+      const epNum = parseInt(epsisEl.text().trim());
+      if (epNum > 0 && epNum < 10000) data.episodeCount = epNum;
+    }
+    // Also check .notfseries for episode/season info
+    const notfEl = $('.notfseries').first();
+    if (notfEl.length) {
+      const notfText = notfEl.text().replace(/\s+/g, ' ');
+      const epM = notfText.match(/قسمت\s*(\d+)/);
+      if (epM && !data.episodeCount) data.episodeCount = parseInt(epM[1]);
+      const ssnM = notfText.match(/فصل\s*(\d+)/);
+      if (ssnM) data.seasonCount = parseInt(ssnM[1]);
+    }
 
-    // Year - prefer explicit year labels, avoid future years
-    const yearMatch = bodyHtml.match(/سال\s*(?:پخش|انتشار)\s*:?\s*(\d{4})/i)
-      || bodyHtml.match(/releasea\/(\d{4})/i)
-      || bodyText.match(/سال\s*پخش\s*:\s*(\d{4})/i);
-    if (yearMatch) {
-      const y = parseInt(yearMatch[1]);
-      if (y >= 1960 && y <= 2026) data.releaseYear = y;
+    // Season count: also check .ghesmatd for "S1 EP10" pattern
+    if (!data.seasonCount) {
+      const ghesmatEl = $('.ghesmatd').first();
+      if (ghesmatEl.length) {
+        const gt = ghesmatEl.text();
+        const sm = gt.match(/S(\d+)/i);
+        if (sm) data.seasonCount = parseInt(sm[1]);
+      }
+    }
+
+    // Year: find /release/ or /releasea/ link in header (NOT nav menu)
+    // Look specifically in .sectionfour or .timeplye which is in the article header
+    const yearLink = $('.sectionfour a[href*="/release"], .timeplye a[href*="/release"], .sectionfive a[href*="/release"]').first();
+    if (yearLink.length) {
+      const ym = yearLink.attr('href')?.match(/release[ak]?\/(\d{4})/);
+      if (ym) {
+        const y = parseInt(ym[1]);
+        if (y >= 1940 && y <= 2027) data.releaseYear = y;
+      }
+    }
+    // Fallback: look in article header for any release link
+    if (!data.releaseYear) {
+      const articleYear = $('article a[href*="/release/"], article a[href*="/releasea/"]').first();
+      if (articleYear.length) {
+        const ym2 = articleYear.attr('href')?.match(/release[ak]?\/(\d{4})/);
+        if (ym2) {
+          const y2 = parseInt(ym2[1]);
+          if (y2 >= 1940 && y2 <= 2027) data.releaseYear = y2;
+        }
+      }
+    }
+
+    // Status: .vazipakh2 contains "وضعیت : اتمام پخش"
+    const statusEl = $('.vazipakh2').first();
+    if (statusEl.length) {
+      const st = statusEl.text().replace(/\s+/g, ' ').trim();
+      const stm = st.match(/وضعیت\s*:\s*(.+)/i);
+      if (stm) data.status = stm[1].trim();
     }
 
     // Air day
-    const dayMatch = bodyText.match(/روز\s*پخش\s*(?:هفتگی)?\s*:?\s*([\w\u0600-\u06FF]+)/i);
+    const bodyText = $.root().text().replace(/\s+/g, ' ').trim();
+    const dayMatch = bodyText.match(/روز\s*پخش\s*(?:هفتگی)?\s*:\s*([\w\u0600-\u06FF]+)/i);
     if (dayMatch) data.airDay = dayMatch[1].trim();
 
-    // Status
-    const statusMatch = bodyText.match(/وضعیت\s*:\s*(\S[\w\u0600-\u06FF\s]+?)(?:\s+\||\s*$)/i);
-    if (statusMatch) data.status = statusMatch[1].trim();
-
-    // IMDB rating
-    const imdbMatch = bodyText.match(/IMDB\s*:\s*(\d+\.?\d*)/i) || bodyText.match(/امتیاز\s*:\s*(\d+\.?\d*)/i);
-    if (imdbMatch) {
-      const r = parseFloat(imdbMatch[1]);
-      if (r > 0 && r <= 10) data.imdbRating = r;
+    // IMDB rating: look in main article header (not related cards)
+    // The main page has IMDB in .sjmrate inside the header section
+    const imdbEl = $('article .sjmrate, .topinterface .sjmrate, header .sjmrate').first();
+    if (imdbEl.length) {
+      const imdbText = imdbEl.text().replace(/\s+/g, ' ');
+      const imdbM = imdbText.match(/(\d+\.?\d*)/);
+      if (imdbM) {
+        const r = parseFloat(imdbM[1]);
+        if (r > 0 && r <= 10) data.imdbRating = r;
+      }
+    }
+    // Fallback: look for IMDB rating in .singletitle section
+    if (!data.imdbRating) {
+      const imdbFallback = $('.singletitle').parent().find('.sjmrate').first();
+      if (imdbFallback.length) {
+        const ft = imdbFallback.text().replace(/\s+/g, ' ');
+        const fm = ft.match(/(\d+\.?\d*)/);
+        if (fm) {
+          const fr = parseFloat(fm[1]);
+          if (fr > 0 && fr <= 10) data.imdbRating = fr;
+        }
+      }
     }
 
-    // Genres - both /category/ and /genrea/ links
+    // Genres: find links INSIDE .sectiontwo .timeradif (header metadata section only)
+    // Avoid nav menu links by scoping to the article/header section
     const seenGenres = new Set<string>();
-    $('a[href*="/category/"], a[href*="/genrea/"]').each((_, el) => {
+    const genreSelector = '.timeradif a[href*="/genre"], .sectiontwo a[href*="/genre"], article a[href*="/genre"]';
+    $(genreSelector).each((_, el) => {
+      const href = this.getAttr($(el), 'href') || '';
+      // Only match genre links (not /country/, /release/, /cast/, /director/ etc)
+      if (!href.match(/\/genre[cakt]?\//)) return;
       const text = this.getText($(el)).trim();
       if (text.length > 1 && text.length < 30 && !seenGenres.has(text)) {
         seenGenres.add(text);
         data.genreNames.push(text);
       }
     });
+    // Fallback: if no genres found from scoped selectors, try broader search
+    if (data.genreNames.length === 0) {
+      $('a[href*="/genre/"], a[href*="/genrea/"], a[href*="/genrek/"], a[href*="/genret/"]').each((_, el) => {
+        const href = this.getAttr($(el), 'href') || '';
+        // Skip nav menu links - they have long paths like /genrea/آشپزی/
+        // Genre links in content are shorter
+        const text = this.getText($(el)).trim();
+        if (text.length > 1 && text.length < 25 && !seenGenres.has(text) && href.split('/').filter(Boolean).length <= 3) {
+          // Additional check: skip if href contains URL-encoded long paths (nav menu)
+          const pathParts = href.split('/').filter(Boolean);
+          if (pathParts.length === 2 && pathParts[0].match(/^genre[cakt]?$/)) {
+            seenGenres.add(text);
+            data.genreNames.push(text);
+          }
+        }
+      });
+    }
 
     // --- Download Links ---
     // Strategy: find pairs of "پخش آنلاین" + "دانلود" links

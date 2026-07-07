@@ -5,12 +5,18 @@ export interface ScrapedContent {
   title: string;
   originalTitle?: string;
   posterUrl: string;
+  backdropUrl?: string;
   description: string;
   releaseYear?: number;
   imdbRating?: number;
   genreNames: string[];
   country?: string;
   quality?: string;
+  contentType?: string;
+  episodeCount?: number;
+  seasonCount?: number;
+  status?: string;
+  airDay?: string;
   downloadLinks: Record<string, Record<string, string>>;
   source: string;
   sourceUrl: string;

@@ -117,17 +117,19 @@ app.get('/scrape/start', async (_req, res) => {
       const allUrls: string[] = [];
 
       // === Phase 1: Collect URLs ===
+      // NO page limit - go until 3 consecutive empty pages
       scrapeProgress.phase = 'جمع‌آوری لینک‌ها';
 
-      // Animex categories: movie, serial, anime with high page limits
-      const catDefs: [string, string, number][] = [
-        ['movie', 'https://animex.click/movie/', 100],
-        ['serial', 'https://animex.click/serial/', 100],
-        ['anime', 'https://animex.click/anime/', 120],
+      const catDefs: [string, string][] = [
+        ['movie', 'https://animex.click/movie/'],
+        ['serial', 'https://animex.click/serial/'],
+        ['anime', 'https://animex.click/anime/'],
       ];
-      for (const [type, baseUrl, maxPage] of catDefs) {
+      for (const [type, baseUrl] of catDefs) {
         let emptyCount = 0;
-        for (let page = 1; page <= maxPage; page++) {
+        let page = 0;
+        while (emptyCount < 3) {
+          page++;
           const url = page === 1 ? baseUrl : `${baseUrl}page/${page}/`;
           try {
             const r = await axios.get(url, { timeout: 12000, headers: { 'User-Agent': UA }, maxRedirects: 5 });
@@ -143,20 +145,20 @@ app.get('/scrape/start', async (_req, res) => {
             allUrls.push(...unique);
             scrapeProgress.current = `${type} صفحه ${page}: ${unique.length} لینک`;
             if (unique.length === 0) emptyCount++; else emptyCount = 0;
-            if (emptyCount >= 3) break;
             await sleep(50);
           } catch {
             emptyCount++;
-            if (emptyCount >= 3) break;
             await sleep(100);
           }
         }
       }
 
-      // DonYayeSerial
+      // DonYayeSerial - no page limit
       {
         let emptyCount = 0;
-        for (let page = 1; page <= 50; page++) {
+        let page = 0;
+        while (emptyCount < 3) {
+          page++;
           try {
             const r = await axios.get(`https://donyayeserial.com/page/${page}/`, { timeout: 12000, headers: { 'User-Agent': UA }, maxRedirects: 5 });
             const $ = cheerio.load(r.data);
@@ -171,11 +173,10 @@ app.get('/scrape/start', async (_req, res) => {
             allUrls.push(...unique);
             scrapeProgress.current = `donyayeserial صفحه ${page}: ${unique.length} لینک`;
             if (unique.length === 0) emptyCount++; else emptyCount = 0;
-            if (emptyCount >= 3) break;
             await sleep(50);
           } catch {
             emptyCount++;
-            if (emptyCount >= 3) break;
+            await sleep(100);
             await sleep(100);
           }
         }
@@ -278,7 +279,6 @@ app.get('/scraper/debug', async (req, res) => {
     const targetUrl = (req.query.url as string) || '';
     const testUrl = (req.query.test as string) || '';
 
-    // If ?url= is provided, scrape that URL directly
     // If ?url= is provided, scrape that URL directly
     if (targetUrl) {
       const isDonyaye = targetUrl.includes('donyayeserial');
