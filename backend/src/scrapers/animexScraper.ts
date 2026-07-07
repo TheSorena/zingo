@@ -82,57 +82,66 @@ export class AnimexScraper extends BaseScraper {
       type: 'movie'
     };
 
-    // --- Metadata from the info table ---
+    // --- Metadata: use text selectors that work with ANY HTML structure ---
     const bodyHtml = $.html();
-    
-    // Country
-    const countryMatch = bodyHtml.match(/محصول\s*:?\s*([\w\u0600-\u06FF\s]+?)(?:\s*<|\s*\n)/i);
-    if (countryMatch) data.country = countryMatch[1].trim();
+    const bodyText = $.root().text().replace(/\s+/g, ' ').trim();
 
-    // Quality display
-    const qualityMatch = bodyHtml.match(/کیفیت\s*(?:نمایش|دانلود)?\s*:?\s*([\w\s-]+?)(?:\s*<|\s*\n)/i);
-    if (qualityMatch) data.quality = qualityMatch[1].trim();
+    // Country - extract text after "محصول"
+    const countryEl = $('.countsta, *:contains("محصول")').last();
+    if (countryEl.length) {
+      const t = countryEl.text().replace(/\s+/g, ' ');
+      const cm = t.match(/محصول\s*:?\s*(\S[\w\u0600-\u06FF\s]+)/i);
+      if (cm) data.country = cm[1].trim().replace(/\s+[|].*$/, '');
+    }
 
-    // Content type (سریالی / فیلم)
-    const typeMatch = bodyHtml.match(/نوع\s*(?:انیمه|فیلم)\s*:?\s*([\w\u0600-\u06FF\s]+?)(?:\s*<|\s*\n)/i);
-    if (typeMatch) {
-      data.contentType = typeMatch[1].trim();
-      data.type = typeMatch[1].includes('سریال') ? 'series' : 'movie';
+    // Quality
+    const mq = bodyText.match(/کیفیت\s*(?:نمایش|دانلود)?\s*:\s*([\w\s-]+?)(?:\s+\||$)/i);
+    if (mq) data.quality = mq[1].trim();
+
+    // Type (سریالی / فیلم / انیمه سریالی)
+    const mt = bodyText.match(/نوع\s*(?:انیمه|فیلم)?\s*:\s*(\S[\w\u0600-\u06FF\s]+?)(?:\s+\||\s*$)/i);
+    if (mt) {
+      data.contentType = mt[1].trim();
+      data.type = /سریال/i.test(mt[1]) ? 'series' : 'movie';
     }
 
     // Episode count
-    const epMatch = bodyHtml.match(/قسمت\s*(\d+)/i);
+    const epMatch = bodyText.match(/قسمت\s*:\s*(\d+)/i) || bodyText.match(/قسمت\s+(\d+)/i);
     if (epMatch) data.episodeCount = parseInt(epMatch[1]);
 
     // Season count
-    const seasonMatch = bodyHtml.match(/فصل\s*(\d+)/i);
+    const seasonMatch = bodyText.match(/فصل\s*:\s*(\d+)/i) || bodyText.match(/فصل\s+(\d+)/i);
     if (seasonMatch) data.seasonCount = parseInt(seasonMatch[1]);
 
-    // Year
-    const yearMatch = bodyHtml.match(/سال\s*(?:پخش|انتشار)\s*:?\s*(\d{4})/i) || bodyHtml.match(/\b(20\d{2})\b/);
-    if (yearMatch) data.releaseYear = parseInt(yearMatch[1]);
+    // Year - prefer explicit year labels, avoid future years
+    const yearMatch = bodyHtml.match(/سال\s*(?:پخش|انتشار)\s*:?\s*(\d{4})/i)
+      || bodyHtml.match(/releasea\/(\d{4})/i)
+      || bodyText.match(/سال\s*پخش\s*:\s*(\d{4})/i);
+    if (yearMatch) {
+      const y = parseInt(yearMatch[1]);
+      if (y >= 1960 && y <= 2026) data.releaseYear = y;
+    }
 
     // Air day
-    const dayMatch = bodyHtml.match(/روز\s*پخش\s*(?:هفتگی)?\s*:?\s*([\w\u0600-\u06FF]+)/i);
+    const dayMatch = bodyText.match(/روز\s*پخش\s*(?:هفتگی)?\s*:?\s*([\w\u0600-\u06FF]+)/i);
     if (dayMatch) data.airDay = dayMatch[1].trim();
 
     // Status
-    const statusMatch = bodyHtml.match(/وضعیت\s*:?\s*([\w\u0600-\u06FF\s]+?)(?:\s*<|\s*\n)/i);
+    const statusMatch = bodyText.match(/وضعیت\s*:\s*(\S[\w\u0600-\u06FF\s]+?)(?:\s+\||\s*$)/i);
     if (statusMatch) data.status = statusMatch[1].trim();
 
     // IMDB rating
-    const imdbMatch = bodyHtml.match(/IMDB\s*[:\s]*(\d+\.?\d*)/i) || bodyHtml.match(/امتیاز\s*[:\s]*(\d+\.?\d*)/i);
+    const imdbMatch = bodyText.match(/IMDB\s*:\s*(\d+\.?\d*)/i) || bodyText.match(/امتیاز\s*:\s*(\d+\.?\d*)/i);
     if (imdbMatch) {
       const r = parseFloat(imdbMatch[1]);
       if (r > 0 && r <= 10) data.imdbRating = r;
     }
 
-    // Genres
+    // Genres - both /category/ and /genrea/ links
     const seenGenres = new Set<string>();
-    $('a').each((_, el) => {
-      const href = this.getAttr($(el), 'href');
+    $('a[href*="/category/"], a[href*="/genrea/"]').each((_, el) => {
       const text = this.getText($(el)).trim();
-      if (href && href.includes('/category/') && text.length > 1 && text.length < 30 && !seenGenres.has(text)) {
+      if (text.length > 1 && text.length < 30 && !seenGenres.has(text)) {
         seenGenres.add(text);
         data.genreNames.push(text);
       }
@@ -230,11 +239,17 @@ export class AnimexScraper extends BaseScraper {
       }
     });
 
-    // --- Description from entry-content ---
-    const entryContent = $('.entry-content, .post-content').html() || '';
-    // Remove the download section and keep the description
-    const descHtml = entryContent.replace(/<table[\s\S]*?<\/table>/gi, '').replace(/<div[^>]*class="[^"]*download[^"]*"[\s\S]*?<\/div>/gi, '');
-    const descText = cheerio.load(descHtml)('body').text().trim();
+    // --- Description ---
+    const descEl = $('.story, .entry-content, .post-content, .contenctpost p').first();
+    let descText = '';
+    if (descEl.length) {
+      descText = descEl.text().trim();
+    }
+    if (!descText) {
+      const entryContent = $('.entry-content, .post-content').html() || '';
+      const descHtml = entryContent.replace(/<table[\s\S]*?<\/table>/gi, '').replace(/<div[^>]*class="[^"]*download[^"]*"[\s\S]*?<\/div>/gi, '');
+      descText = cheerio.load(descHtml)('body').text().trim();
+    }
     data.description = descText.substring(0, 2000);
 
     return data;
