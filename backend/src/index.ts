@@ -28,20 +28,9 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
-
-    if (config.corsOrigins.includes('*') || config.corsOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-
-    callback(null, true);
-  },
-  credentials: true,
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
 }));
 app.use(compression());
 app.use(morgan('dev'));
