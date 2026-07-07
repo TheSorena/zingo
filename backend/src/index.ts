@@ -268,15 +268,64 @@ app.get('/scrape/test', async (_req, res) => {
 });
 
 // ==================== Debug Scraper ====================
-app.get('/scraper/debug', async (_req, res) => {
+app.get('/scraper/debug', async (req, res) => {
   try {
     const { AnimexScraper } = await import('./scrapers/animexScraper');
+    const { DonyayeSerialScraper } = await import('./scrapers/donyayeSerialScraper');
     const scraper = new AnimexScraper();
+    const donScraper = new DonyayeSerialScraper();
+
+    const targetUrl = (req.query.url as string) || '';
+    const testUrl = (req.query.test as string) || '';
+
+    // If ?url= is provided, scrape that URL directly
+    // If ?url= is provided, scrape that URL directly
+    if (targetUrl) {
+      const isDonyaye = targetUrl.includes('donyayeserial');
+      const content = isDonyaye ? await donScraper.scrapeContent(targetUrl) : await scraper.scrapeContent(targetUrl);
+      const dlKeys = Object.keys(content?.downloadLinks || {});
+      const links: string[] = [];
+      for (const key of dlKeys) {
+        for (const q of Object.keys(content!.downloadLinks[key])) {
+          links.push(content!.downloadLinks[key][q]);
+        }
+      }
+      return res.json({
+        url: targetUrl,
+        title: content?.title,
+        type: content?.type,
+        quality: content?.quality,
+        country: content?.country,
+        releaseYear: content?.releaseYear,
+        dlServerCount: dlKeys.length,
+        dlSample: links.slice(0, 3),
+        allLinks: links,
+        episodeCount: content?.episodeCount,
+        seasonCount: content?.seasonCount,
+        status: content?.status,
+        genreNames: content?.genreNames,
+        description: (content?.description || '').substring(0, 200),
+      });
+    }
+
+    // If ?test= URL for quick listing test
+    if (testUrl) {
+      const axios = (await import('axios')).default;
+      const cheerio = (await import('cheerio')).default;
+      const r = await axios.get(testUrl, { timeout: 15000, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }, maxRedirects: 5 });
+      const $ = cheerio.load(r.data);
+      const links: string[] = [];
+      $('a[href]').each((_: any, el: any) => {
+        const href = $(el).attr('href') || '';
+        if (href.match(/animex\.(click|cc)\/(anime|movie|serial)\//))
+          links.push(href.replace('animex.cc', 'animex.click'));
+      });
+      return res.json({ status: r.status, linksFound: links.length, sample: links.slice(0, 5), htmlLength: r.data.length });
+    }
     
-    // Test getListings
+    // No URL provided — run default debug
     const listings = await scraper.getListings(1);
     
-    // Test scrapeContent on first URL
     let firstItem = null;
     if (listings.length > 0) {
       try {
