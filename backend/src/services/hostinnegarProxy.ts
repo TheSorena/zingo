@@ -25,15 +25,16 @@ function transformMovie(item: any) {
     : null;
 
   const downloadLinks: Record<string, string> = {};
-  if (item.downloadas && typeof item.downloadas === 'string' && item.downloadas.startsWith('http')) {
-    downloadLinks.server1 = item.downloadas;
-  }
   if (item.sources && Array.isArray(item.sources)) {
     for (const src of item.sources) {
-      if (src.url && src.quality) {
-        downloadLinks[src.quality] = src.url;
+      if (src.url) {
+        const key = src.quality || `server${src.id}`;
+        downloadLinks[key] = src.url;
       }
     }
+  }
+  if (item.downloadas && typeof item.downloadas === 'string' && item.downloadas.startsWith('http')) {
+    if (!downloadLinks.server1) downloadLinks.server1 = item.downloadas;
   }
 
   return {
@@ -53,7 +54,7 @@ function transformMovie(item: any) {
     language: null,
     director: null,
     cast: [],
-    screenshots: [],
+    screenshots: item.cover ? [item.cover] : [],
     trailerUrl: null,
     downloadLinks,
     source: 'hostinnegar',
@@ -75,9 +76,9 @@ function transformSeries(item: any) {
   };
 }
 
-async function fetchFromApi(endpoint: string): Promise<any[]> {
+async function fetchPage(endpoint: string, page: number): Promise<any[]> {
   try {
-    const { data } = await axios.get(`${API_BASE}${endpoint}${API_KEY}/`, {
+    const { data } = await axios.get(`${API_BASE}${endpoint}${page}/${API_KEY}/`, {
       timeout: 20000,
       headers: { Accept: 'application/json' },
     });
@@ -89,46 +90,90 @@ async function fetchFromApi(endpoint: string): Promise<any[]> {
   }
 }
 
-export async function getNewMovies(page: number = 1, limit: number = 20) {
-  const items = await fetchFromApi(`/api/movie/by/filtres/0/created/${page - 1}/`);
+// Fetch multiple pages like CinemaPlus does (up to 10 pages)
+async function fetchMultiplePages(endpoint: string, limit: number = 30): Promise<any[]> {
+  const allItems: any[] = [];
+  let currentPage = 0;
+  
+  while (allItems.length < limit && currentPage < 10) {
+    const items = await fetchPage(endpoint, currentPage);
+    if (items.length === 0) break;
+    allItems.push(...items);
+    currentPage++;
+  }
+  
+  return allItems;
+}
+
+export async function getNewMovies(page: number = 1, limit: number = 30) {
+  if (page > 1) {
+    // For pagination beyond first page, fetch that specific page
+    const items = await fetchPage('/api/movie/by/filtres/0/created/', page - 1);
+    return items.map(transformMovie);
+  }
+  // For first page, fetch multiple pages to get enough items
+  const items = await fetchMultiplePages('/api/movie/by/filtres/0/created/', limit);
   return items.map(transformMovie);
 }
 
-export async function getTopRatedMovies(page: number = 1, limit: number = 20) {
-  const items = await fetchFromApi(`/api/movie/by/filtres/0/imdb/${page - 1}/`);
+export async function getTopRatedMovies(page: number = 1, limit: number = 30) {
+  if (page > 1) {
+    const items = await fetchPage('/api/movie/by/filtres/0/imdb/', page - 1);
+    return items.map(transformMovie);
+  }
+  const items = await fetchMultiplePages('/api/movie/by/filtres/0/imdb/', limit);
   return items.map(transformMovie);
 }
 
-export async function getNewSeries(page: number = 1, limit: number = 20) {
-  const items = await fetchFromApi(`/api/serie/by/filtres/0/created/${page - 1}/`);
+export async function getNewSeries(page: number = 1, limit: number = 30) {
+  if (page > 1) {
+    const items = await fetchPage('/api/serie/by/filtres/0/created/', page - 1);
+    return items.map(transformSeries);
+  }
+  const items = await fetchMultiplePages('/api/serie/by/filtres/0/created/', limit);
   return items.map(transformSeries);
 }
 
-export async function getTopRatedSeries(page: number = 1, limit: number = 20) {
-  const items = await fetchFromApi(`/api/serie/by/filtres/0/imdb/${page - 1}/`);
+export async function getTopRatedSeries(page: number = 1, limit: number = 30) {
+  if (page > 1) {
+    const items = await fetchPage('/api/serie/by/filtres/0/imdb/', page - 1);
+    return items.map(transformSeries);
+  }
+  const items = await fetchMultiplePages('/api/serie/by/filtres/0/imdb/', limit);
   return items.map(transformSeries);
 }
 
-export async function getUpdatedSeries(page: number = 1, limit: number = 20) {
-  const items = await fetchFromApi(`/api/serie/by/filtres/0/updated/${page - 1}/`);
+export async function getUpdatedSeries(page: number = 1, limit: number = 30) {
+  if (page > 1) {
+    const items = await fetchPage('/api/serie/by/filtres/0/updated/', page - 1);
+    return items.map(transformSeries);
+  }
+  const items = await fetchMultiplePages('/api/serie/by/filtres/0/updated/', limit);
   return items.map(transformSeries);
 }
 
-export async function getBestSeries(page: number = 1, limit: number = 20) {
-  const items = await fetchFromApi(`/api/serie/by/filtres/0/imdb/${page - 1}/`);
+export async function getBestSeries(page: number = 1, limit: number = 30) {
+  if (page > 1) {
+    const items = await fetchPage('/api/serie/by/filtres/0/imdb/', page - 1);
+    return items.map(transformSeries);
+  }
+  const items = await fetchMultiplePages('/api/serie/by/filtres/0/imdb/', limit);
   return items.map(transformSeries);
 }
 
 export async function getMovieById(id: number) {
   try {
+    // Try direct API endpoint first
     const { data } = await axios.get(`${API_BASE}/api/movie/${id}/${API_KEY}/`, {
       timeout: 20000,
       headers: { Accept: 'application/json' },
     });
-    return data ? transformMovie(data) : null;
-  } catch {
-    return null;
-  }
+    if (data && data.id) return transformMovie(data);
+  } catch {}
+  
+  // If direct endpoint doesn't work, search in cached movies
+  const movies = await getNewMovies(1, 100);
+  return movies.find(m => m.id === id) || null;
 }
 
 export async function getSerieById(id: number) {
@@ -137,14 +182,15 @@ export async function getSerieById(id: number) {
       timeout: 20000,
       headers: { Accept: 'application/json' },
     });
-    return data ? transformSeries(data) : null;
-  } catch {
-    return null;
-  }
+    if (data && data.id) return transformSeries(data);
+  } catch {}
+  
+  const series = await getNewSeries(1, 100);
+  return series.find(s => s.id === id) || null;
 }
 
 export async function getSeasons(serieId: number) {
-  return fetchFromApi(`/api/season/by/serie/${serieId}/`);
+  return fetchPage(`/api/season/by/serie/${serieId}/`, 0);
 }
 
 export async function searchContent(query: string) {

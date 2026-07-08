@@ -5,7 +5,7 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   try {
-    const { page = '1', limit = '20', genre, search, sort = 'createdAt', order = 'desc', year, rating } = req.query;
+    const { page = '1', limit = '30', genre, search, sort = 'createdAt', order = 'desc', year, rating } = req.query;
     const p = parseInt(page as string);
     const l = parseInt(limit as string);
 
@@ -18,17 +18,9 @@ router.get('/', async (req, res) => {
       movies = await proxy.getNewMovies(p, l);
     }
 
-    if (year) {
-      movies = movies.filter((m: any) => m.releaseYear === parseInt(year as string));
-    }
-    if (rating) {
-      movies = movies.filter((m: any) => m.imdbRating && m.imdbRating >= parseFloat(rating as string));
-    }
-    if (genre) {
-      movies = movies.filter((m: any) => 
-        m.genres?.some((g: any) => g.genre?.slug === genre || g.genre?.name === genre)
-      );
-    }
+    if (year) movies = movies.filter((m: any) => m.releaseYear === parseInt(year as string));
+    if (rating) movies = movies.filter((m: any) => m.imdbRating && m.imdbRating >= parseFloat(rating as string));
+    if (genre) movies = movies.filter((m: any) => m.genres?.some((g: any) => g.genre?.slug === genre || g.genre?.name === genre));
 
     res.json({
       success: true,
@@ -44,7 +36,7 @@ router.get('/', async (req, res) => {
 
 router.get('/top-imdb', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit as string || '10');
+    const limit = parseInt(req.query.limit as string || '30');
     const movies = await proxy.getTopRatedMovies(1, limit);
     res.json({ success: true, data: movies.slice(0, limit) });
   } catch (error) {
@@ -55,9 +47,7 @@ router.get('/top-imdb', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const movie = await proxy.getMovieById(parseInt(req.params.id));
-    if (!movie) {
-      return res.status(404).json({ success: false, message: 'فیلم یافت نشد' });
-    }
+    if (!movie) return res.status(404).json({ success: false, message: 'فیلم یافت نشد' });
     res.json({ success: true, data: movie });
   } catch (error) {
     res.status(500).json({ success: false, message: 'خطا در دریافت فیلم' });

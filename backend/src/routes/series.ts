@@ -5,7 +5,7 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   try {
-    const { page = '1', limit = '20', genre, search, sort = 'createdAt', order = 'desc', year, rating } = req.query;
+    const { page = '1', limit = '30', genre, search, sort = 'createdAt', order = 'desc', year, rating } = req.query;
     const p = parseInt(page as string);
     const l = parseInt(limit as string);
 
@@ -21,17 +21,9 @@ router.get('/', async (req, res) => {
       series = await proxy.getNewSeries(p, l);
     }
 
-    if (year) {
-      series = series.filter((s: any) => s.releaseYear === parseInt(year as string));
-    }
-    if (rating) {
-      series = series.filter((s: any) => s.imdbRating && s.imdbRating >= parseFloat(rating as string));
-    }
-    if (genre) {
-      series = series.filter((s: any) => 
-        s.genres?.some((g: any) => g.genre?.slug === genre || g.genre?.name === genre)
-      );
-    }
+    if (year) series = series.filter((s: any) => s.releaseYear === parseInt(year as string));
+    if (rating) series = series.filter((s: any) => s.imdbRating && s.imdbRating >= parseFloat(rating as string));
+    if (genre) series = series.filter((s: any) => s.genres?.some((g: any) => g.genre?.slug === genre || g.genre?.name === genre));
 
     res.json({
       success: true,
@@ -48,9 +40,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const serie = await proxy.getSerieById(parseInt(req.params.id));
-    if (!serie) {
-      return res.status(404).json({ success: false, message: 'سریال یافت نشد' });
-    }
+    if (!serie) return res.status(404).json({ success: false, message: 'سریال یافت نشد' });
     const seasons = await proxy.getSeasons(parseInt(req.params.id));
     res.json({ success: true, data: { ...serie, seasons } });
   } catch (error) {
