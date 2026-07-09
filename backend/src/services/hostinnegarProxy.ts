@@ -106,20 +106,13 @@ export async function getSeasons(serieId: number) {
 
 export async function searchContent(query: string) {
   try {
-    const url = `${API_BASE}/api/search/${encodeURIComponent(query)}/${API_KEY}/`;
-    console.log('Search URL:', url);
-    const { data } = await axios.get(url, {
+    const { data } = await axios.get(`${API_BASE}/api/search/${encodeURIComponent(query)}/${API_KEY}/`, {
       timeout: 20000, headers: { Accept: 'application/json' },
     });
-    console.log('Search response type:', typeof data, Array.isArray(data) ? 'array' : 'not array');
-    console.log('Search response:', JSON.stringify(data).substring(0, 200));
     const items = Array.isArray(data) ? data : [];
     return items.map((item: any) => {
       if (item.type === 'serie' || item.type === 'serial') return transformSeries(item);
       return transformMovie(item);
     });
-  } catch (err: any) {
-    console.log('Search error:', err.message);
-    return [];
-  }
+  } catch { return []; }
 }
