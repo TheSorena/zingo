@@ -104,6 +104,10 @@ export const searchAPI = {
     api.get('/movies', { params: { search: query } }),
   series: (query: string) =>
     api.get('/series', { params: { search: query } }),
+  search: (query: string) => {
+    const localApi = axios.create({ baseURL: '/api', timeout: 30000, headers: { 'Content-Type': 'application/json' } });
+    return localApi.get('/search', { params: { q: query } });
+  },
 };
 
 // ==================== Admin API ====================

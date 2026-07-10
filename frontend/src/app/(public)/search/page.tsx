@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import MovieCard from '@/components/movie/MovieCard';
 import { MovieRowSkeleton } from '@/components/common/Skeletons';
-import { moviesAPI, seriesAPI } from '@/lib/api';
+import { searchAPI } from '@/lib/api';
 import { toPersianNumber } from '@/lib/utils';
 import { FiFilm, FiMonitor } from 'react-icons/fi';
 
@@ -19,13 +19,10 @@ function SearchPageContent() {
   useEffect(() => {
     if (!query) return;
     setIsLoading(true);
-    Promise.all([
-      moviesAPI.getAll({ search: query, limit: '12' }),
-      seriesAPI.getAll({ search: query, limit: '12' }),
-    ])
-      .then(([moviesRes, seriesRes]) => {
-        setMovies(moviesRes.data.data.movies || []);
-        setSeries(seriesRes.data.data.series || []);
+    searchAPI.search(query)
+      .then((res) => {
+        setMovies(res.data.data.movies || []);
+        setSeries(res.data.data.series || []);
       })
       .catch(console.error)
       .finally(() => setIsLoading(false));
