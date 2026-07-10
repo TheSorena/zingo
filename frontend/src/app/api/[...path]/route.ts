@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const RAILWAY_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zingo-production-9a5a.up.railway.app';
+const RAILWAY_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://zingo-production-9a5a.up.railway.app').replace(/\/api$/, '');
 const HOSTINNEGAR_BASE = process.env.API_BASE_URL || 'https://hostinnegar.com';
 const HOSTINNEGAR_KEY = process.env.HOSTINNEGAR_API_KEY || '4F5A9C3D9A86FA54EACEDDD635185';
 
