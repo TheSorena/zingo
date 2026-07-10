@@ -109,8 +109,8 @@ export async function searchContent(query: string) {
     const { data } = await axios.get(`${API_BASE}/api/search/${encodeURIComponent(query)}/${API_KEY}/`, {
       timeout: 20000, headers: { Accept: 'application/json' },
     });
-    const items = Array.isArray(data) ? data : [];
-    return items.map((item: any) => {
+    const posters = Array.isArray(data.posters) ? data.posters : [];
+    return posters.map((item: any) => {
       if (item.type === 'serie' || item.type === 'serial') return transformSeries(item);
       return transformMovie(item);
     });
