@@ -40,7 +40,7 @@ export default function HomePage() {
         ]);
 
         const movies = moviesRes.data.data.movies || [];
-        const imdbMovies = topImdbRes.data.data || [];
+        const imdbMovies = topImdbRes.data.data?.movies || topImdbRes.data.data || [];
         const series = seriesRes.data.data.series || [];
 
         setNewMovies(movies);

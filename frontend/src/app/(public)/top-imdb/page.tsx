@@ -11,7 +11,7 @@ export default function TopImdbPage() {
 
   useEffect(() => {
     moviesAPI.getTopIMDB(30)
-      .then((res) => setMovies(res.data.data))
+      .then((res) => setMovies(res.data.data?.movies || res.data.data || []))
       .catch(console.error)
       .finally(() => setIsLoading(false));
   }, []);
