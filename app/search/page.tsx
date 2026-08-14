@@ -7,7 +7,7 @@ import { ThemeToggle } from '../../components/theme-toggle';
 import { NavItems } from '../../components/nav-items-client';
 import { SearchResultCard } from "../../components/search-result-card";
 import Link from "next/link";
-import { apiUrl } from '../../lib/config';
+import { headers } from "next/headers";
 import type { Metadata } from 'next';
 
 interface SearchResult {
@@ -22,13 +22,24 @@ interface SearchResult {
   country: { id: number; title: string }[];
 }
 
+const getBaseUrl = () => {
+  try {
+    const host = headers().get('host');
+    if (host) {
+      const protocol = host.includes('localhost') || host.startsWith('127.') ? 'http' : 'https';
+      return `${protocol}://${host}`;
+    }
+  } catch {}
+  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+};
+
 async function getSearchResults(query: string) {
   if (!query) return [];
 
   try {
     const response = await fetch(
-      `${apiUrl}/api/search/${encodeURIComponent(query)}/4F5A9C3D9A86FA54EACEDDD635185`,
-      { next: { revalidate: 3600 } }
+      `${getBaseUrl()}/api/search?q=${encodeURIComponent(query)}`,
+      { cache: 'no-store' }
     );
     const data = await response.json();
     return data.posters || [];

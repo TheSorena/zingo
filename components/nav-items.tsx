@@ -1,15 +1,10 @@
-import { Home, Clapperboard, Search, User, Settings, HelpCircle, Heart, Compass } from "lucide-react";
+import { Home, Clapperboard, Search, User, Settings, HelpCircle, Heart } from "lucide-react";
 
 export const navItems = [
   {
     title: "خانه",
     href: "/",
     icon: Home,
-  },
-  {
-    title: "تلویزیون",
-    href: "/tv",
-    icon: Compass,
   },
   {
     title: "علاقه‌مندی‌ها",

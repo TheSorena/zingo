@@ -28,7 +28,8 @@ export async function GET(
     }
 
     const data = await response.json();
-    return NextResponse.json(filterContent(data));
+    const posters = Array.isArray(data) ? data : (data.posters || []);
+    return NextResponse.json({ ...data, posters: filterContent(posters) });
   } catch (error) {
     console.error('Error fetching search results:', error);
     return NextResponse.json(
