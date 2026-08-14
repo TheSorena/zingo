@@ -163,7 +163,7 @@ export default function PrivacyPage() {
                     قوانین و حریم خصوصی
                   </CardTitle>
                   <CardDescription className="text-base md:text-lg lg:text-xl text-muted-foreground/90">
-                    لطفاً قبل از استفاده از سینما پلاس، قوانین زیر را مطالعه کنید
+                    لطفاً قبل از استفاده از زینگو، قوانین زیر را مطالعه کنید
                   </CardDescription>
                 </motion.div>
               </div>
@@ -226,15 +226,15 @@ export default function PrivacyPage() {
                       <Info className="w-6 h-6 text-primary group-hover:rotate-12 transition-transform duration-300" />
                     </div>
                     <h2 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                      درباره سینما پلاس:
+                      درباره زینگو:
                     </h2>
                   </div>
                   <div className="space-y-4 text-base md:text-lg text-muted-foreground bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-xl border border-primary/20 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-                    <p className="leading-relaxed">سینما پلاس یک پلتفرم پیشرفته استریم و دانلود فیلم و سریال است که با هدف ارائه محتوای با کیفیت و بدون محدودیت ایجاد شده است.</p>
+                    <p className="leading-relaxed">زینگو یک پلتفرم پیشرفته استریم و دانلود فیلم و سریال است که با هدف ارائه محتوای با کیفیت و بدون محدودیت ایجاد شده است.</p>
                     <p className="leading-relaxed">ما با ارائه جدیدترین فیلم‌ها و سریال‌ها در کیفیت‌های مختلف، امکان دانلود مستقیم و پخش آنلاین، و رابط کاربری مدرن و زیبا، بهترین تجربه را برای شما فراهم می‌کنیم.</p>
                     <p className="leading-relaxed">تیم ما به طور مداوم در حال بروزرسانی محتوا، بهبود کیفیت خدمات و اضافه کردن قابلیت‌های جدید است.</p>
                     <p className="leading-relaxed">با امکاناتی مانند جستجوی پیشرفته، دسته‌بندی ژانرها، نمایش امتیازهای IMDB، و پشتیبانی از VLC Player، تجربه تماشای فیلم و سریال را برای شما لذت‌بخش‌تر کرده‌ایم.</p>
-                    <p className="leading-relaxed">از اینکه سینما پلاس را انتخاب کرده‌اید، سپاسگزاریم.</p>
+                    <p className="leading-relaxed">از اینکه زینگو را انتخاب کرده‌اید، سپاسگزاریم.</p>
                   </div>
                 </motion.div>
               </motion.div>

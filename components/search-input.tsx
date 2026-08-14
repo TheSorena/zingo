@@ -26,7 +26,7 @@ export function SearchInput({ placeholder = "جستجوی فیلم و سریال
         type="search"
         defaultValue={defaultValue}
         placeholder={placeholder}
-        className={`${className} pl-4 pr-10 py-2 rounded-full bg-muted/50 focus:bg-muted focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all`}
+        className={`${className} pl-4 pr-10 py-2 rounded-full bg-muted/60 border border-border/60 focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/40 transition-all`}
         onKeyDown={handleSearch}
       />
     </div>

@@ -161,7 +161,7 @@ export default function SerieDetailPage({
       {/* Back Button */}
       <Link
         href="/"
-        className="fixed top-4 right-4 z-50 bg-background/80 backdrop-blur-sm p-2 rounded-full hover:bg-background/90 transition-all duration-300 hover:scale-110"
+        className="fixed top-4 right-4 z-50 glass p-2 rounded-full ring-1 ring-border/60 hover:bg-background/90 transition-all duration-300 hover:scale-110"
       >
         <svg
           className="w-6 h-6 rotate-180"
@@ -190,7 +190,7 @@ export default function SerieDetailPage({
       </div>
 
       {/* Hero Section */}
-      <div className="relative h-[50vh] w-full overflow-hidden">
+      <div className="relative h-[55vh] md:h-[65vh] w-full overflow-hidden">
         <Image
           src={serie.cover || serie.image}
           alt={serie.title}
@@ -199,13 +199,14 @@ export default function SerieDetailPage({
           priority
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/10" />
+        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-background/60 hidden md:block" />
         
         {/* Serie Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <div className="flex items-start gap-4">
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+          <div className="flex items-start gap-4 md:gap-6">
             {/* Serie Poster */}
-            <div className="w-24 h-36 rounded-lg overflow-hidden flex-shrink-0 shadow-lg relative">
+            <div className="w-28 h-40 md:w-36 md:h-52 rounded-2xl overflow-hidden flex-shrink-0 shadow-2xl shadow-black/50 ring-1 ring-border/60 relative">
               <Image
                 src={serie.image}
                 alt={serie.title}
@@ -218,43 +219,43 @@ export default function SerieDetailPage({
                   item={serie}
                   variant="ghost"
                   size="icon"
-                  className="bg-black/50 rounded-full hover:bg-black/70 w-8 h-8 p-0"
+                  className="bg-black/50 rounded-full hover:bg-black/70 w-8 h-8 p-0 backdrop-blur-sm"
                 />
               </div>
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-foreground dark:text-white">{serie.title}</h1>
+              <h1 className="text-2xl md:text-4xl font-black text-foreground dark:text-white drop-shadow-lg">{serie.title}</h1>
               
-              <div className="flex flex-wrap items-center gap-3 text-foreground/90 dark:text-white/80 mt-2">
+              <div className="flex flex-wrap items-center gap-3 text-foreground/90 dark:text-white/80 mt-3">
                 {serie.imdb > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <Star className="w-3.5 h-3.5 text-yellow-400" />
-                    <span className="text-sm">{serie.imdb}</span>
+                  <div className="flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-0.5 text-primary-foreground">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span className="text-sm font-bold">{serie.imdb}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-foreground dark:text-white" />
+                  <Calendar className="w-3.5 h-3.5 text-amber-400" />
                   <span className="text-sm">{serie.year}</span>
                 </div>
                 {serie.duration && (
                   <div className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-foreground dark:text-white" />
+                    <Clock className="w-3.5 h-3.5 text-amber-400" />
                     <span className="text-sm">{serie.duration}</span>
                   </div>
                 )}
                 {serie.country?.[0] && (
                   <div className="flex items-center gap-1.5">
-                    <Globe2 className="w-3.5 h-3.5 text-foreground dark:text-white" />
+                    <Globe2 className="w-3.5 h-3.5 text-amber-400" />
                     <span className="text-sm">{serie.country[0].title}</span>
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className="flex flex-wrap gap-1.5 mt-3">
                 {serie.genres?.map((genre: { id: number; title: string }) => (
                   <span
                     key={genre.id}
-                    className="bg-muted dark:bg-white/10 backdrop-blur-sm text-foreground dark:text-white px-2.5 py-0.5 rounded-full text-xs"
+                    className="glass text-foreground dark:text-white px-2.5 py-0.5 rounded-full text-xs ring-1 ring-border/50"
                   >
                     {genre.title}
                   </span>

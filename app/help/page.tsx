@@ -5,20 +5,20 @@ import type { Metadata } from 'next';
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: 'راهنمای استفاده | Cinema Plus | سینما پلاس',
-  description: 'How to use Cinema Plus | راهنمای استفاده از سینما پلاس',
+  title: 'راهنمای استفاده | Zingo | زینگو',
+  description: 'How to use Zingo | راهنمای استفاده از زینگو',
 };
 
 export default function HelpPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 w-full border-b border-border/60 glass">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <img src="/59e123_25logo.png" alt="logo" className="h-9 w-9 text-primary transition-transform group-hover:rotate-12" />
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-              سینما پلاس
+            <img src="/zingo-logo.png" alt="زینگو" className="h-9 w-9 rounded-xl object-cover shadow-lg shadow-primary/20 ring-1 ring-primary/30 transition-transform group-hover:rotate-6" />
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent">
+              زینگو
             </h1>
           </Link>
           <div className="flex items-center">
@@ -33,7 +33,7 @@ export default function HelpPage() {
 
       <div className="container max-w-4xl mx-auto py-8 px-4 md:px-6 lg:px-8">
         <div className="prose prose-lg dark:prose-invert max-w-none">
-          <h1 className="text-3xl font-bold mb-8 text-center">راهنمای استفاده از سینما پلاس</h1>
+          <h1 className="text-3xl font-bold mb-8 text-center">راهنمای استفاده از زینگو</h1>
 
           {/* Help Image */}
           <div className="mb-8">

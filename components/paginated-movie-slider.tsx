@@ -140,7 +140,7 @@ export function PaginatedMovieSlider({
   return (
     <div className={className}>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold line-clamp-2">{title}</h2>
+        <h2 className="relative pr-4 text-lg sm:text-xl md:text-2xl font-bold line-clamp-2 before:absolute before:right-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1.5 before:rounded-full before:bg-gradient-to-b before:from-amber-400 before:to-rose-500">{title}</h2>
         
         <div className="flex items-center gap-1 self-start sm:self-auto">
           <Button

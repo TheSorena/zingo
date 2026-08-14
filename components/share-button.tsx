@@ -17,7 +17,7 @@ export function ShareButton({ title, type, id }: ShareButtonProps) {
       try {
         await navigator.share({
           title: title,
-          text: `تماشای ${title} در سینما پلاس`,
+          text: `تماشای ${title} در زینگو`,
           url: shareUrl,
         });
         toast.success('محتوا با موفقیت به اشتراک گذاشته شد');

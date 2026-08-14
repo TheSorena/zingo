@@ -9,8 +9,8 @@ export function WatchButton() {
       onClick={() => {
         document.getElementById('episodes')?.scrollIntoView({ behavior: 'smooth' });
       }}
-      className="w-full md:w-auto gap-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20"
-      variant="ghost"
+      className="w-full md:w-auto gap-2 bg-primary text-primary-foreground hover:bg-accent shadow-lg shadow-primary/25 transition-all duration-300"
+      variant="default"
     >
       <Play className="h-4 w-4" />
       تماشای سریال

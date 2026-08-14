@@ -79,7 +79,7 @@ export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
         </a>
         <Button className="flex-2">
           <a href={'vlc://' + url}>
-         VLC تماشا با
+          تماشا با VLC
           </a>
         </Button>
 

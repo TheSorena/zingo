@@ -1,86 +1,61 @@
-# 🎬 Cinema Plus
+# زینگو | Zingo
 
-**Cinema Plus** is a modern Persian movie & series streaming application built with **Next.js**, **TypeScript**, and **TailwindCSS**.
+**Zingo** is a modern Persian movie & series streaming application built with **Next.js**, **TypeScript**, and **TailwindCSS**.
 
 > Watch and download foreign movies and series **for free**, with **Persian subtitles**, **Persian dubbing**, and **no censorship**.
 
+## Features
 
-## 🌟 Features
-
-- 🏠 Home Page  
-- 🎬 Movie Detail Page  
-- 📺 Series Detail Page  
-- 🔍 Search Page  
-- 📡 Live TV & Satellite Channels Page  
-- ⚙️ Settings Page  
-- ❤️ Favorites Page  
-- 📘 Help/Guide Page  
+- Home Page
+- Movie Detail Page
+- Series Detail Page
+- Search Page
+- Live TV & Satellite Channels Page
+- Settings Page
+- Favorites Page
+- Help/Guide Page
 - ... and more
 
-## 🚀 Live Demo
+## Tech Stack
 
-| Platform       | Link |
-|----------------|------|
-| 🌐 Website      | [cinemaplus-app.vercel.app](https://cinemaplus-app.vercel.app) |
-| 🌐 Server 2     | [cinemaplus-app.netlify.app](https://cinemaplus-app.netlify.app) |
-| 📦 Deploy on Vercel | [Deploy Now](https://vercel.com/new/clone?repository-url=https://github.com/code3-dev/cinemaplus-app) |
-
-
-## 🛠️ Tech Stack
-
-- [Next.js](https://nextjs.org/) (App Router)
-- [TypeScript](https://www.typescriptlang.org/)
-- [TailwindCSS](https://tailwindcss.com/)
+- Next.js (App Router)
+- TypeScript
+- TailwindCSS
 - Fully responsive UI (mobile, tablet, desktop)
 - Persian RTL support with custom fonts
 
-## 📦 Getting Started
-
-### Clone the repository
+## Getting Started
 
 ```bash
-git clone https://github.com/MamdMehrabi/CinemaPlus.git
-cd CinemaPlus
-```
-### Install dependencies
-```bash
+git clone <your-repo-url>
+cd <repo-folder>
 npm install
-```
-### Run in development mode
-```bash
 npm run dev
 ```
-### Build for production
+
+Build for production:
+
 ```bash
 npm run build
 ```
 
+## Environment Variables
 
-## 📁 What is the /php Folder?
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_APP_URL` | Your public site URL (used for metadata & SEO) |
+| `API_BASE_URL` | External API base URL (default: `https://hostinnegar.com`) |
+| `NEXT_PUBLIC_APP_VERSION` | App version shown in settings |
 
-The php/ folder contains a CDN helper system to serve and play trailers for movies and series.
-It's a lightweight backend used to support video previews within the app.
+## Deploy on Vercel
 
+1. Push this repo to your GitHub account.
+2. Go to [vercel.com](https://vercel.com) → **Add New Project** → import the repo.
+3. In **Environment Variables**, add:
+   - `API_BASE_URL` = `https://hostinnegar.com`
+   - `NEXT_PUBLIC_APP_URL` = your deployed URL (e.g. `https://zingo.vercel.app`)
+4. Deploy. No other config needed.
 
-## 📢 Join the Community
+## License
 
-📣 Telegram Channel: [@CinemaPlusApp](https://t.me/CinemaPlusApp)
-
-
-## 📌 Project Status
-
-This is Version 1.0 of Cinema Plus.
-We are actively working on new features, performance improvements, and design enhancements.
-
-Stay tuned for updates and new releases.
-
-
-## 🤝 Contributing
-
-Contributions are welcome!
-Feel free to fork this repository, open issues, or submit pull requests.
-
-
-## 📄 License
-
-This project is licensed under the MIT License.
+MIT License

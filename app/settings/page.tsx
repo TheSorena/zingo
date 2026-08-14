@@ -68,12 +68,12 @@ export default function SettingsPage() {
   return (
     <main className="min-h-screen pb-20 md:pb-0 bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 w-full border-b border-border/60 glass">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <img src="/59e123_25logo.png" alt="logo" className="h-9 w-9 text-primary transition-transform group-hover:rotate-12" />
-            <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-              سینما پلاس
+            <img src="/zingo-logo.png" alt="زینگو" className="h-9 w-9 rounded-xl object-cover shadow-lg shadow-primary/20 ring-1 ring-primary/30 transition-transform group-hover:rotate-6" />
+            <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent">
+              زینگو
             </h1>
           </Link>
           <div className="md:hidden flex items-center">
@@ -166,7 +166,7 @@ export default function SettingsPage() {
                 توسعه دهندگان
               </CardTitle>
               <CardDescription className="text-base">
-                تیم توسعه دهندگان سینما پلاس
+                تیم توسعه دهندگان زینگو
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6">
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Star className="w-5 h-5 text-primary" />
-                    <h3 className="font-semibold text-lg">سینما پلاس</h3>
+                    <h3 className="font-semibold text-lg">زینگو</h3>
                   </div>
                   <p className="text-muted-foreground">دانلود رایگان فیلم و سریال با کیفیت بالا و سریع و بدون سابقه حساب و هیچگونه هزینه ای و بدون سانسور.</p>
                 </div>
@@ -261,7 +261,7 @@ export default function SettingsPage() {
                 راهنمای استفاده
               </CardTitle>
               <CardDescription className="text-base">
-                نحوه استفاده از سینما پلاس
+                نحوه استفاده از زینگو
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -335,7 +335,7 @@ export default function SettingsPage() {
                 اطلاعات قانونی
               </CardTitle>
               <CardDescription className="text-base">
-                قوانین و مقررات استفاده از سینما پلاس
+                قوانین و مقررات استفاده از زینگو
               </CardDescription>
             </CardHeader>
             <CardContent>

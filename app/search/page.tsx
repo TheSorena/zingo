@@ -51,18 +51,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {/* Animated Background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-grid-white/10 bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_120%)]" />
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5" />
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-purple-500/20 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-rose-500/5" />
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-amber-500/15 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-rose-500/15 blur-3xl" />
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 w-full border-b border-border/60 glass">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <img src="/59e123_25logo.png" alt="logo" className="h-9 w-9 text-primary transition-transform group-hover:rotate-12" />
-            <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-              سینما پلاس
+            <img src="/zingo-logo.png" alt="زینگو" className="h-9 w-9 rounded-xl object-cover shadow-lg shadow-primary/20 ring-1 ring-primary/30 transition-transform group-hover:rotate-6" />
+            <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent">
+              زینگو
             </h1>
           </Link>
           <div className="md:hidden flex items-center">
@@ -85,7 +85,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="text-center space-y-4 max-w-2xl mx-auto">
             <div className="flex items-center justify-center gap-2 text-primary">
               <Sparkles className="h-8 w-8 animate-pulse" />
-              <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+              <h2 className="text-4xl font-bold tracking-tight text-gradient-zingo">
                 جستجوی هوشمند
               </h2>
             </div>
@@ -98,7 +98,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <form action="/search" className="max-w-3xl mx-auto">
             <div className="group relative">
               {/* Glowing Effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-300" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-rose-500 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-300" />
 
               <div className="relative flex flex-col sm:flex-row items-center gap-2">
                 <Input
@@ -113,7 +113,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full sm:w-28 sm:absolute sm:left-2 sm:top-1/2 sm:-translate-y-1/2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-12 sm:h-[52px] rounded-md transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2"
+                  className="w-full sm:w-28 sm:absolute sm:left-2 sm:top-1/2 sm:-translate-y-1/2 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white h-12 sm:h-[52px] rounded-md transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2"
                 >
                   <Search className="h-5 w-5" />
                   جستجو
@@ -158,14 +158,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 }
 
 export const metadata: Metadata = {
-  title: 'جستجو | Cinema Plus | جستجو | سینما پلاس',
+  title: 'جستجو | Zingo | زینگو',
   description: 'Search for movies and series | جستجوی فیلم‌ها و سریال‌ها',
   openGraph: {
-    title: 'جستجو | Cinema Plus | جستجو | سینما پلاس',
+    title: 'جستجو | Zingo | زینگو',
     description: 'Search for movies and series | جستجوی فیلم‌ها و سریال‌ها',
   },
   twitter: {
-    title: 'جستجو | Cinema Plus | جستجو | سینما پلاس',
+    title: 'جستجو | Zingo | زینگو',
     description: 'Search for movies and series | جستجوی فیلم‌ها و سریال‌ها',
   },
 }; 

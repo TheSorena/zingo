@@ -152,7 +152,7 @@ export default function MoviePage() {
           {/* Back Button */}
           <button
             onClick={() => router.push('/')}
-            className="fixed top-4 right-4 z-50 bg-background/80 backdrop-blur-sm p-2 rounded-full hover:bg-background/90 transition-colors"
+            className="fixed top-4 right-4 z-50 glass p-2 rounded-full ring-1 ring-border/60 hover:bg-background/90 transition-all duration-300 hover:scale-110"
           >
             <svg
               className="w-6 h-6 rotate-180"
@@ -181,7 +181,7 @@ export default function MoviePage() {
           </div>
 
           {/* Hero Section */}
-          <div className="relative h-[50vh] w-full overflow-hidden">
+          <div className="relative h-[55vh] md:h-[65vh] w-full overflow-hidden">
             <Image
               src={movie.cover || movie.image}
               alt={movie.title}
@@ -190,13 +190,14 @@ export default function MoviePage() {
               priority
               sizes="100vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/10" />
+            <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-background/60 hidden md:block" />
             
             {/* Movie Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-6">
-              <div className="flex items-start gap-4">
+            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+              <div className="flex items-start gap-4 md:gap-6">
                 {/* Movie Poster */}
-                <div className="w-24 h-36 rounded-lg overflow-hidden flex-shrink-0 shadow-lg relative">
+                <div className="w-28 h-40 md:w-36 md:h-52 rounded-2xl overflow-hidden flex-shrink-0 shadow-2xl shadow-black/50 ring-1 ring-border/60 relative">
                   <Image
                     src={movie.image}
                     alt={movie.title}
@@ -209,34 +210,34 @@ export default function MoviePage() {
                       item={movie}
                       variant="ghost"
                       size="icon"
-                      className="bg-black/50 rounded-full hover:bg-black/70 w-8 h-8 p-0"
+                      className="bg-black/50 rounded-full hover:bg-black/70 w-8 h-8 p-0 backdrop-blur-sm"
                     />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-foreground dark:text-white">{movie.title}</h1>
+                  <h1 className="text-2xl md:text-4xl font-black text-foreground dark:text-white drop-shadow-lg">{movie.title}</h1>
                   
-                  <div className="flex flex-wrap items-center gap-3 text-foreground/90 dark:text-white/80 mt-2">
+                  <div className="flex flex-wrap items-center gap-3 text-foreground/90 dark:text-white/80 mt-3">
+                    <div className="flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-0.5 text-primary-foreground">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span className="text-sm font-bold">{movie.imdb}</span>
+                    </div>
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-foreground dark:text-white" />
+                      <Calendar className="w-3.5 h-3.5 text-amber-400" />
                       <span className="text-sm">{movie.year}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-foreground dark:text-white" />
+                      <Clock className="w-3.5 h-3.5 text-amber-400" />
                       <span className="text-sm">{movie.duration}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Star className="w-3.5 h-3.5 text-yellow-400" />
-                      <span className="text-sm">{movie.imdb}</span>
                     </div>
                   </div>
 
                   {movie.country && movie.country.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
+                    <div className="flex flex-wrap gap-1.5 mt-3">
                       {movie.country.map((country) => (
                         <span
                           key={country.id}
-                          className="bg-muted dark:bg-white/10 backdrop-blur-sm text-foreground dark:text-white px-2.5 py-0.5 rounded-full text-xs flex items-center gap-1"
+                          className="glass text-foreground dark:text-white px-2.5 py-0.5 rounded-full text-xs flex items-center gap-1 ring-1 ring-border/50"
                         >
                           <Globe2 className="w-3 h-3" />
                           {country.title}
@@ -245,11 +246,11 @@ export default function MoviePage() {
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-1.5 mt-2">
+                  <div className="flex flex-wrap gap-1.5 mt-3">
                     {movie.genres.map((genre) => (
                       <span
                         key={genre.id}
-                        className="bg-muted dark:bg-white/10 backdrop-blur-sm text-foreground dark:text-white px-2.5 py-0.5 rounded-full text-xs"
+                        className="glass text-foreground dark:text-white px-2.5 py-0.5 rounded-full text-xs ring-1 ring-border/50"
                       >
                         {genre.title}
                       </span>
@@ -295,12 +296,12 @@ export default function MoviePage() {
                 <div key={source.id} className="flex flex-col gap-2">
                   <Link href={source.url} onClick={(e) => handleDownload(e, source.url)} className="block">
                     <Button
-                      className="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-sm"
+                      className="w-full bg-primary text-primary-foreground hover:bg-accent shadow-lg shadow-primary/20 text-sm"
                       variant="ghost"
                     >
                       {!source.quality || source.quality.includes("تیزر") ? (
                         <>
-                          <Play className="ml-2 w-4 h-4" />
+                          <Play className="ml-2 w-4 h-4 fill-current" />
                           دانلود تریلر
                         </>
                       ) : (
@@ -383,7 +384,7 @@ export default function MoviePage() {
             </div>
 
             {/* Description */}
-            <div className="bg-card/50 dark:bg-card/50 backdrop-blur p-4 rounded-xl border border-border/50">
+            <div className="glass p-5 md:p-6 rounded-2xl border border-border/60">
               <h2 className="text-xl font-bold mb-3 text-foreground">درباره فیلم</h2>
               <div className="prose prose-invert max-w-none">
                 <p className="text-sm text-muted-foreground dark:text-muted-foreground whitespace-pre-line leading-relaxed">

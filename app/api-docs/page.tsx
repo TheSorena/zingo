@@ -170,7 +170,7 @@ const ApiDocumentationPage = () => {
             <Code className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-6">
-            Cinema Plus API
+Zingo API
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
             Comprehensive REST API documentation for accessing movies, TV series, seasons, and powerful search functionality. 
@@ -364,7 +364,7 @@ const ApiDocumentationPage = () => {
         <div className="text-center mt-16 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 mb-4">
             <Code className="w-5 h-5" />
-            <span className="text-lg font-semibold">Cinema Plus API</span>
+            <span className="text-lg font-semibold">Zingo API</span>
           </div>
           <p className="text-gray-600 dark:text-gray-300">
             Built with ❤️ for developers. All endpoints return JSON responses with proper HTTP status codes.

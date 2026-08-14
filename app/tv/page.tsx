@@ -104,12 +104,12 @@ export default function TVPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-900 via-blue-900 to-purple-900">
+      <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600">
         <div className="container mx-auto max-w-7xl px-6 py-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
             تلویزیون زنده
           </h1>
-          <p className="text-white/80 text-lg mb-8">
+          <p className="text-white/90 text-lg mb-8">
             {channels.length} کانال تلویزیونی زنده
           </p>
           
@@ -143,7 +143,7 @@ export default function TVPage() {
                 }}
               >
                 <div className="group relative bg-card hover:bg-accent rounded-xl p-4 transition-all duration-300 cursor-pointer border border-border hover:border-primary hover:shadow-lg hover:shadow-primary/5">
-                  <div className="aspect-video bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg flex items-center justify-center mb-3 group-hover:from-purple-500/20 group-hover:to-blue-500/20 transition-all">
+                  <div className="aspect-video bg-gradient-to-br from-amber-500/10 to-rose-500/10 rounded-lg flex items-center justify-center mb-3 group-hover:from-amber-500/20 group-hover:to-rose-500/20 transition-all">
                     <div className="text-4xl font-bold text-primary/40 group-hover:text-primary transition-colors">
                       {channel.name.charAt(0)}
                     </div>

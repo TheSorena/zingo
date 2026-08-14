@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'تنظیمات | Cinema Plus | تنظیمات | سینما پلاس',
-  description: 'Customize your Cinema Plus experience | شخصی‌سازی تجربه سینما پلاس',
+  title: 'تنظیمات | Zingo | زینگو',
+  description: 'Customize your Zingo experience | شخصی‌سازی تجربه زینگو',
   openGraph: {
-    title: 'تنظیمات | Cinema Plus | تنظیمات | سینما پلاس',
-    description: 'Customize your Cinema Plus experience | شخصی‌سازی تجربه سینما پلاس',
+    title: 'تنظیمات | Zingo | زینگو',
+    description: 'Customize your Zingo experience | شخصی‌سازی تجربه زینگو',
   },
   twitter: {
-    title: 'تنظیمات | Cinema Plus | تنظیمات | سینما پلاس',
-    description: 'Customize your Cinema Plus experience | شخصی‌سازی تجربه سینما پلاس',
+    title: 'تنظیمات | Zingo | زینگو',
+    description: 'Customize your Zingo experience | شخصی‌سازی تجربه زینگو',
   },
 };
 

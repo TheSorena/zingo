@@ -3,41 +3,36 @@ import type { Metadata } from 'next';
 import { Vazirmatn } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LoadingProvider } from '@/components/loading-provider';
-// import PrivacyCheck from './components/PrivacyCheck';
-import DownloadAppPopup from './components/DownloadAppPopup';
 
 const vazirmatn = Vazirmatn({ subsets: ['arabic'] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: 'Cinema Plus | سینما پلاس',
+  title: 'زینگو | Zingo',
   description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
   manifest: '/manifest.json',
-  themeColor: '#000000',
-  keywords: ['movie', 'cinema', 'film', 'series', 'فیلم', 'سریال', 'سینما'],
-  authors: [{ name: 'Hossein Pira' }],
-  verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-  },
+  themeColor: '#0a0a0b',
+  keywords: ['movie', 'cinema', 'film', 'series', 'فیلم', 'سریال', 'سینما', 'زینگو'],
+  authors: [{ name: 'Zingo' }],
   openGraph: {
     type: 'website',
     locale: 'fa_IR',
     alternateLocale: 'en_US',
-    title: 'Cinema Plus | سینما پلاس',
+    title: 'زینگو | Zingo',
     description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
-    siteName: 'Cinema Plus | سینما پلاس',
+    siteName: 'زینگو | Zingo',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Cinema Plus - Modern Movie Application | سینما پلاس - اپلیکیشن مدرن فیلم و سریال',
+        alt: 'Zingo - Modern Movie Application | زینگو - اپلیکیشن مدرن فیلم و سریال',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Cinema Plus | سینما پلاس',
+    title: 'زینگو | Zingo',
     description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
     images: ['/og-image.png'],
   },
@@ -66,36 +61,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <head>
-        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-          <>
-            {/* Google tag (gtag.js) */}
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
-            />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
-                `,
-              }}
-            />
-          </>
-        )}
-        {/* Native City Analytics */}
-        <script
-          data-host="https://analytics.nativecity.io"
-          data-dnt="false"
-          src="https://analytics.nativecity.io/js/script.js"
-          id="ZwSg9rf6GA"
-          async
-          defer
-        />
-      </head>
       <body className={vazirmatn.className} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
@@ -105,9 +70,7 @@ export default function RootLayout({
         >
           <LoadingProvider>
             {children}
-            <DownloadAppPopup />
           </LoadingProvider>
-          {/* <PrivacyCheck /> */}
         </ThemeProvider>
       </body>
     </html>

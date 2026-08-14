@@ -1,6 +1,5 @@
-"use client";
+'use client';
 
-import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
@@ -26,49 +25,46 @@ export function MovieCard({ movie }: MovieCardProps) {
   };
 
   return (
-    <Card 
-      className="group cursor-pointer overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50"
+    <div
+      className="group relative cursor-pointer"
       onClick={handleClick}
     >
-      <CardContent className="p-0 relative">
-        <div className="aspect-[2/3] relative overflow-hidden">
+      <div className="aspect-[2/3] overflow-hidden rounded-2xl shadow-md ring-1 ring-border/60 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/10 group-hover:ring-primary/50">
+        <div className="relative h-full w-full">
           <Image
             src={movie.image}
             alt={movie.title}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-110"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-          <h3 className="text-white font-bold mb-2 line-clamp-2">{movie.title}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-200 mb-2">
-            <span>{movie.year}</span>
-            <span>•</span>
-            <div className="flex items-center">
-              <Star className="w-4 h-4 text-yellow-400 inline mr-1" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          {movie.imdb > 0 && (
+            <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-xs font-bold text-primary-foreground shadow-lg">
+              <Star className="h-3 w-3 fill-current" />
               <span>{movie.imdb}</span>
             </div>
-            {movie.country?.[0] && (
-              <>
-                <span>•</span>
-                <span className="text-sm text-gray-200">{movie.country[0].title}</span>
-              </>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {movie.genres.slice(0, 2).map((genre, index) => (
-              <span 
-                key={index}
-                className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full backdrop-blur-sm"
-              >
-                {genre.title}
-              </span>
-            ))}
+          )}
+          <div className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm">
+            فیلم
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="mt-3 space-y-1">
+        <h3 className="font-bold line-clamp-1 text-center transition-colors group-hover:text-primary">
+          {movie.title}
+        </h3>
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <span>{movie.year}</span>
+          {movie.country?.[0] && (
+            <>
+              <span className="h-1 w-1 rounded-full bg-muted-foreground/50" />
+              <span>{movie.country[0].title}</span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
