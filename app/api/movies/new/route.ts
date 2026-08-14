@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiUrl } from '../../../../lib/config';
+import { filterContent } from '../../../../lib/filter-content';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       }
 
       const data = await response.json();
-      return NextResponse.json(data);
+      return NextResponse.json(filterContent(data));
     }
 
     // For the main page, fetch multiple pages to get 30 items
@@ -53,9 +54,9 @@ export async function GET(request: NextRequest) {
       
       // Check if the response has the expected structure
       if (pageData && Array.isArray(pageData)) {
-        allMovies.push(...pageData);
+        allMovies.push(...filterContent(pageData));
       } else if (pageData && pageData.data && Array.isArray(pageData.data)) {
-        allMovies.push(...pageData.data);
+        allMovies.push(...filterContent(pageData.data));
       } else {
         break; // Stop if unexpected response structure
       }

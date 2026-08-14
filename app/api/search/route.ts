@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiUrl } from '../../../lib/config';
+import { filterContent } from '../../../lib/filter-content';
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(filterContent(data));
   } catch (error) {
     console.error('Error fetching search results:', error);
     return NextResponse.json(
