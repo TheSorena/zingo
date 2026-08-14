@@ -215,12 +215,14 @@ export default function MoviePage() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h1 className="text-2xl md:text-4xl font-black text-foreground dark:text-white drop-shadow-lg">{movie.title}</h1>
+                  <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight drop-shadow-lg">
+                    <span className="text-gradient-warm">{movie.title}</span>
+                  </h1>
                   
                   <div className="flex flex-wrap items-center gap-3 text-foreground/90 dark:text-white/80 mt-3">
-                    <div className="flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-0.5 text-primary-foreground">
+                    <div className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-amber-950 shadow-lg shadow-amber-400/30">
                       <Star className="w-3.5 h-3.5 fill-current" />
-                      <span className="text-sm font-bold">{movie.imdb}</span>
+                      <span className="text-sm font-extrabold">{movie.imdb}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-amber-400" />
@@ -291,14 +293,17 @@ export default function MoviePage() {
             )} */}
 
             {/* Download/Watch Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
               {movie.sources?.map((source) => (
-                <div key={source.id} className="flex flex-col gap-2">
+                <div key={source.id} className="flex flex-col gap-2.5">
                   <Link href={source.url} onClick={(e) => handleDownload(e, source.url)} className="block">
                     <Button
-                      className="w-full bg-primary text-primary-foreground hover:bg-accent shadow-lg shadow-primary/20 text-sm"
+                      className="group relative w-full overflow-hidden rounded-full bg-gradient-to-l from-amber-500 to-rose-500 py-6 text-white shadow-xl shadow-primary/25 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/40 text-sm font-bold"
                       variant="ghost"
                     >
+                      <span className="absolute inset-0 overflow-hidden rounded-full">
+                        <span className="absolute inset-y-0 w-1/3 -left-1/3 bg-white/25 blur-md -skew-x-12 translate-x-0 transition-transform duration-700 group-hover:translate-x-[400%]" />
+                      </span>
                       {!source.quality || source.quality.includes("تیزر") ? (
                         <>
                           <Play className="ml-2 w-4 h-4 fill-current" />
@@ -315,7 +320,7 @@ export default function MoviePage() {
                   <div className="flex gap-2">
                     <Button
                       onClick={() => copyToClipboard(source.url)}
-                      className="flex-1 bg-muted hover:bg-muted/80 text-muted-foreground text-sm"
+                      className="flex-1 rounded-full bg-muted/60 backdrop-blur-sm hover:bg-muted/80 text-muted-foreground text-sm ring-1 ring-border/50"
                       variant="ghost"
                     >
                       <Copy className="ml-2 w-4 h-4" />
@@ -325,7 +330,7 @@ export default function MoviePage() {
                       <Dialog open={showVlcGuide} onOpenChange={setShowVlcGuide}>
                         <DialogTrigger asChild>
                           <Button
-                            className="flex-1 bg-muted hover:bg-muted/80 text-muted-foreground text-sm"
+                            className="flex-1 rounded-full bg-muted/60 backdrop-blur-sm hover:bg-muted/80 text-muted-foreground text-sm ring-1 ring-border/50"
                             variant="ghost"
                           >
                             <Video className="ml-2 w-4 h-4" />
@@ -384,8 +389,11 @@ export default function MoviePage() {
             </div>
 
             {/* Description */}
-            <div className="glass p-5 md:p-6 rounded-2xl border border-border/60">
-              <h2 className="text-xl font-bold mb-3 text-foreground">درباره فیلم</h2>
+            <div className="glass p-5 md:p-6 rounded-3xl border border-border/60 relative overflow-hidden">
+              <div className="absolute -top-10 -left-10 h-32 w-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+              <h2 className="relative pr-4 text-xl font-bold mb-3 text-foreground before:absolute before:right-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-1.5 before:rounded-full before:bg-gradient-to-b before:from-amber-400 before:to-rose-500">
+                درباره فیلم
+              </h2>
               <div className="prose prose-invert max-w-none">
                 <p className="text-sm text-muted-foreground dark:text-muted-foreground whitespace-pre-line leading-relaxed">
                   {movie.description}

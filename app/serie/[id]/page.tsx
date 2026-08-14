@@ -224,13 +224,15 @@ export default function SerieDetailPage({
               </div>
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl md:text-4xl font-black text-foreground dark:text-white drop-shadow-lg">{serie.title}</h1>
+              <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight drop-shadow-lg">
+                <span className="text-gradient-warm">{serie.title}</span>
+              </h1>
               
               <div className="flex flex-wrap items-center gap-3 text-foreground/90 dark:text-white/80 mt-3">
                 {serie.imdb > 0 && (
-                  <div className="flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-0.5 text-primary-foreground">
+                  <div className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-amber-950 shadow-lg shadow-amber-400/30">
                     <Star className="w-3.5 h-3.5 fill-current" />
-                    <span className="text-sm font-bold">{serie.imdb}</span>
+                    <span className="text-sm font-extrabold">{serie.imdb}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1.5">
@@ -298,18 +300,21 @@ export default function SerieDetailPage({
           </div>
         )} */}
 
-        <p className="text-muted-foreground mb-8 whitespace-pre-line">
-          {serie.description}
-        </p>
+        <div className="glass p-5 md:p-6 rounded-3xl border border-border/60 relative overflow-hidden mb-8">
+          <div className="absolute -top-10 -left-10 h-32 w-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+          <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+            {serie.description}
+          </p>
+        </div>
 
         <div id="episodes" className="scroll-mt-8">
           <Tabs defaultValue={seasons[0]?.id.toString()} className="w-full">
-            <TabsList className="w-full flex flex-wrap h-auto gap-2 bg-background/50 backdrop-blur p-2">
+            <TabsList className="w-full flex flex-wrap h-auto gap-2 bg-background/50 backdrop-blur p-2 rounded-2xl ring-1 ring-border/40">
               {seasons.map((season) => (
                 <TabsTrigger
                   key={season.id}
                   value={season.id.toString()}
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  className="data-[state=active]:bg-gradient-to-l data-[state=active]:from-amber-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 rounded-full px-4"
                   onClick={() => {
                     const downloadSection = document.getElementById('episodes');
                     if (downloadSection) {

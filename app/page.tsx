@@ -179,22 +179,25 @@ export default async function Home() {
         <div className="absolute top-1/3 -left-40 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
       </div>
 
-      <header className="sticky top-0 z-40 w-full border-b border-border/60 glass">
+      <header className="sticky top-0 z-40 w-full border-b border-border/50 glass">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
-          <LoadingLink href="/" className="flex items-center gap-2 group">
-            <img src="/zingo-logo.png" alt="زینگو" className="h-9 w-9 rounded-xl object-cover shadow-lg shadow-primary/20 ring-1 ring-primary/30 transition-transform group-hover:rotate-6" />
-            <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold text-gradient-zingo">
+          <LoadingLink href="/" className="flex items-center gap-2.5 group">
+            <span className="relative">
+              <img src="/zingo-logo.png" alt="زینگو" className="h-10 w-10 rounded-2xl object-cover shadow-lg shadow-primary/30 ring-1 ring-primary/40 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-105" />
+              <span className="absolute -inset-1 -z-10 rounded-2xl bg-primary/30 blur-md opacity-0 transition-opacity group-hover:opacity-100" />
+            </span>
+            <span className="text-2xl md:hidden lg:block md:text-3xl font-extrabold tracking-tight text-gradient-zingo">
               زینگو
-            </h1>
+            </span>
           </LoadingLink>
           <div className="md:hidden flex items-center">
             <LoadingLink href="/search">
-              <Button variant="ghost" size="icon" aria-label="Search">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+              <Button variant="ghost" size="icon" aria-label="Search" className="rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
               </Button>
             </LoadingLink>
           </div>
-          <div className="hidden md:flex items-center space-x-4 space-x-reverse">
+          <div className="hidden md:flex items-center gap-3">
             <NavItems />
             <SearchInput placeholder="جستجو..." />
             <ThemeToggle />
@@ -202,46 +205,56 @@ export default async function Home() {
         </div>
       </header>
 
-      <div className="container py-8 pb-24 md:pb-8 px-4 md:px-6 lg:px-8 max-w-[2000px] mx-auto">
+      <div className="container py-6 pb-24 md:pb-8 px-4 md:px-6 lg:px-8 max-w-[2000px] mx-auto">
         {/* Hero Section */}
         {heroMovie && (
-          <section className="relative mb-10 overflow-hidden rounded-3xl ring-1 ring-border/60 shadow-2xl shadow-primary/5">
-            <div className="relative h-[380px] md:h-[480px] w-full">
+          <section className="relative mb-12 overflow-hidden rounded-[2rem] ring-1 ring-border/60 shadow-2xl shadow-primary/10 animate-scale-in">
+            <div className="relative h-[420px] md:h-[520px] w-full">
               <Image
                 src={heroMovie.cover || heroMovie.image}
                 alt={heroMovie.title}
                 fill
-                className="object-cover"
                 priority
                 sizes="100vw"
+                className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-background/80 hidden md:block" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/10" />
+              <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-background/85 hidden md:block" />
+
+              {/* floating glow orbs */}
+              <div className="pointer-events-none absolute -bottom-10 -right-10 h-56 w-56 rounded-full bg-primary/20 blur-3xl animate-glow-pulse" />
+              <div className="pointer-events-none absolute top-10 left-10 h-40 w-40 rounded-full bg-rose-500/20 blur-3xl animate-float" />
 
               <div className="absolute bottom-0 right-0 left-0 p-6 md:p-10 max-w-3xl">
-                <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow-lg shadow-primary/30">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                  جدیدترین اضافه شده
-                </span>
-                <h2 className="mb-3 text-3xl md:text-5xl font-black leading-tight drop-shadow-lg">
-                  {heroMovie.title}
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground shadow-lg shadow-primary/40 glow-amber">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    جدیدترین اضافه شده
+                  </span>
+                </div>
+                <h2 className="mb-4 text-3xl md:text-5xl font-extrabold leading-[1.15] tracking-tight drop-shadow-lg">
+                  <span className="text-gradient-warm">{heroMovie.title}</span>
                 </h2>
-                <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-foreground/80">
-                  <span className="flex items-center gap-1">
+                <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 font-medium">
                     <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
                     {heroMovie.imdb}
                   </span>
-                  <span className="flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 font-medium">
                     <Clock className="h-4 w-4" />
                     {heroMovie.year}
                   </span>
                   {heroMovie.duration && (
-                    <span className="flex items-center gap-1">
+                    <span className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 font-medium">
                       <FilmIcon className="h-4 w-4" />
                       {heroMovie.duration}
                     </span>
                   )}
-                  {heroMovie.country?.[0] && <span>{heroMovie.country[0].title}</span>}
+                  {heroMovie.country?.[0] && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 font-medium">
+                      {heroMovie.country[0].title}
+                    </span>
+                  )}
                 </div>
                 <HeroCta movie={heroMovie} />
               </div>
@@ -257,7 +270,7 @@ export default async function Home() {
               alt="راهنمای استفاده"
               width={1200}
               height={300}
-              className="w-full rounded-xl object-cover"
+              className="w-full rounded-2xl object-cover ring-1 ring-border/50"
               priority
             />
           </LoadingLink>
@@ -269,59 +282,59 @@ export default async function Home() {
         </div>
 
         {/* Content Sliders */}
-        <div className="space-y-8 md:space-y-12">
+        <div className="space-y-12 md:space-y-16">
           {newMovies ? (
-            <PaginatedMovieSlider 
-              title="سینمایی جدید اضافه شده" 
-              initialMovies={newMovies} 
+            <PaginatedMovieSlider
+              title="سینمایی جدید اضافه شده"
+              initialMovies={newMovies}
               apiEndpoint="/api/movies/new"
             />
           ) : (
             <ErrorState />
           )}
 
-          <hr />
+          <div className="h-px w-full bg-gradient-to-l from-transparent via-border to-transparent" />
 
           {topRatedMovies ? (
-            <PaginatedMovieSlider 
-              title="سینمایی برتر (بر اساس IMDB)" 
-              initialMovies={topRatedMovies} 
+            <PaginatedMovieSlider
+              title="سینمایی برتر (بر اساس IMDB)"
+              initialMovies={topRatedMovies}
               apiEndpoint="/api/movies/top-rated"
             />
           ) : (
             <ErrorState />
           )}
 
-          <hr />
+          <div className="h-px w-full bg-gradient-to-l from-transparent via-border to-transparent" />
 
           {updateSerie ? (
-            <PaginatedSerieSlider 
-              title="سریال آپدیت شده" 
-              initialSeries={updateSerie} 
+            <PaginatedSerieSlider
+              title="سریال آپدیت شده"
+              initialSeries={updateSerie}
               apiEndpoint="/api/series/updated"
             />
           ) : (
             <ErrorState />
           )}
 
-          <hr />
+          <div className="h-px w-full bg-gradient-to-l from-transparent via-border to-transparent" />
 
           {newSeries ? (
-            <PaginatedSerieSlider 
-              title="سریال جدید اضافه شده" 
-              initialSeries={newSeries} 
+            <PaginatedSerieSlider
+              title="سریال جدید اضافه شده"
+              initialSeries={newSeries}
               apiEndpoint="/api/series/new"
             />
           ) : (
             <ErrorState />
           )}
 
-          <hr />
+          <div className="h-px w-full bg-gradient-to-l from-transparent via-border to-transparent" />
 
           {bestSeries ? (
-            <PaginatedSerieSlider 
-              title="سریال برتر" 
-              initialSeries={bestSeries} 
+            <PaginatedSerieSlider
+              title="سریال برتر"
+              initialSeries={bestSeries}
               apiEndpoint="/api/series/best"
             />
           ) : (
@@ -329,9 +342,9 @@ export default async function Home() {
           )}
 
           {topRatedSeries ? (
-            <PaginatedSerieSlider 
-              title="سریال برتر (بر اساس IMDB)" 
-              initialSeries={topRatedSeries} 
+            <PaginatedSerieSlider
+              title="سریال برتر (بر اساس IMDB)"
+              initialSeries={topRatedSeries}
               apiEndpoint="/api/series/top-rated"
             />
           ) : (

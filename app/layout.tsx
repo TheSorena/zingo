@@ -1,10 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Vazirmatn } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LoadingProvider } from '@/components/loading-provider';
-
-const vazirmatn = Vazirmatn({ subsets: ['arabic'] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
@@ -61,7 +58,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className={vazirmatn.className} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

@@ -62,7 +62,7 @@ export const SerieSlider = forwardRef<SerieSliderRef, SerieSliderProps>(
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex justify-between items-center">
-        <h2 className="text-xl md:text-2xl font-semibold">{title}</h2>
+        <h2 className="relative pr-4 text-lg sm:text-xl md:text-2xl font-bold line-clamp-2 before:absolute before:right-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1.5 before:rounded-full before:bg-gradient-to-b before:from-amber-400 before:to-rose-500">{title}</h2>
       </div>
       
       <div className="relative px-4">
@@ -79,19 +79,17 @@ export const SerieSlider = forwardRef<SerieSliderRef, SerieSliderProps>(
           <CarouselContent>
             {series.map((serie) => (
               <CarouselItem key={serie.id} className="pr-1 basis-[calc(50%-16px)] sm:basis-[calc(33.333%-16px)] md:basis-[calc(25%-16px)] lg:basis-[calc(20%-16px)] xl:basis-[calc(16.666%-16px)]">
-                <div className="overflow-hidden rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-                  <SerieCard serie={serie} />
-                </div>
+                <SerieCard serie={serie} />
               </CarouselItem>
             ))}
           </CarouselContent>
-          <div className="absolute inset-y-0 left-0 w-16 z-10" />
-          <div className="absolute inset-y-0 right-0 w-16 z-10" />
+          <div className="absolute inset-y-0 left-0 w-16 z-10 bg-gradient-to-l from-transparent to-background/60 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-16 z-10 bg-gradient-to-r from-transparent to-background/60 pointer-events-none" />
           {current > 0 && (
-            <CarouselPrevious className="absolute left-2 w-10 h-10 rounded-full glass border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground z-20 transition-all duration-300" />
+            <CarouselPrevious className="absolute left-2 w-10 h-10 rounded-full glass border-primary/25 text-amber-400 shadow-lg shadow-primary/10 hover:bg-primary hover:text-primary-foreground hover:border-primary z-20 transition-all duration-300 hover:scale-105" />
           )}
           {current < count - 1 && (
-            <CarouselNext className="absolute right-2 w-10 h-10 rounded-full glass border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground z-20 transition-all duration-300" />
+            <CarouselNext className="absolute right-2 w-10 h-10 rounded-full glass border-primary/25 text-amber-400 shadow-lg shadow-primary/10 hover:bg-primary hover:text-primary-foreground hover:border-primary z-20 transition-all duration-300 hover:scale-105" />
           )}
         </Carousel>
       </div>
