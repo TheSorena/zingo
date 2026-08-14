@@ -12,6 +12,11 @@
 /.next/
 /out/
 
+# next-pwa build artifacts (generated at build time)
+/public/sw.js
+/public/sw.js.map
+/public/workbox-*.js
+
 # production
 /build
 
