@@ -1,6 +1,5 @@
 import { Share2 } from 'lucide-react';
 import { Button } from './ui/button';
-import { generateShareUrl } from '../lib/utils';
 import { toast } from 'sonner';
 
 interface ShareButtonProps {
@@ -9,38 +8,37 @@ interface ShareButtonProps {
   id: string | number;
 }
 
-export function ShareButton({ title, type, id }: ShareButtonProps) {
+export function ShareButton({ title }: ShareButtonProps) {
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}${generateShareUrl(title, type, id)}`;
+    const shareText = `تماشای ${title} در زینگو`;
 
     if (navigator.share) {
       try {
         await navigator.share({
           title: title,
-          text: `تماشای ${title} در زینگو`,
-          url: shareUrl,
+          text: shareText,
         });
         toast.success('محتوا با موفقیت به اشتراک گذاشته شد');
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
-          copyToClipboard(shareUrl);
+          copyToClipboard(shareText);
         }
       }
     } else {
-      copyToClipboard(shareUrl);
+      copyToClipboard(shareText);
     }
   };
 
-  const copyToClipboard = async (url: string) => {
+  const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(url);
-      toast.success('لینک با موفقیت کپی شد', {
-        description: 'لینک در کلیپ‌بورد شما ذخیره شد',
+      await navigator.clipboard.writeText(text);
+      toast.success('متن با موفقیت کپی شد', {
+        description: 'متن در کلیپ‌بورد شما ذخیره شد',
         duration: 3000,
         position: 'top-center',
       });
     } catch (err) {
-      toast.error('خطا در کپی لینک', {
+      toast.error('خطا در کپی متن', {
         description: 'لطفاً دوباره تلاش کنید',
         duration: 3000,
         position: 'top-center',
@@ -58,4 +56,4 @@ export function ShareButton({ title, type, id }: ShareButtonProps) {
       <Share2 className="h-5 w-5" />
     </Button>
   );
-} 
+}

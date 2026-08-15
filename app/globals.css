@@ -2,45 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Doran Font ===== */
+/* ===== Pinar Font ===== */
 @font-face {
-  font-family: 'Doran';
-  src: url('/fonts/DoranFaNum-Thin.ttf') format('truetype');
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Doran';
-  src: url('/fonts/DoranFaNum-Light.ttf') format('truetype');
+  font-family: 'Pinar';
+  src: url('/fonts/Pinar-Light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Doran';
-  src: url('/fonts/DoranFaNum-Regular.ttf') format('truetype');
+  font-family: 'Pinar';
+  src: url('/fonts/Pinar-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Doran';
-  src: url('/fonts/DoranFaNum-Medium.ttf') format('truetype');
+  font-family: 'Pinar';
+  src: url('/fonts/Pinar-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Doran';
-  src: url('/fonts/DoranFaNum-Bold.ttf') format('truetype');
+  font-family: 'Pinar';
+  src: url('/fonts/Pinar-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pinar';
+  src: url('/fonts/Pinar-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Doran';
-  src: url('/fonts/DoranFaNum-ExtraBold.ttf') format('truetype');
+  font-family: 'Pinar';
+  src: url('/fonts/Pinar-ExtraBold.ttf') format('truetype');
   font-weight: 800;
   font-style: normal;
   font-display: swap;
@@ -111,7 +111,7 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Doran', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Pinar', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
     font-feature-settings: 'ss01' on, 'ss02' on;
   }
   ::selection {

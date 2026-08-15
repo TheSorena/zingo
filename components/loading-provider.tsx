@@ -47,11 +47,11 @@ export function LoadingProvider({ children }: LoadingProviderProps) {
 
     setIsLoading(true);
     
-    // Safety timeout to prevent stuck loading (5 seconds max)
+    // Safety timeout to prevent stuck loading (4 seconds max)
     const timeout = setTimeout(() => {
       console.warn('Loading timeout reached, forcing close');
       forceCloseLoading();
-    }, 5000);
+    }, 4000);
     
     setLoadingTimeout(timeout);
   }, [loadingTimeout, forceCloseLoading]);

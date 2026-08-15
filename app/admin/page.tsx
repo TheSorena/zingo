@@ -16,6 +16,8 @@ interface CommentItem {
   text: string;
   hasSpoiler: boolean;
   createdAt: number;
+  reply?: string;
+  repliedAt?: number;
 }
 
 function timeAgo(ts: number): string {
