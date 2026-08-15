@@ -1,4 +1,4 @@
-import { Command, Search } from "lucide-react";
+import { Command, Search, Send, Users } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from 'next';
@@ -42,9 +42,34 @@ export default function HelpPage() {
               alt="راهنمای استفاده"
               width={1200}
               height={300}
-              className="w-full rounded-xl object-cover"
+              className="w-full rounded-3xl object-cover shadow-2xl shadow-primary/10 ring-1 ring-border/60"
               priority
             />
+          </div>
+
+          {/* About Zingo Team */}
+          <div className="mb-8 relative overflow-hidden glass rounded-3xl border border-border/60 p-6 md:p-8 text-center">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-rose-500/15 blur-3xl pointer-events-none" />
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Users className="w-6 h-6 text-amber-400" />
+              <h2 className="text-2xl font-extrabold text-gradient-warm">تیم شهباز</h2>
+            </div>
+            <p className="text-muted-foreground leading-relaxed mb-5 max-w-xl mx-auto">
+              سایت زینگو توسط تیم شهباز ساخته و مدیریت می‌شود. برنامه‌نویس سایت «سورنا» است. برای پیشنهادها، انتقادها و اطلاع از آپدیت‌های جدید، کانال تلگرام ما را دنبال کنید.
+            </p>
+            <a
+              href="https://t.me/ShahBaz_Team_ir"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-l from-amber-500 to-rose-500 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-primary/25 transition-all duration-300 hover:scale-[1.04] hover:shadow-2xl hover:shadow-primary/40 active:scale-95"
+            >
+              <span className="absolute inset-0 overflow-hidden rounded-full">
+                <span className="absolute inset-y-0 w-1/3 -left-1/3 bg-white/25 blur-md -skew-x-12 translate-x-0 transition-transform duration-700 group-hover:translate-x-[400%]" />
+              </span>
+              <Send className="h-4 w-4" />
+              کانال تلگرام شهباز تیم
+            </a>
           </div>
 
           {/* FAQ Section */}
