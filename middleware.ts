@@ -29,21 +29,14 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Protect admin panel and admin API routes
-  const isAdminPath = path === '/admin' || path.startsWith('/admin/')
+  // Protect admin API routes (the /admin page itself handles auth client-side)
   const isAdminApi = path.startsWith('/api/admin') && !path.startsWith('/api/admin/login')
 
-  if (isAdminPath || isAdminApi) {
+  if (isAdminApi) {
     const token = request.cookies.get(adminCookieName)?.value
     const isValid = await verifyAdminToken(token)
     if (!isValid) {
-      if (isAdminApi) {
-        return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 401 })
-      }
-      const url = request.nextUrl.clone()
-      url.pathname = '/admin'
-      url.search = ''
-      return NextResponse.redirect(url)
+      return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 401 })
     }
   }
 
