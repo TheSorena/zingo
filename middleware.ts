@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { verifyAdminToken, adminCookieName } from './lib/admin'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname
+
   // Handle CORS for API routes
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    // Handle preflight requests
+  if (path.startsWith('/api/')) {
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         status: 200,
@@ -18,26 +20,31 @@ export function middleware(request: NextRequest) {
       })
     }
 
-    // Handle actual API requests
     const response = NextResponse.next()
-    
-    // Set CORS headers for all API responses
     response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD')
     response.headers.set('Access-Control-Allow-Headers', '*')
     response.headers.set('Access-Control-Allow-Credentials', 'true')
     response.headers.set('Access-Control-Max-Age', '86400')
-    
     return response
   }
 
-  // Allow access to privacy page and static files
-  if (
-    request.nextUrl.pathname === '/privacy' ||
-    request.nextUrl.pathname.startsWith('/_next') ||
-    request.nextUrl.pathname.startsWith('/api')
-  ) {
-    return NextResponse.next()
+  // Protect admin panel and admin API routes
+  const isAdminPath = path === '/admin' || path.startsWith('/admin/')
+  const isAdminApi = path.startsWith('/api/admin') && !path.startsWith('/api/admin/login')
+
+  if (isAdminPath || isAdminApi) {
+    const token = request.cookies.get(adminCookieName)?.value
+    const isValid = await verifyAdminToken(token)
+    if (!isValid) {
+      if (isAdminApi) {
+        return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 401 })
+      }
+      const url = request.nextUrl.clone()
+      url.pathname = '/admin'
+      url.search = ''
+      return NextResponse.redirect(url)
+    }
   }
 
   return NextResponse.next()
@@ -48,4 +55,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico).*)',
     '/api/:path*'
   ],
-} 
+}

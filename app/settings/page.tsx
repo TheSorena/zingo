@@ -89,8 +89,10 @@ export default function SettingsPage() {
 
       <div className="container max-w-4xl mx-auto py-8 pb-24 md:pb-8 px-4 md:px-6 lg:px-8">
         <div className="flex items-center gap-2 mb-8">
-          <Settings className="w-8 h-8 text-primary" />
-          <h1 className="text-3xl font-bold">تنظیمات</h1>
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-white shadow-lg shadow-primary/20">
+            <Settings className="w-6 h-6" />
+          </span>
+          <h1 className="text-3xl font-extrabold text-gradient-warm">تنظیمات</h1>
         </div>
 
         <div className="grid gap-6">
@@ -260,42 +262,6 @@ export default function SettingsPage() {
                   </svg>
                   <span className="font-medium">مشاهده راهنمای کامل</span>
                 </Link>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* API Documentation */}
-          <Card className="group hover:shadow-md transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Code2 className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300" />
-                مستندات API
-              </CardTitle>
-              <CardDescription className="text-base">
-                راهنمای کامل API برای توسعه‌دهندگان
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
-                <Link 
-                  href="/api-docs"
-                  className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <svg 
-                    className="w-5 h-5 text-primary" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                  <span className="font-medium">مشاهده مستندات API</span>
-                </Link>
-                <div className="bg-muted/30 p-3 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    دسترسی به مستندات کامل API شامل endpoints، parameters، و نمونه‌های کد برای فیلم‌ها، سریال‌ها، فصل‌ها و جستجو
-                  </p>
-                </div>
               </div>
             </CardContent>
           </Card>

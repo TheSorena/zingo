@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui
 import ReactPlayer from "react-player";
 import { ShareButton } from "../../../components/share-button";
 import { FavoriteButton } from "../../../components/favorite-button";
+import { CommentSection } from "../../../components/comment-section";
 
 async function getSerieSeasons(id: string) {
   try {
@@ -357,6 +358,8 @@ export default function SerieDetailPage({
             ))}
           </Tabs>
         </div>
+
+        <CommentSection type="serie" targetId={serie.id} />
       </div>
     </main>
   );
