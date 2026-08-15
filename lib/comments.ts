@@ -8,6 +8,8 @@ export type CommentItem = {
   text: string;
   hasSpoiler: boolean;
   createdAt: number;
+  reply?: string;
+  repliedAt?: number;
 };
 
 const dataKey = (id: string) => `c:data:${id}`;
@@ -94,6 +96,15 @@ export async function deleteComment(id: string): Promise<boolean> {
     redis.zrem(allKey, id),
     redis.del(dataKey(id)),
   ]);
+  return true;
+}
+
+export async function addReply(id: string, reply: string): Promise<boolean> {
+  if (!redis) return false;
+  const existing = await redis.hgetall<CommentItem>(dataKey(id));
+  if (!existing || !existing.id) return false;
+
+  await redis.hset(dataKey(id), { reply, repliedAt: Date.now() });
   return true;
 }
 

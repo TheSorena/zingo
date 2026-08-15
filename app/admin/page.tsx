@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Shield, Lock, LogOut, Trash2, RefreshCw, MessageSquare,
-  Film, MonitorPlay, AlertTriangle,
+  Film, MonitorPlay, AlertTriangle, Reply,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from 'sonner';
@@ -37,6 +37,9 @@ export default function AdminPage() {
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [filter, setFilter] = useState<'all' | 'movie' | 'serie' | 'spoiler'>('all');
   const [loadingComments, setLoadingComments] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
 
   const loadComments = useCallback(async () => {
     setLoadingComments(true);
@@ -104,6 +107,31 @@ export default function AdminPage() {
       toast.success('کامنت حذف شد');
     } catch {
       toast.error('خطا در حذف کامنت');
+    }
+  };
+
+  const handleReply = async (id: string) => {
+    if (!replyText.trim() || sendingReply) return;
+    setSendingReply(true);
+    try {
+      const res = await fetch('/api/admin/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, reply: replyText }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || 'خطا در ثبت پاسخ');
+        return;
+      }
+      setReplyingTo(null);
+      setReplyText('');
+      toast.success('پاسخ ثبت شد');
+      loadComments();
+    } catch {
+      toast.error('خطا در ثبت پاسخ');
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -280,15 +308,61 @@ export default function AdminPage() {
                   <span className="text-[11px] text-muted-foreground/70 mr-auto">{timeAgo(comment.createdAt)}</span>
                 </div>
                 <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{comment.text}</p>
-                <div className="flex justify-end mt-3">
-                  <button
-                    onClick={() => handleDelete(comment.id)}
-                    className="flex items-center gap-1.5 rounded-full bg-red-500/10 px-3.5 py-1.5 text-xs font-bold text-red-400 ring-1 ring-red-400/30 transition-all hover:bg-red-500/20"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    حذف
-                  </button>
-                </div>
+                {comment.reply && (
+                  <div className="mt-3 rounded-xl bg-primary/5 ring-1 ring-primary/20 p-3">
+                    <p className="text-[11px] font-bold text-amber-400 mb-1 flex items-center gap-1">
+                      <Reply className="h-3 w-3" />
+                      پاسخ ادمین
+                    </p>
+                    <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{comment.reply}</p>
+                  </div>
+                )}
+                {replyingTo === comment.id ? (
+                  <div className="mt-3 space-y-2">
+                    <textarea
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      placeholder="متن پاسخ..."
+                      rows={2}
+                      maxLength={600}
+                      autoFocus
+                      className="w-full rounded-xl bg-muted/50 px-3 py-2 text-sm ring-1 ring-border/60 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all resize-none"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => { setReplyingTo(null); setReplyText(''); }}
+                        className="rounded-full bg-muted/60 px-4 py-1.5 text-xs font-bold text-muted-foreground ring-1 ring-border/50 hover:bg-muted"
+                      >
+                        انصراف
+                      </button>
+                      <button
+                        onClick={() => handleReply(comment.id)}
+                        disabled={sendingReply || !replyText.trim()}
+                        className="flex items-center gap-1 rounded-full bg-gradient-to-l from-amber-500 to-rose-500 px-4 py-1.5 text-xs font-bold text-white shadow-lg shadow-primary/25 transition-all hover:scale-105 disabled:opacity-40"
+                      >
+                        <Reply className="h-3 w-3" />
+                        {sendingReply ? 'در حال ارسال...' : 'ارسال پاسخ'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-end gap-2 mt-3">
+                    <button
+                      onClick={() => { setReplyingTo(comment.id); setReplyText(comment.reply || ''); }}
+                      className="flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-amber-400 ring-1 ring-primary/30 transition-all hover:bg-primary/20"
+                    >
+                      <Reply className="h-3.5 w-3.5" />
+                      {comment.reply ? 'ویرایش پاسخ' : 'پاسخ'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(comment.id)}
+                      className="flex items-center gap-1 rounded-full bg-red-500/10 px-3.5 py-1.5 text-xs font-bold text-red-400 ring-1 ring-red-400/30 transition-all hover:bg-red-500/20"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      حذف
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

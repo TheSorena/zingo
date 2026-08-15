@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { MessageSquare, Send, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from 'sonner';
 
@@ -227,6 +227,15 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
                   </div>
                 ) : (
                   <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{comment.text}</p>
+                )}
+                {comment.reply && (
+                  <div className="mt-3 rounded-xl bg-primary/5 ring-1 ring-primary/20 p-3">
+                    <p className="text-[11px] font-bold text-amber-400 mb-1 flex items-center gap-1">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      پاسخ ادمین زینگو
+                    </p>
+                    <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{comment.reply}</p>
+                  </div>
                 )}
               </div>
             );
