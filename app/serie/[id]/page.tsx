@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiUrl } from '../../../lib/config';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import ReactPlayer from "react-player";
 import { ShareButton } from "../../../components/share-button";
@@ -44,10 +43,9 @@ async function getSerieSeasons(id: string) {
 
 async function getSerieById(id: string) {
   try {
-    const response = await fetch(
-      `${apiUrl}/api/serie/${id}/4F5A9C3D9A86FA54EACEDDD635185`,
-      { next: { revalidate: 3600 } }
-    );
+    const response = await fetch(`/api/serie/${id}`, {
+      next: { revalidate: 3600 }
+    });
     if (!response.ok) throw new Error("خطا در دریافت اطلاعات");
     return response.json();
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiUrl } from '../../../../lib/config';
 import { filterContent } from '../../../../lib/filter-content';
+import { fetchUpstreamJson } from '../../../../lib/upstream';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,59 +11,38 @@ export async function GET(request: NextRequest) {
     
     // If requesting a specific page, return just that page
     if (page > 0) {
-      const response = await fetch(
-        `${apiUrl}/api/movie/by/filtres/0/imdb/${page}/4F5A9C3D9A86FA54EACEDDD635185/`,
-        {
-          headers: {
-            'Accept': 'application/json'
-          },
-          cache: 'no-store'
-        }
+      const data = await fetchUpstreamJson(
+        `${apiUrl}/api/movie/by/filtres/0/imdb/${page}/4F5A9C3D9A86FA54EACEDDD635185/`
       );
-
-      if (!response.ok) {
-        throw new Error('خطا در دریافت اطلاعات از سرور');
-      }
-
-      const data = await response.json();
-      return NextResponse.json(filterContent(data));
+      return NextResponse.json(filterContent(data as any[]));
     }
 
     // For the main page, fetch multiple pages to get 30 items
     const allMovies = [];
     let currentPage = 0;
-    
-    while (allMovies.length < limit) {
-      const response = await fetch(
-        `${apiUrl}/api/movie/by/filtres/0/imdb/${currentPage}/4F5A9C3D9A86FA54EACEDDD635185/`,
-        {
-          headers: {
-            'Accept': 'application/json'
-          },
-          cache: 'no-store'
-        }
-      );
 
-      if (!response.ok) {
+    while (allMovies.length < limit) {
+      try {
+        const pageData = await fetchUpstreamJson<any>(
+          `${apiUrl}/api/movie/by/filtres/0/imdb/${currentPage}/4F5A9C3D9A86FA54EACEDDD635185/`
+        );
+
+        if (Array.isArray(pageData)) {
+          allMovies.push(...filterContent(pageData));
+        } else if (pageData && pageData.data && Array.isArray(pageData.data)) {
+          allMovies.push(...filterContent(pageData.data));
+        } else {
+          break; // Stop if unexpected response structure
+        }
+      } catch (err) {
         if (currentPage === 0) {
-          throw new Error('خطا در دریافت اطلاعات از سرور');
+          throw err;
         }
         break; // Stop if we can't fetch more pages
       }
 
-      const pageData = await response.json();
-      
-      // Check if the response has the expected structure
-      if (pageData && Array.isArray(pageData)) {
-        allMovies.push(...filterContent(pageData));
-      } else if (pageData && pageData.data && Array.isArray(pageData.data)) {
-        allMovies.push(...filterContent(pageData.data));
-      } else {
-        break; // Stop if unexpected response structure
-      }
-
       currentPage++;
-      
+
       // Safety check to prevent infinite loops
       if (currentPage > 10) {
         break;

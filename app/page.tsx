@@ -5,7 +5,6 @@ import { ErrorState } from "../components/error-state";
 import { NavItems } from "../components/nav-items-client";
 import { LoadingLink } from "../components/loading-link";
 import { SearchInput } from "../components/search-input";
-import { apiUrl } from '../lib/config';
 import Image from "next/image";
 import { MovieSlider } from "../components/movie-slider";
 import { SerieSlider } from "../components/serie-slider";

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiUrl } from '../../../../lib/config';
 import { filterContent } from '../../../../lib/filter-content';
+import { fetchUpstreamJson } from '../../../../lib/upstream';
 
 export async function GET(
   request: NextRequest,
@@ -8,26 +9,16 @@ export async function GET(
 ) {
   try {
     const { query } = params;
-    
+
     if (!query) {
       return NextResponse.json({ error: 'Search query is required' }, { status: 400 });
     }
 
-    const response = await fetch(
+    const data = await fetchUpstreamJson<any>(
       `${apiUrl}/api/search/${encodeURIComponent(query)}/4F5A9C3D9A86FA54EACEDDD635185`,
-      {
-        headers: {
-          'Accept': 'application/json'
-        },
-        next: { revalidate: 3600 }
-      }
+      3600
     );
 
-    if (!response.ok) {
-      throw new Error('خطا در دریافت نتایج جستجو از سرور');
-    }
-
-    const data = await response.json();
     const posters = Array.isArray(data) ? data : (data.posters || []);
     return NextResponse.json({ ...data, posters: filterContent(posters) });
   } catch (error) {
@@ -37,4 +28,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

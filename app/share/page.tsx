@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { apiUrl } from '../../lib/config';
 import { decodeShareTitle } from '../../lib/utils';
+import { fetchUpstreamJson } from '../../lib/upstream';
 import { ClientRedirect } from './client-redirect';
 
 interface BaseSearchResult {
@@ -28,22 +29,17 @@ type SearchResult = MovieSearchResult | SerieSearchResult;
 async function searchContent(title: string, targetId: string) {
   try {
     const searchQuery = decodeShareTitle(title);
-    
-    const response = await fetch(
+
+    const data = await fetchUpstreamJson<any>(
       `${apiUrl}/api/search/${encodeURIComponent(searchQuery)}/4F5A9C3D9A86FA54EACEDDD635185`,
-      { 
-        cache: 'no-store'
-      }
+      3600
     );
-    
-    if (!response.ok) {
-      return null;
-    }
-    
-    const data = await response.json();
-    
-    if (data.posters && data.posters.length > 0) {
+
+    if (data && Array.isArray(data.posters) && data.posters.length > 0) {
       return data.posters.find((item: SearchResult) => item.id.toString() === targetId);
+    }
+    if (Array.isArray(data)) {
+      return data.find((item: SearchResult) => item.id.toString() === targetId);
     }
     return null;
   } catch (error) {
