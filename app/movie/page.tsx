@@ -31,6 +31,7 @@ import ReactPlayer from "react-player";
 import { ShareButton } from "../../components/share-button";
 import { FavoriteButton } from "../../components/favorite-button";
 import { CommentSection } from "../../components/comment-section";
+import { OnlinePlayer } from "../../components/online-player";
 
 interface MovieDetails {
   id: number;
@@ -276,32 +277,17 @@ export default function MoviePage() {
 
           {/* Content Section */}
           <div className="container max-w-6xl mx-auto px-4 py-6">
-            {/* Video Player Section
-            {movie?.trailer_url && (
-              <div className="mb-6">
-                <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/50">
-                  <ReactPlayer
-                    url={getProxyUrl(movie.trailer_url)}
-                    width="100%"
-                    height="100%"
-                    playing={isPlaying}
-                    controls={true}
-                    playsinline={true}
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                    config={{
-                      file: {
-                        attributes: {
-                          controlsList: "nodownload",
-                          disablePictureInPicture: true,
-                        },
-                      },
-                    }}
-                    style={{ position: "absolute", top: 0, left: 0 }}
-                  />
-                </div>
+            {/* Online Player */}
+            {movie.sources && movie.sources.length > 0 && (
+              <div className="mb-8">
+                <OnlinePlayer
+                  title={movie.title}
+                  poster={movie.image}
+                  sources={movie.sources}
+                  storageKey={`movie-${movie.id}`}
+                />
               </div>
-            )} */}
+            )}
 
             {/* Download/Watch Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">

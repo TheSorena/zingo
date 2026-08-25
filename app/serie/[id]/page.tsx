@@ -20,6 +20,14 @@ import ReactPlayer from "react-player";
 import { ShareButton } from "../../../components/share-button";
 import { FavoriteButton } from "../../../components/favorite-button";
 import { CommentSection } from "../../../components/comment-section";
+import { OnlinePlayer } from "../../../components/online-player";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../../components/ui/dialog";
 
 async function getSerieSeasons(id: string) {
   try {
@@ -349,6 +357,27 @@ export default function SerieDetailPage({
                           </AccordionTrigger>
                           <AccordionContent>
                             <div className="grid gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button className="w-full rounded-xl bg-gradient-to-l from-amber-500 to-rose-500 text-white font-bold shadow-lg shadow-primary/25 hover:opacity-90 transition-opacity">
+                                    <Play className="ml-2 w-4 h-4 fill-current" />
+                                    پخش آنلاین {episode.title}
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-3xl p-4">
+                                  <DialogHeader>
+                                    <DialogTitle className="text-right">
+                                      {serie.title} — {episode.title}
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <OnlinePlayer
+                                    title={episode.title}
+                                    poster={serie.image || serie.cover}
+                                    sources={episode.sources}
+                                    storageKey={`serie-${serie.id}-ep-${episode.id}`}
+                                  />
+                                </DialogContent>
+                              </Dialog>
                               {episode.sources.map((source) => (
                                 <DownloadLink
                                   key={source.id}
