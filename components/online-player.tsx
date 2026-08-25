@@ -20,6 +20,9 @@ interface OnlinePlayerProps {
 const proxyUrl = (url: string) =>
   `https://http-video.liara.run/?url=${encodeURIComponent(url)}`;
 
+// NOTE: sources are plain-http file servers; forcing https breaks them.
+// Inside the Android WebView we enable mixed-content compatibility mode,
+// so the original scheme must be preserved here.
 export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlayerProps) {
   const playable = sources.filter(
     (s) => s.url && /\.(mp4|mkv|webm|mov|m3u8)(\?|$)/i.test(s.url) &&
@@ -58,7 +61,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
-  const src = active ? (useProxy ? proxyUrl(active.url) : ensureHttps(active.url)) : '';
+  const src = active ? (useProxy ? proxyUrl(active.url) : active.url) : '';
 
   const handleError = useCallback(() => {
     if (active && !useProxy) {
@@ -205,7 +208,8 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
               <AlertTriangle className="h-10 w-10 text-amber-400" />
               <p className="text-sm text-white font-bold">پخش این کیفیت ممکن نیست</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                کیفیت دیگری را امتحان کنید یا فیلم را دانلود کنید
+                کیفیت دیگری را امتحان کنید، از دکمه «تماشا با VLC» استفاده کنید<br />
+                یا فیلم را دانلود کرده و آفلاین تماشا کنید
               </p>
               <button
                 onClick={() => {
@@ -229,8 +233,4 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
       </div>
     </div>
   );
-}
-
-function ensureHttps(url: string): string {
-  return url.startsWith('http://') ? url.replace('http://', 'https://') : url;
 }

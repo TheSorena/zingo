@@ -28,7 +28,7 @@ export function LoadingOverlay({ isVisible }: LoadingOverlayProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/85 backdrop-blur-md"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/85 backdrop-blur-md pointer-events-none"
         >
           <div className="flex flex-col items-center space-y-5">
             {/* Branded Logo Ring */}

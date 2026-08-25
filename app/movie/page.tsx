@@ -163,7 +163,13 @@ export default function MoviePage() {
         <div className="relative">
           {/* Back Button */}
           <button
-            onClick={() => router.push('/')}
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
             className="fixed top-4 right-4 z-50 glass p-2 rounded-full ring-1 ring-border/60 hover:bg-background/90 transition-all duration-300 hover:scale-110"
           >
             <svg

@@ -176,8 +176,14 @@ export default function SerieDetailPage({
     <main className="min-h-screen pb-20 md:pb-0">
       <Toaster richColors closeButton position="top-center" />
       {/* Back Button */}
-      <Link
-        href="/"
+      <button
+        onClick={() => {
+          if (window.history.length > 1) {
+            router.back();
+          } else {
+            router.push('/');
+          }
+        }}
         className="fixed top-4 right-4 z-50 glass p-2 rounded-full ring-1 ring-border/60 hover:bg-background/90 transition-all duration-300 hover:scale-110"
       >
         <svg
@@ -193,7 +199,7 @@ export default function SerieDetailPage({
             d="M15 19l-7-7 7-7"
           />
         </svg>
-      </Link>
+      </button>
 
       {/* Share Button */}
       <div className="fixed top-4 left-4 z-50">
