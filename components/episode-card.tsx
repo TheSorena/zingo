@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Play, ChevronDown, Copy, Check } from 'lucide-react';
 import type { SerieEpisode } from '../types';
-import { SourceRow, copyText } from './source-row';
+import { SourceRow, copyText, describeSource } from './source-row';
 
 interface EpisodeCardProps {
   episode: SerieEpisode;
@@ -20,6 +20,7 @@ export function EpisodeCard({ episode, onPlay }: EpisodeCardProps) {
   const [open, setOpen] = useState(false);
   const [copiedAll, setCopiedAll] = useState(false);
   const count = episode.sources?.length ?? 0;
+  const preview = episode.sources?.[0] ? describeSource(episode.sources[0]).label : '';
 
   const copyAll = async () => {
     const links = (episode.sources || []).map((s) => s.url).join('\n');
@@ -53,10 +54,15 @@ export function EpisodeCard({ episode, onPlay }: EpisodeCardProps) {
         >
           <span className="min-w-0">
             <span className="block truncate text-sm font-bold">{episode.title}</span>
-            <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
               <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
                 {count} لینک دانلود
               </Badge>
+              {preview && preview !== 'لینک دانلود' && (
+                <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-amber-400 border-amber-400/30">
+                  {preview}
+                </Badge>
+              )}
               {episode.duration && <span>{episode.duration}</span>}
             </span>
           </span>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
+import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import {
   Dialog,
@@ -27,6 +28,7 @@ interface SeasonEpisodesProps {
 export function SeasonEpisodes({ season, serieId, serieTitle, poster }: SeasonEpisodesProps) {
   const [query, setQuery] = useState('');
   const [playing, setPlaying] = useState<SerieEpisode | null>(null);
+  const [visible, setVisible] = useState(30);
 
   const episodes = useMemo(() => season.episodes || [], [season.episodes]);
 
@@ -35,6 +37,12 @@ export function SeasonEpisodes({ season, serieId, serieTitle, poster }: SeasonEp
     if (!q) return episodes;
     return episodes.filter((ep) => (ep.title || '').includes(q));
   }, [episodes, query]);
+
+  useEffect(() => {
+    setVisible(30);
+  }, [query, season.id]);
+
+  const shown = filtered.slice(0, visible);
 
   return (
     <>
@@ -63,15 +71,27 @@ export function SeasonEpisodes({ season, serieId, serieTitle, poster }: SeasonEp
               <p className="text-sm text-muted-foreground">قسمتی با این نام پیدا نشد</p>
             </div>
           ) : (
-            <div className="grid gap-2">
-              {filtered.map((episode) => (
-                <EpisodeCard
-                  key={episode.id}
-                  episode={episode}
-                  onPlay={setPlaying}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-2">
+                {shown.map((episode) => (
+                  <EpisodeCard
+                    key={episode.id}
+                    episode={episode}
+                    onPlay={setPlaying}
+                  />
+                ))}
+              </div>
+              {filtered.length > visible && (
+                <Button
+                  onClick={() => setVisible((v) => v + 30)}
+                  variant="ghost"
+                  className="mt-3 w-full rounded-2xl bg-secondary/40 hover:bg-secondary/60 text-sm ring-1 ring-border/50"
+                >
+                  نمایش {Math.min(30, filtered.length - visible)} قسمت بیشتر
+                  ({visible} از {filtered.length})
+                </Button>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

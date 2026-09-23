@@ -18,7 +18,7 @@ import {
   getDeviceType,
   triggerDownload,
 } from '../lib/utils';
-import { needsExternalPlayer, copyText } from './source-row';
+import { needsExternalPlayer, copyText, describeSource } from './source-row';
 
 interface PlayerSource {
   id?: number;
@@ -216,7 +216,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
         {/* Quality Chips */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {playable.map((s) => {
-            const label = (s.quality || 'پخش').replace('کیفیت', '').trim() || 'پخش';
+            const label = describeSource(s).label;
             const ext = needsExternalPlayer(s);
             return (
               <button
