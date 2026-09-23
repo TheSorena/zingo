@@ -218,6 +218,13 @@ export default function MoviePage() {
                   poster={movie.image}
                   sources={movie.sources}
                   storageKey={`movie-${movie.id}`}
+                  history={{
+                    kind: 'movie',
+                    id: movie.id,
+                    title: movie.title,
+                    image: movie.image,
+                    snapshot: movie,
+                  }}
                 />
               </div>
             )}

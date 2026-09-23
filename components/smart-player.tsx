@@ -17,7 +17,8 @@ import {
 import {
   probeMkv,
   fetchSubtitleWindow,
-  pickTrack,
+  pickBestTrack,
+  normSub,
   hasNativeBridge,
   bridgeFetch,
   type MkvMeta,
@@ -65,6 +66,56 @@ interface SmartPlayerProps {
   onFirstError: () => void;
   /** Fatal error before any frame played and parent already retried */
   onFatal: () => void;
+  /** Watch-history entry (written while playing) */
+  history?: {
+    kind: 'movie' | 'serie';
+    id: number | string;
+    title: string;
+    image: string;
+    snapshot: unknown;
+  };
+}
+
+export interface HistoryEntry {
+  key: string;
+  kind: 'movie' | 'serie';
+  id: number | string;
+  title: string;
+  image: string;
+  snapshot: unknown;
+  pos: number;
+  dur: number;
+  at: number;
+}
+
+const HISTORY_KEY = 'zingo-history';
+
+export function readHistory(): HistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeHistory(entry: HistoryEntry) {
+  try {
+    const arr = readHistory().filter((h) => h.key !== entry.key);
+    arr.unshift(entry);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0, 20)));
+  } catch {}
+}
+
+function dropHistory(key: string) {
+  try {
+    localStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify(readHistory().filter((h) => h.key !== key))
+    );
+  } catch {}
 }
 
 const SPEEDS = [1, 1.25, 1.5, 2];
@@ -85,7 +136,7 @@ function fmt(t: number): string {
  * The <video> element stays mounted for life — source switches never
  * remount it, so exiting fullscreen or changing quality can't glitch.
  */
-export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFatal }: SmartPlayerProps) {
+export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFatal, history }: SmartPlayerProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -122,10 +173,12 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   // auto-subtitle internals (embedded MKV subs)
   const autoTrackRef = useRef<TextTrack | null>(null);
   const addedCuesRef = useRef<Set<string>>(new Set());
+  const lastSubRef = useRef({ norm: '', start: 0 });
   const coveredRef = useRef({ from: 0, until: 0 });
   const fetchingRef = useRef(false);
   const metaRef = useRef<MkvMeta | null>(null);
   const trackNumRef = useRef(0);
+  const autoTriedRef = useRef(false);
 
   // Load saved position once per content
   useEffect(() => {
@@ -156,6 +209,8 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     } catch {}
     autoTrackRef.current = null;
     addedCuesRef.current = new Set();
+    lastSubRef.current = { norm: '', start: 0 };
+    autoTriedRef.current = false;
     coveredRef.current = { from: 0, until: 0 };
     fetchingRef.current = false;
     metaRef.current = null;
@@ -335,10 +390,20 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     for (const c of cues) {
       const key = `${c.start.toFixed(1)}|${c.text.slice(0, 24)}`;
       if (addedCuesRef.current.has(key)) continue;
+      // skip consecutive near-duplicates (remux echo lines)
+      const norm = normSub(c.text);
+      if (
+        norm &&
+        norm === lastSubRef.current.norm &&
+        c.start - lastSubRef.current.start < 12
+      ) {
+        continue;
+      }
       addedCuesRef.current.add(key);
       try {
         track.addCue(new VTTCue(c.start, Math.max(c.end, c.start + 0.5), c.text));
         added++;
+        if (norm) lastSubRef.current = { norm, start: c.start };
       } catch {}
     }
     if (added > 0) {
@@ -381,12 +446,14 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     [subAuto, fetchWindowAt]
   );
 
-  const enableAutoSubs = useCallback(async () => {
+  const enableAutoSubs = useCallback(async (silent = false) => {
     const v = videoRef.current;
     if (!v || !src || subAuto === 'loading' || subAuto === 'on') return;
     setSubAuto('loading');
-    setSubMsg('در حال آماده‌سازی زیرنویس...');
-    pokeControls();
+    if (!silent) {
+      setSubMsg('در حال آماده‌سازی زیرنویس...');
+      pokeControls();
+    }
     try {
       let p = metaCache.get(src);
       if (!p) {
@@ -394,7 +461,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
         metaCache.set(src, p);
       }
       const meta = await p;
-      const track = pickTrack(meta.tracks);
+      const track = await pickBestTrack(src, meta, bestEffortRangeFetch);
       if (!track) throw new Error('notrack');
       metaRef.current = meta;
       trackNumRef.current = track.num;
@@ -419,9 +486,15 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       if (addedCuesRef.current.size === 0) throw new Error('empty');
       setSubAuto('on');
       setSubMsg('');
-      flashMsg('زیرنویس فارسی فعال شد');
+      if (!silent) flashMsg('زیرنویس فارسی فعال شد');
     } catch (e) {
       const msg = String((e as Error)?.message || '');
+      if (silent) {
+        // MX-like behavior: fail quietly, user can retry via the button
+        setSubAuto('idle');
+        setSubMsg('');
+        return;
+      }
       setSubAuto('error');
       if (/no subtitle track|notrack/i.test(msg)) {
         setSubMsg('زیرنویس داخلی در این فایل پیدا نشد');
@@ -490,6 +563,19 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
         try {
           localStorage.setItem(`zingo-pos:${storageKey}`, String(v.currentTime));
         } catch {}
+        if (history && v.duration > 60) {
+          writeHistory({
+            key: storageKey,
+            kind: history.kind,
+            id: history.id,
+            title: history.title,
+            image: history.image,
+            snapshot: history.snapshot,
+            pos: v.currentTime,
+            dur: v.duration,
+            at: now,
+          });
+        }
       }
     } catch {}
   };
@@ -510,6 +596,16 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     setBuffering(false);
     setTransient(false);
     retryingRef.current = false;
+    // MX-like: embedded subs just work — try once, silently
+    if (
+      !autoTriedRef.current &&
+      subAuto === 'idle' &&
+      !trackUrl &&
+      /\.mkv(\?|$)/i.test(src)
+    ) {
+      autoTriedRef.current = true;
+      void enableAutoSubs(true);
+    }
   };
 
   const onPause = () => setPlaying(false);
@@ -522,6 +618,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     try {
       localStorage.removeItem(`zingo-pos:${storageKey}`);
     } catch {}
+    dropHistory(storageKey);
   };
 
   const onSeeked = () => {

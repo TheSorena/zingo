@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redis } from '../../../lib/redis';
 import { addComment, listComments, validateComment } from '../../../lib/comments';
+import { getUserById, userCookieName, verifySessionToken } from '../../../lib/users';
 
 export const runtime = 'nodejs';
 
@@ -67,12 +68,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Members comment under their verified account name (no impersonation)
+    let name = body.name.trim();
+    let userId: string | undefined;
+    let member = false;
+    try {
+      const uid = await verifySessionToken(request.cookies.get(userCookieName)?.value);
+      if (uid) {
+        const u = await getUserById(uid);
+        if (u) {
+          name = u.name;
+          userId = u.id;
+          member = true;
+        }
+      }
+    } catch {}
+
     const comment = await addComment({
       type,
       targetId,
-      name: body.name.trim(),
+      name,
       text: body.text.trim(),
       hasSpoiler,
+      ...(userId ? { userId, member } : {}),
     });
 
     return NextResponse.json({ comment }, { status: 201 });

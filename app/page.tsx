@@ -12,6 +12,8 @@ import { PaginatedMovieSlider } from "../components/paginated-movie-slider";
 import { PaginatedSerieSlider } from "../components/paginated-serie-slider";
 import { Button } from "../components/ui/button";
 import { HeroCta } from "../components/hero-cta";
+import { ContinueWatching } from "../components/continue-watching";
+import { AccountButton } from "../components/account-button";
 import { headers } from "next/headers";
 
 // Get the base URL for internal API calls (works in dev, prod and Vercel previews)
@@ -193,7 +195,8 @@ export default async function Home() {
               زینگو
             </span>
           </LoadingLink>
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-1">
+            <AccountButton />
             <LoadingLink href="/search">
               <Button variant="ghost" size="icon" aria-label="Search" className="rounded-full">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
@@ -204,6 +207,7 @@ export default async function Home() {
             <NavItems />
             <SearchInput placeholder="جستجو..." />
             <ThemeToggle />
+            <AccountButton />
           </div>
         </div>
       </header>
@@ -283,6 +287,8 @@ export default async function Home() {
         <div className="md:hidden mb-8 relative">
           <SearchInput placeholder="جستجو..." className="w-full" />
         </div>
+
+        <ContinueWatching />
 
         {/* Content Sliders */}
         <div className="space-y-12 md:space-y-16">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import { useAuth } from './auth-provider';
 
 interface FavoriteItem {
   id: number;
@@ -31,6 +32,7 @@ export function FavoriteButton({
   className = '',
 }: FavoriteButtonProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const checkFavorite = () => {
@@ -50,11 +52,11 @@ export function FavoriteButton({
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering parent click events
-    
+
     try {
       let favorites: FavoriteItem[] = [];
       const storedFavorites = localStorage.getItem('favorites');
-      
+
       if (storedFavorites) {
         favorites = JSON.parse(storedFavorites);
       }
@@ -67,6 +69,9 @@ export function FavoriteButton({
           position: 'top-center',
           duration: 3000,
         });
+        if (user) {
+          fetch(`/api/favorites?id=${item.id}&type=${item.type}`, { method: 'DELETE' }).catch(() => {});
+        }
       } else {
         // Add to favorites
         favorites.push(item);
@@ -75,6 +80,13 @@ export function FavoriteButton({
           position: 'top-center',
           duration: 3000,
         });
+        if (user) {
+          fetch('/api/favorites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item }),
+          }).catch(() => {});
+        }
       }
 
       localStorage.setItem('favorites', JSON.stringify(favorites));

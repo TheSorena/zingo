@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Settings, Sun, Moon, Monitor, Info, Share2, Command, Code2, Star, Search, Wrench, MessageCircle, Check} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NavItems } from "@/components/nav-items-client";
+import { ProfileCard } from "@/components/profile-card";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
@@ -96,6 +97,9 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid gap-6">
+          {/* Account */}
+          <ProfileCard />
+
           {/* Theme Settings */}
           <Card className="group hover:shadow-md transition-all duration-300">
             <CardHeader>

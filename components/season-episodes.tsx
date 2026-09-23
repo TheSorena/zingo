@@ -19,13 +19,14 @@ interface SeasonEpisodesProps {
   serieId: number;
   serieTitle: string;
   poster: string;
+  snapshot?: unknown;
 }
 
 /**
  * One season's episode list: search filter for long seasons + compact
  * episode boxes + a SINGLE shared player dialog (not one per episode).
  */
-export function SeasonEpisodes({ season, serieId, serieTitle, poster }: SeasonEpisodesProps) {
+export function SeasonEpisodes({ season, serieId, serieTitle, poster, snapshot }: SeasonEpisodesProps) {
   const [query, setQuery] = useState('');
   const [playing, setPlaying] = useState<SerieEpisode | null>(null);
   const [visible, setVisible] = useState(30);
@@ -109,6 +110,13 @@ export function SeasonEpisodes({ season, serieId, serieTitle, poster }: SeasonEp
               poster={poster}
               sources={playing.sources || []}
               storageKey={`serie-${serieId}-ep-${playing.id}`}
+              history={{
+                kind: 'serie',
+                id: serieId,
+                title: serieTitle,
+                image: poster,
+                snapshot: snapshot ?? null,
+              }}
             />
           )}
         </DialogContent>

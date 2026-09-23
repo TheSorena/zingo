@@ -22,6 +22,9 @@ import {
   AlertDialogTrigger,
 } from "../../components/ui/alert-dialog";
 import { SearchInput } from '@/components/search-input';
+import { AccountButton } from '@/components/account-button';
+import { useAuth } from '@/components/auth-provider';
+import { Cloud } from 'lucide-react';
 
 interface FavoriteItem {
   id: number;
@@ -38,26 +41,61 @@ interface FavoriteItem {
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [synced, setSynced] = useState(false);
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
-    const loadFavorites = () => {
+    const loadFavorites = async () => {
+      let local: FavoriteItem[] = [];
       try {
         const storedFavorites = localStorage.getItem('favorites');
         if (storedFavorites) {
-          // Sort by newest first (assuming the most recently added items are at the end of the array)
-          const parsedFavorites = JSON.parse(storedFavorites);
-          setFavorites(parsedFavorites.reverse());
+          const parsed = JSON.parse(storedFavorites);
+          if (Array.isArray(parsed)) local = parsed;
         }
       } catch (error) {
         console.error('Error loading favorites:', error);
-      } finally {
-        setIsLoading(false);
       }
+
+      // Merge with cloud favorites when logged in (cloud wins on conflict)
+      if (user) {
+        try {
+          const res = await fetch('/api/favorites');
+          if (res.ok) {
+            const data = await res.json();
+            const cloud: FavoriteItem[] = Array.isArray(data.items) ? data.items : [];
+            const seen = new Set(cloud.map((f) => `${f.type}:${f.id}`));
+            const onlyLocal = local.filter((f) => !seen.has(`${f.type}:${f.id}`));
+            // push local-only items to the cloud (migration)
+            for (const item of onlyLocal.slice(0, 50)) {
+              try {
+                await fetch('/api/favorites', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ item }),
+                });
+              } catch {}
+            }
+            const merged = [...cloud, ...onlyLocal];
+            setFavorites(merged.slice().reverse());
+            try {
+              localStorage.setItem('favorites', JSON.stringify(merged));
+            } catch {}
+            setSynced(true);
+            setIsLoading(false);
+            return;
+          }
+        } catch {}
+      }
+
+      // Sort by newest first (most recently added items are at the end)
+      setFavorites(local.slice().reverse());
+      setIsLoading(false);
     };
 
     loadFavorites();
-  }, []);
+  }, [user]);
 
   const handleItemClick = (item: FavoriteItem) => {
     localStorage.setItem(
@@ -76,9 +114,13 @@ export default function FavoritesPage() {
   };
 
   const removeFavorite = (id: number) => {
+    const removed = favorites.find((item) => item.id === id);
     const updatedFavorites = favorites.filter(item => item.id !== id);
     setFavorites(updatedFavorites);
     localStorage.setItem('favorites', JSON.stringify(updatedFavorites.slice().reverse()));
+    if (user && removed) {
+      fetch(`/api/favorites?id=${id}&type=${removed.type}`, { method: 'DELETE' }).catch(() => {});
+    }
   };
 
   const removeAllFavorites = () => {
@@ -105,7 +147,8 @@ export default function FavoritesPage() {
               زینگو
             </h1>
           </Link>
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-1">
+            <AccountButton />
             <Link href="/search">
               <Button variant="ghost" size="icon" aria-label="Search">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -116,6 +159,7 @@ export default function FavoritesPage() {
             <NavItems />
             <SearchInput placeholder="جستجو..." />
             <ThemeToggle />
+            <AccountButton />
           </div>
         </div>
       </header>
@@ -133,6 +177,12 @@ export default function FavoritesPage() {
             <p className="text-lg text-muted-foreground">
               فیلم‌ها و سریال‌های مورد علاقه شما در یک نگاه
             </p>
+            {user && synced && (
+              <p className="flex items-center justify-center gap-1.5 text-xs text-emerald-400">
+                <Cloud className="h-3.5 w-3.5" />
+                با حساب {user.name} همگام‌سازی شده — در همه دستگاه‌ها همراه شماست
+              </p>
+            )}
           </div>
 
           {/* Favorites Management */}

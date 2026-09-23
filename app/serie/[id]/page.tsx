@@ -276,6 +276,7 @@ export default function SerieDetailPage({
                   serieId={serie.id}
                   serieTitle={serie.title}
                   poster={serie.image || serie.cover}
+                  snapshot={serie}
                 />
               </TabsContent>
             ))}

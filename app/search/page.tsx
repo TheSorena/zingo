@@ -6,6 +6,7 @@ import { MobileNav } from '../../components/mobile-nav';
 import { ThemeToggle } from '../../components/theme-toggle';
 import { NavItems } from '../../components/nav-items-client';
 import { SearchResultCard } from "../../components/search-result-card";
+import { AccountButton } from "../../components/account-button";
 import Link from "next/link";
 import { headers } from "next/headers";
 import type { Metadata } from 'next';
@@ -76,7 +77,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               زینگو
             </h1>
           </Link>
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-1">
+            <AccountButton />
             <Link href="/search">
               <Button variant="ghost" size="icon" aria-label="Search">
                 <Search className="h-6 w-6" />
@@ -86,6 +88,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="hidden md:flex items-center space-x-4 space-x-reverse">
             <NavItems />
             <ThemeToggle />
+            <AccountButton />
           </div>
         </div>
       </header>

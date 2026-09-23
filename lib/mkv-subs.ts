@@ -230,15 +230,21 @@ function pickTrack(tracks: MkvSubTrack[]): MkvSubTrack | null {
 }
 
 function cleanText(raw: string): string {
-  return raw
+  const lines = raw
     .replace(/\{[^}]*\}/g, '') // ASS overrides
     .replace(/<[^>]*>/g, '') // html tags
     .replace(/\\N/g, '\n')
     .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .join('\n')
-    .trim();
+    .map((l) => l.trim().replace(/\s{2,}/g, ' '))
+    .filter((l) => l.length > 0)
+    // drop SDH noise: bracket-only directions and lone music notes
+    .filter((l) => !/^\[.*\]$/.test(l) && !/^[♪♫\s]+$/.test(l));
+  return lines.join('\n').trim();
+}
+
+/** Normalized form for duplicate detection (ignore spacing/punctuation). */
+export function normSub(s: string): string {
+  return s.replace(/[\s\p{P}]/gu, '');
 }
 
 function assToMs(t: string): number {
@@ -650,7 +656,7 @@ export async function fetchSubtitleWindow(
   }
 
   const { buf } = await fetchRange(fetchFn, url, startPos, CLUSTER_FETCH);
-  const { cues, coveredUntilMs } = parseClusterBuffer(
+  const parsed = parseClusterBuffer(
     buf,
     track.num,
     track.codec,
@@ -658,7 +664,71 @@ export async function fetchSubtitleWindow(
     meta.cues.length ? targetMs - 5000 : 0,
     untilMs
   );
-  return { cues, coveredUntilMs, track };
+  return { cues: normalizeCues(parsed.cues), coveredUntilMs: parsed.coveredUntilMs, track };
+}
+
+/**
+ * Post-pass: sort, drop empties, merge consecutive duplicates, clamp
+ * overlaps and absurd durations. This is what keeps subs in sync.
+ */
+export function normalizeCues(input: SubCue[]): SubCue[] {
+  const sorted = input
+    .filter((c) => c.text && c.text.trim().length > 0)
+    .sort((a, b) => a.start - b.start);
+  const out: SubCue[] = [];
+  for (const c of sorted) {
+    const last = out[out.length - 1];
+    if (
+      last &&
+      normSub(last.text) === normSub(c.text) &&
+      c.start - last.start < 12
+    ) {
+      last.end = Math.max(last.end, Math.min(c.end, last.start + 12));
+      continue;
+    }
+    let end = Math.min(c.end, c.start + 12);
+    if (!(end > c.start)) end = c.start + 1;
+    out.push({ start: c.start, end, text: c.text });
+  }
+  for (let i = 0; i < out.length - 1; i++) {
+    if (out[i].end > out[i + 1].start) {
+      out[i].end = Math.max(out[i].start + 0.4, out[i + 1].start - 0.08);
+    }
+  }
+  return out;
+}
+
+/**
+ * When several subtitle tracks exist without a Persian language tag,
+ * sample each one and pick the track that actually contains Persian text.
+ */
+export async function pickBestTrack(
+  url: string,
+  meta: MkvMeta,
+  fetchFn: FetchFn = fetch
+): Promise<MkvSubTrack | null> {
+  const direct = pickTrack(meta.tracks);
+  if (direct && /^(per|fas|fa|fa-ir)$/i.test(direct.lang)) return direct;
+  const cands = meta.tracks.slice(0, 3);
+  if (cands.length <= 1) return direct;
+  const t = meta.durationSec > 600 ? 300 : Math.max(60, meta.durationSec / 4);
+  let best: MkvSubTrack | null = direct;
+  let bestScore = -1;
+  await Promise.all(
+    cands.map(async (cand) => {
+      try {
+        const w = await fetchSubtitleWindow(url, meta, cand.num, t, 45, fetchFn);
+        const txt = w.cues.slice(0, 12).map((c) => c.text).join(' ');
+        const fa = (txt.match(/[\u0600-\u06FF]/g) || []).length;
+        const score = fa * 2 + (txt.length > 0 ? 1 : 0);
+        if (score > bestScore) {
+          bestScore = score;
+          best = cand;
+        }
+      } catch {}
+    })
+  );
+  return best;
 }
 
 export { pickTrack };

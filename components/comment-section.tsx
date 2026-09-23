@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from './auth-provider';
+import { avatarGradient } from './account-button';
 
 interface CommentItem {
   id: string;
@@ -14,6 +16,7 @@ interface CommentItem {
   createdAt: number;
   reply?: string;
   repliedAt?: number;
+  member?: boolean;
 }
 
 interface CommentSectionProps {
@@ -39,6 +42,7 @@ function timeAgo(ts: number): string {
 }
 
 export function CommentSection({ type, targetId }: CommentSectionProps) {
+  const { user } = useAuth();
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [name, setName] = useState('');
   const [text, setText] = useState('');
@@ -65,14 +69,15 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !text.trim() || submitting) return;
+    const author = user ? user.name : name.trim();
+    if (!author || !text.trim() || submitting) return;
     setSubmitting(true);
 
     try {
       const res = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, targetId, name, text, hasSpoiler }),
+        body: JSON.stringify({ type, targetId, name: author, text, hasSpoiler }),
       });
       const data = await res.json();
 
@@ -119,13 +124,28 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
       {/* Comment Form */}
       <form onSubmit={handleSubmit} className="glass rounded-3xl border border-border/60 p-4 md:p-5 mb-6 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="نام شما"
-            maxLength={30}
-            className="flex-1 rounded-full bg-muted/50 px-4 py-2.5 text-sm ring-1 ring-border/60 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
-          />
+          {user ? (
+            <div className="flex flex-1 items-center gap-2 rounded-full bg-emerald-500/10 px-4 py-2.5 text-sm ring-1 ring-emerald-500/30">
+              <span
+                className={`flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br ${avatarGradient(user.color)} text-xs font-extrabold text-white`}
+              >
+                {user.name.slice(0, 1)}
+              </span>
+              <span className="font-bold">{user.name}</span>
+              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400">
+                <BadgeCheck className="h-3.5 w-3.5" />
+                نظر به‌نام شما ثبت می‌شود
+              </span>
+            </div>
+          ) : (
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="نام شما"
+              maxLength={30}
+              className="flex-1 rounded-full bg-muted/50 px-4 py-2.5 text-sm ring-1 ring-border/60 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+            />
+          )}
           <label className="flex items-center gap-2 cursor-pointer select-none rounded-full bg-muted/50 px-4 py-2.5 text-sm ring-1 ring-border/60 transition-colors hover:bg-muted/80">
             <input
               type="checkbox"
@@ -152,7 +172,7 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
         </div>
         <button
           type="submit"
-          disabled={submitting || !name.trim() || !text.trim()}
+          disabled={submitting || !(user ? true : name.trim()) || !text.trim()}
           className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-l from-amber-500 to-rose-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/40 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
         >
           <span className="absolute inset-0 overflow-hidden rounded-full">
@@ -192,7 +212,15 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
                     {comment.name.slice(0, 1)}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate">{comment.name}</p>
+                    <p className="text-sm font-bold truncate flex items-center gap-1.5">
+                      {comment.name}
+                      {comment.member && (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-1.5 py-px text-[10px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
+                          <BadgeCheck className="h-3 w-3" />
+                          عضو
+                        </span>
+                      )}
+                    </p>
                     <p className="text-[11px] text-muted-foreground/70">{timeAgo(comment.createdAt)}</p>
                   </div>
                   {comment.hasSpoiler && (

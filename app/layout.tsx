@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LoadingProvider } from '@/components/loading-provider';
+import { AuthProvider } from '@/components/auth-provider';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
@@ -66,7 +67,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <LoadingProvider>
-            {children}
+            <AuthProvider>
+              {children}
+            </AuthProvider>
           </LoadingProvider>
         </ThemeProvider>
       </body>

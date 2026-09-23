@@ -10,6 +10,8 @@ export type CommentItem = {
   createdAt: number;
   reply?: string;
   repliedAt?: number;
+  userId?: string;
+  member?: boolean;
 };
 
 const dataKey = (id: string) => `c:data:${id}`;

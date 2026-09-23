@@ -12,6 +12,7 @@ import { Button } from './ui/button';
 import { triggerDownload } from '../lib/utils';
 import { needsExternalPlayer, copyText } from './source-row';
 import { SmartPlayer } from './smart-player';
+import type { HistoryEntry } from './smart-player';
 import { describeSource } from './source-row';
 
 interface PlayerSource {
@@ -26,6 +27,7 @@ interface OnlinePlayerProps {
   poster?: string;
   sources: PlayerSource[];
   storageKey: string;
+  history?: Omit<HistoryEntry, 'key' | 'pos' | 'dur' | 'at'>;
 }
 
 function scoreSource(s: PlayerSource): number {
@@ -49,7 +51,7 @@ const proxyUrl = (url: string) =>
 // NOTE: sources live on plain-http file servers; forcing https breaks them.
 // Inside the Android WebView we enable mixed-content compatibility mode,
 // so the original scheme must be preserved here.
-export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlayerProps) {
+export function OnlinePlayer({ title, poster, sources, storageKey, history }: OnlinePlayerProps) {
   const playable = useMemo(
     () =>
       (sources || [])
@@ -151,6 +153,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
             title={title}
             poster={poster}
             storageKey={storageKey}
+            history={history}
             onFirstError={handleFirstError}
             onFatal={() => setFatal(true)}
           />
