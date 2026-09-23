@@ -173,6 +173,38 @@ function walkChildren(
   }
 }
 
+async function readCapped(res: Response, cap: number): Promise<Uint8Array> {
+  if (!res.body || typeof res.body.getReader !== 'function') {
+    const ab = await res.arrayBuffer();
+    if (ab.byteLength > cap) throw new Error('no-range');
+    return new Uint8Array(ab);
+  }
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) {
+      total += value.byteLength;
+      if (total > cap) {
+        try {
+          await reader.cancel();
+        } catch {}
+        throw new Error('no-range');
+      }
+      chunks.push(value);
+    }
+  }
+  const out = new Uint8Array(total);
+  let o = 0;
+  for (const c of chunks) {
+    out.set(c, o);
+    o += c.byteLength;
+  }
+  return out;
+}
+
 async function fetchRange(
   fetchFn: FetchFn,
   url: string,
@@ -186,8 +218,9 @@ async function fetchRange(
   const total = Number(res.headers.get('Content-Range')?.split('/')[1] || res.headers.get('Content-Length') || 0);
   const ranges =
     res.status === 206 || (res.headers.get('Accept-Ranges') || '').toLowerCase() === 'bytes';
-  const ab = await res.arrayBuffer();
-  return { buf: new Uint8Array(ab), total, ranges };
+  // If the server ignored Range (200 + huge body), bail instead of buffering GBs
+  const buf = await readCapped(res, length + 1024 * 1024);
+  return { buf, total, ranges };
 }
 
 function pickTrack(tracks: MkvSubTrack[]): MkvSubTrack | null {
@@ -629,3 +662,98 @@ export async function fetchSubtitleWindow(
 }
 
 export { pickTrack };
+
+// ---- Native Android bridge (Zingo app) ----
+// WebView blocks cross-origin http range-fetches (mixed content + CORS),
+// so the app exposes a native fetcher (no WebView restrictions).
+// Desktop browsers fall back to direct fetch, then the same-origin proxy.
+
+declare global {
+  interface Window {
+    ZingoNative?: {
+      fetchRange(url: string, start: number, len: number, cbId: number): void;
+    };
+    __zr?: (id: number, idx: number, total: number, chunk: string, size: number) => void;
+  }
+}
+
+type BridgeEntry = {
+  parts: string[];
+  received: number;
+  total: number;
+  size: number;
+  resolve: (v: { b64: string; size: number }) => void;
+  reject: (e: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
+};
+
+const bridgePending = new Map<number, BridgeEntry>();
+let bridgeSeq = 1;
+
+function setupBridgeGlobal() {
+  if (typeof window === 'undefined' || window.__zr) return;
+  window.__zr = (id, idx, total, chunk, size) => {
+    const p = bridgePending.get(id);
+    if (!p) return;
+    if (idx < 0) {
+      bridgePending.delete(id);
+      clearTimeout(p.timer);
+      p.reject(new Error('bridge-fail'));
+      return;
+    }
+    if (!p.parts[idx]) {
+      p.parts[idx] = chunk;
+      p.received++;
+    }
+    p.total = total;
+    if (size > 0) p.size = size;
+    if (p.total > 0 && p.received >= p.total) {
+      bridgePending.delete(id);
+      clearTimeout(p.timer);
+      const ordered: string[] = [];
+      for (let i = 0; i < p.total; i++) ordered.push(p.parts[i] || '');
+      p.resolve({ b64: ordered.join(''), size: p.size });
+    }
+  };
+}
+
+export function hasNativeBridge(): boolean {
+  return typeof window !== 'undefined' && !!window.ZingoNative?.fetchRange;
+}
+
+export async function bridgeFetch(url: string, headers?: Record<string, string>): Promise<Response> {
+  setupBridgeGlobal();
+  const nat = window.ZingoNative;
+  if (!nat?.fetchRange) throw new Error('no-bridge');
+  const m = /bytes=(\d+)-(\d+)/.exec(headers?.Range || '');
+  const start = m ? Number(m[1]) : 0;
+  const len = m ? Number(m[2]) - Number(m[1]) + 1 : 2 * 1024 * 1024;
+  const id = bridgeSeq++;
+  const out = await new Promise<{ b64: string; size: number }>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      bridgePending.delete(id);
+      reject(new Error('bridge-timeout'));
+    }, 45000);
+    bridgePending.set(id, { parts: [], received: 0, total: -1, size: -1, resolve, reject, timer });
+    try {
+      nat.fetchRange(url, start, len, id);
+    } catch (e) {
+      clearTimeout(timer);
+      bridgePending.delete(id);
+      reject(e as Error);
+    }
+  });
+  const bin = atob(out.b64);
+  const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const end = start + u8.length - 1;
+  const cr = out.size > 0 ? `bytes ${start}-${end}/${out.size}` : `bytes ${start}-${end}/*`;
+  return new Response(u8, {
+    status: 206,
+    headers: {
+      'Content-Range': cr,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': String(u8.length),
+    },
+  });
+}

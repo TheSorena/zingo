@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Copy, Download, Clapperboard, TriangleAlert } from 'lucide-react';
+import { Copy, Download, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   isChromeBrowser,
   getDownloadMessage,
   triggerDownload,
-  isWebView,
 } from '../lib/utils';
 import {
   AlertDialog,
@@ -116,7 +115,7 @@ export function isMkvSource(s: Pick<SourceItem, 'url' | 'type'>): boolean {
   return /\.mkv(\?|$)/i.test(s.url || '') || (s.type || '').toLowerCase() === 'mkv';
 }
 
-/** Browsers usually can't play this container/codec — needs VLC/MX Player. */
+/** Browsers usually can't play this container/codec — needs an external player. */
 export function needsExternalPlayer(s: Pick<SourceItem, 'quality' | 'url' | 'type'>): boolean {
   return isHevcSource(s) || isMkvSource(s);
 }
@@ -144,7 +143,7 @@ export function copyText(text: string, okMessage = 'لینک با موفقیت �
 
 /**
  * One compact download box per quality: quality badge + container chip
- * + icon actions (download / VLC / copy). Replaces the old bulky rows.
+ * + icon actions (download / copy). Replaces the old bulky rows.
  */
 export function SourceRow({ source }: { source: SourceItem }) {
   const [showAlert, setShowAlert] = useState(false);
@@ -185,28 +184,12 @@ export function SourceRow({ source }: { source: SourceItem }) {
               {externalOnly && (
                 <span className="inline-flex items-center gap-1 text-amber-400">
                   <TriangleAlert className="h-3 w-3" />
-                  فقط VLC
+                  پلیر خارجی
                 </span>
               )}
             </span>
           </span>
         </a>
-
-        <Button
-          asChild
-          variant="ghost"
-          size="icon"
-          title="تماشا با VLC"
-          className="h-9 w-9 shrink-0 rounded-xl bg-muted/60 hover:bg-muted ring-1 ring-border/50"
-        >
-          <a
-            href={'vlc://' + source.url}
-            target={!isWebView() ? '_blank' : undefined}
-            rel="noopener noreferrer"
-          >
-            <Clapperboard className="h-4 w-4" />
-          </a>
-        </Button>
 
         <Button
           onClick={() => copyText(source.url)}

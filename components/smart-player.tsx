@@ -18,6 +18,8 @@ import {
   probeMkv,
   fetchSubtitleWindow,
   pickTrack,
+  hasNativeBridge,
+  bridgeFetch,
   type MkvMeta,
 } from '../lib/mkv-subs';
 
@@ -40,9 +42,11 @@ async function apiRangeFetch(url: string, headers?: Record<string, string>): Pro
 
 /**
  * Direct first (user networks reach the file hosts; Vercel often doesn't),
- * same-origin proxy as fallback.
+ * same-origin proxy as fallback. Inside the Zingo app the native bridge
+ * bypasses WebView mixed-content/CORS limits entirely.
  */
 async function bestEffortRangeFetch(url: string, headers?: Record<string, string>): Promise<Response> {
+  if (hasNativeBridge()) return bridgeFetch(url, headers);
   try {
     const res = await fetch(url, { headers });
     if (res.ok || res.status === 206) return res;
@@ -417,17 +421,25 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       setSubMsg('');
       flashMsg('زیرنویس فارسی فعال شد');
     } catch (e) {
-      const msg = (e as Error)?.message;
+      const msg = String((e as Error)?.message || '');
       setSubAuto('error');
-      setSubMsg(
-        msg === 'notrack'
-          ? 'زیرنویس داخلی در این فایل پیدا نشد'
-          : 'خطا در خواندن زیرنویس — فایل .srt آپلود کنید'
-      );
+      if (/no subtitle track|notrack/i.test(msg)) {
+        setSubMsg('زیرنویس داخلی در این فایل پیدا نشد');
+      } else if (/EBML/i.test(msg)) {
+        setSubMsg('این فایل MP4 است؛ زیرنویس داخلی MP4 پشتیبانی نمی‌شود');
+      } else if (/no-range/i.test(msg)) {
+        setSubMsg('سرور فایل دانلود تکه‌ای نمی‌دهد');
+      } else if (/empty/i.test(msg)) {
+        setSubMsg('زیرنویسی در این بازه پیدا نشد');
+      } else if (/bridge|Failed to fetch|fetch failed|direct |proxy |timeout|NetworkError/i.test(msg)) {
+        setSubMsg('ارتباط با سرور فایل برقرار نشد');
+      } else {
+        setSubMsg('خطا در خواندن زیرنویس — فایل .srt آپلود کنید');
+      }
       setTimeout(() => {
         setSubAuto((s) => (s === 'error' ? 'idle' : s));
         setSubMsg('');
-      }, 4000);
+      }, 5000);
     }
     pokeControls();
   }, [src, subAuto, fetchWindowAt, pokeControls]);

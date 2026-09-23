@@ -6,16 +6,10 @@ import {
   RefreshCw,
   Copy,
   Download,
-  Clapperboard,
-  ExternalLink,
   Info,
 } from 'lucide-react';
 import { Button } from './ui/button';
-import {
-  isWebView,
-  getDeviceType,
-  triggerDownload,
-} from '../lib/utils';
+import { triggerDownload } from '../lib/utils';
 import { needsExternalPlayer, copyText } from './source-row';
 import { SmartPlayer } from './smart-player';
 import { describeSource } from './source-row';
@@ -51,12 +45,6 @@ function scoreSource(s: PlayerSource): number {
 
 const proxyUrl = (url: string) =>
   `https://http-video.liara.run/?url=${encodeURIComponent(url)}`;
-
-function mxPlayerIntent(url: string, title: string): string {
-  const m = /^(https?):\/\/(.*)$/i.exec(url);
-  if (!m) return url;
-  return `intent://${m[2]}#Intent;scheme=${m[1].toLowerCase()};package=com.mxtech.videoplayer.ad;S.title=${encodeURIComponent(title)};end`;
-}
 
 // NOTE: sources live on plain-http file servers; forcing https breaks them.
 // Inside the Android WebView we enable mixed-content compatibility mode,
@@ -97,10 +85,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
     typeof window !== 'undefined' &&
     window.location.protocol === 'https:' &&
     !!active?.url?.startsWith('http:') &&
-    !useProxy &&
-    !isWebView();
-
-  const showMx = getDeviceType() === 'android';
+    !useProxy;
 
   const handleFirstError = () => {
     // Silent single retry through the proxy host — no scary panel yet
@@ -140,7 +125,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
                   setUseProxy(false);
                   setFatal(false);
                 }}
-                title={ext ? 'احتمالاً فقط با VLC پخش می‌شود' : label}
+                title={ext ? 'ممکن است در مرورگر پخش نشود' : label}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ring-1 flex items-center gap-1.5 ${
                   active?.url === s.url
                     ? 'bg-gradient-to-l from-amber-500 to-rose-500 text-white shadow-lg shadow-primary/30 ring-transparent'
@@ -148,15 +133,6 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
                 }`}
               >
                 {label}
-                {ext && (
-                  <span
-                    className={`rounded-full px-1.5 py-px text-[9px] ${
-                      active?.url === s.url ? 'bg-white/25 text-white' : 'bg-amber-500/15 text-amber-400'
-                    }`}
-                  >
-                    VLC
-                  </span>
-                )}
               </button>
             );
           })}
@@ -164,7 +140,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
 
         {active && needsExternalPlayer(active) && !fatal && (
           <p className="mb-3 rounded-2xl bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-300 ring-1 ring-amber-400/25">
-            این کیفیت (x265 یا MKV) معمولاً در مرورگر پخش نمی‌شود؛ کیفیت MP4 را انتخاب کنید یا با VLC تماشا کنید.
+            این کیفیت (x265 یا MKV) معمولاً در مرورگر پخش نمی‌شود؛ کیفیت MP4 را انتخاب کنید.
           </p>
         )}
 
@@ -186,7 +162,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
               {isMixedBlocked ? (
                 <p className="text-[11px] text-amber-200/90 leading-relaxed max-w-md">
                   مرورگر شما اجازه پخش مستقیم فایل‌های رمزنگاری‌نشده (http) را در صفحه امن نمی‌دهد.
-                  لینک را کپی کنید یا با VLC / MX Player تماشا کنید.
+                  لینک را کپی کنید یا فیلم را دانلود کنید.
                 </p>
               ) : (
                 <p className="text-[11px] text-muted-foreground leading-relaxed max-w-md">
@@ -213,27 +189,6 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
                       <Copy className="ml-1.5 h-3.5 w-3.5" />
                       کپی لینک
                     </Button>
-                    <Button asChild size="sm" variant="outline" className="rounded-full text-xs">
-                      <a
-                        href={'vlc://' + active.url}
-                        target={!isWebView() ? '_blank' : undefined}
-                        rel="noopener noreferrer"
-                      >
-                        <Clapperboard className="ml-1.5 h-3.5 w-3.5" />
-                        تماشا با VLC
-                      </a>
-                    </Button>
-                    {showMx && (
-                      <Button asChild size="sm" variant="outline" className="rounded-full text-xs">
-                        <a
-                          href={mxPlayerIntent(active.url, title)}
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
-                          MX Player
-                        </a>
-                      </Button>
-                    )}
                     <Button
                       onClick={() => triggerDownload(active.url)}
                       size="sm"

@@ -132,8 +132,8 @@ export default function HelpPage() {
                 برای هر فیلم و سریال، گزینه‌های مختلفی برای دانلود و تماشا وجود دارد:
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                <li>پخش آنلاین با پلیر اختصاصی زینگو (با امکان انتخاب کیفیت، سرعت پخش و زیرنویس)</li>
                 <li>دانلود مستقیم با کیفیت‌های مختلف</li>
-                <li>پخش با VLC</li>
                 <li>کپی لینک دانلود</li>
               </ul>
             </div>
@@ -149,9 +149,9 @@ export default function HelpPage() {
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-medium mb-2">مشکل در پخش با VLC:</h3>
+                  <h3 className="font-medium mb-2">زیرنویس نمایش داده نمی‌شود:</h3>
                   <p className="text-muted-foreground">
-                    در صورت عدم کارکرد صحیح دکمه تماشا با VLC، می‌توانید لینک را کپی کرده و مستقیماً در VLC باز کنید.
+                    در پخش آنلاین دکمه «زیرنویس» را بزنید تا زیرنویس فارسی داخل فایل فعال شود. اگر فایل زیرنویس داخلی نداشت، می‌توانید فایل .srt خودتان را با دکمه آپلود اضافه کنید.
                   </p>
                 </div>
                 <div>
