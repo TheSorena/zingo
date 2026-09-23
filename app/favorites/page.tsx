@@ -131,7 +131,7 @@ export default function FavoritesPage() {
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       {/* Animated Background */}
-      <div className="fixed inset-0 -z-10">
+      <div className="perf-decor fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-grid-white/10 bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_120%)]" />
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-rose-500/5" />
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-amber-500/15 blur-3xl" />

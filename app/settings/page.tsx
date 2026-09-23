@@ -8,6 +8,7 @@ import { Settings, Sun, Moon, Monitor, Info, Share2, Command, Code2, Star, Searc
 import { useRouter } from "next/navigation";
 import { NavItems } from "@/components/nav-items-client";
 import { ProfileCard } from "@/components/profile-card";
+import { PerfCard } from "@/components/perf-card";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
@@ -99,6 +100,9 @@ export default function SettingsPage() {
         <div className="grid gap-6">
           {/* Account */}
           <ProfileCard />
+
+          {/* Performance */}
+          <PerfCard />
 
           {/* Theme Settings */}
           <Card className="group hover:shadow-md transition-all duration-300">

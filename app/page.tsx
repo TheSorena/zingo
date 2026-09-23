@@ -179,7 +179,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-background">
       {/* Ambient Glow Background (desktop only — big blurs cost mobile GPU frames) */}
-      <div className="pointer-events-none fixed inset-0 -z-10 hidden overflow-hidden md:block">
+      <div className="perf-decor pointer-events-none fixed inset-0 -z-10 hidden overflow-hidden md:block">
         <div className="absolute -top-48 right-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl animate-glow-pulse" />
         <div className="absolute top-1/3 -left-40 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
       </div>

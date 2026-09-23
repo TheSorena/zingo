@@ -9,7 +9,7 @@ export function MobileNav() {
 
   return (
     <nav className="md:hidden fixed bottom-4 right-0 left-0 z-50 px-6">
-      <div className="mx-auto max-w-md rounded-full border border-border/60 bg-background/85 shadow-2xl shadow-black/40 backdrop-blur-xl supports-[backdrop-filter]:bg-background/75">
+      <div className="mobile-nav-shell mx-auto max-w-md rounded-full border border-border/60 bg-background/85 shadow-2xl shadow-black/40 backdrop-blur-xl supports-[backdrop-filter]:bg-background/75">
         <div className="grid h-14 grid-cols-3">
           {navItems.map((item) => (
             <LoadingLink

@@ -4,6 +4,7 @@ import localFont from 'next/font/local';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LoadingProvider } from '@/components/loading-provider';
 import { AuthProvider } from '@/components/auth-provider';
+import { PerfProvider } from '@/components/perf-provider';
 
 // Self-hosted + preloaded: no render-blocking webfont requests, works offline
 const pinar = localFont({
@@ -69,7 +70,9 @@ export default function RootLayout({
         >
           <LoadingProvider>
             <AuthProvider>
-              {children}
+              <PerfProvider>
+                {children}
+              </PerfProvider>
             </AuthProvider>
           </LoadingProvider>
         </ThemeProvider>
