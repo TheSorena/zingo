@@ -77,6 +77,9 @@ export async function GET(request: NextRequest) {
     return new Response(upstream.body, { status: upstream.status, headers: outHeaders });
   } catch (error) {
     console.error('mkv-range error:', error);
-    return NextResponse.json({ error: 'خطا در دریافت بازه فایل' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'خطا در دریافت بازه فایل', detail: String(error).slice(0, 160) },
+      { status: 500 }
+    );
   }
 }
