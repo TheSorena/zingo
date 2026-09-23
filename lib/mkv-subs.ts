@@ -256,7 +256,7 @@ function assToMs(t: string): number {
   return Number(m[1]) * 3600000 + Number(m[2]) * 60000 + Number(m[3]) * 1000 + cs;
 }
 
-function parseSrtPayload(payload: string): { text: string; durMs: number }[] {
+export function parseSrtPayload(payload: string): { text: string; durMs: number }[] {
   const out: { text: string; durMs: number }[] = [];
   const chunks = payload.replace(/\r\n/g, '\n').split(/\n{2,}/);
   for (const ch of chunks) {
