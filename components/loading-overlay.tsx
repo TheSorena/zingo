@@ -49,11 +49,13 @@ export function LoadingOverlay({ isVisible }: LoadingOverlayProps) {
                 transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
               />
               <div className="absolute inset-2.5 rounded-full bg-background flex items-center justify-center overflow-hidden ring-1 ring-primary/30">
-                <img
-                  src="/zingo-logo.png"
-                  alt="زینگو"
-                  className="h-full w-full object-cover"
-                />
+                <span
+                  dir="ltr"
+                  className="text-2xl font-extrabold text-gradient-zingo"
+                  style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif" }}
+                >
+                  z
+                </span>
               </div>
             </div>
 

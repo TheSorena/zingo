@@ -19,20 +19,11 @@ export const metadata: Metadata = {
     title: 'zingo',
     description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
     siteName: 'zingo',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'zingo - Modern Movie Application',
-      },
-    ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: 'zingo',
     description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
-    images: ['/og-image.png'],
   },
   robots: {
     index: true,

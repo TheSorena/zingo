@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     let name = body.name.trim();
     let userId: string | undefined;
     let member = false;
+    let vip = false;
     try {
       const uid = await verifySessionToken(request.cookies.get(userCookieName)?.value);
       if (uid) {
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
           name = u.name;
           userId = u.id;
           member = true;
+          vip = !!u.vip;
         }
       }
     } catch {}
@@ -90,7 +92,7 @@ export async function POST(request: NextRequest) {
       name,
       text: body.text.trim(),
       hasSpoiler,
-      ...(userId ? { userId, member } : {}),
+      ...(userId ? { userId, member, vip } : {}),
     });
 
     return NextResponse.json({ comment }, { status: 201 });

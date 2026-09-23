@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Shield, Lock, LogOut, Trash2, RefreshCw, MessageSquare,
-  Film, MonitorPlay, AlertTriangle, Reply,
+  Film, MonitorPlay, AlertTriangle, Reply, Users, Crown, Search,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -17,6 +17,16 @@ interface CommentItem {
   createdAt: number;
   reply?: string;
   repliedAt?: number;
+  member?: boolean;
+  vip?: boolean;
+}
+
+interface AdminUser {
+  id: string;
+  name: string;
+  color: number;
+  createdAt: number;
+  vip: boolean;
 }
 
 function timeAgo(ts: number): string {
@@ -41,6 +51,11 @@ export default function AdminPage() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
+  const [view, setView] = useState<'comments' | 'users'>('comments');
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [userTotal, setUserTotal] = useState(0);
+  const [userSearch, setUserSearch] = useState('');
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   const loadComments = useCallback(async () => {
     setLoadingComments(true);
@@ -67,6 +82,51 @@ export default function AdminPage() {
   useEffect(() => {
     loadComments();
   }, [loadComments]);
+
+  const loadUsers = useCallback(async () => {
+    setLoadingUsers(true);
+    try {
+      const res = await fetch('/api/admin/users');
+      if (res.status === 401) {
+        setAuthed(false);
+        return;
+      }
+      if (!res.ok) {
+        toast.error('خطا در دریافت کاربران');
+        return;
+      }
+      const data = await res.json();
+      setUsers(Array.isArray(data.users) ? data.users : []);
+      setUserTotal(typeof data.total === 'number' ? data.total : (data.users || []).length);
+    } catch {
+      toast.error('خطا در دریافت کاربران');
+    } finally {
+      setLoadingUsers(false);
+    }
+  }, []);
+
+  const toggleVip = async (u: AdminUser) => {
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: u.id, vip: !u.vip }),
+      });
+      if (!res.ok) {
+        toast.error('خطا در به‌روزرسانی');
+        return;
+      }
+      const data = await res.json();
+      setUsers((prev) => prev.map((x) => (x.id === u.id ? data.user : x)));
+      toast.success(data.user.vip ? `${u.name} عضو ویژه شد` : `ویژه بودن ${u.name} برداشته شد`);
+    } catch {
+      toast.error('خطا در به‌روزرسانی');
+    }
+  };
+
+  useEffect(() => {
+    if (view === 'users' && authed) loadUsers();
+  }, [view, authed, loadUsers]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,9 +282,36 @@ export default function AdminPage() {
       </header>
 
       <div className="container max-w-5xl mx-auto py-8 px-4 md:px-6 lg:px-8">
+        {/* View tabs */}
+        <div className="grid grid-cols-2 gap-1 rounded-full bg-muted/60 p-1 mb-6 text-sm font-bold max-w-sm">
+          <button
+            onClick={() => setView('comments')}
+            className={`rounded-full py-2.5 transition-all flex items-center justify-center gap-1.5 ${
+              view === 'comments' ? 'bg-gradient-to-l from-amber-500 to-rose-500 text-white shadow' : 'text-muted-foreground'
+            }`}
+          >
+            <MessageSquare className="h-4 w-4" />
+            کامنت‌ها
+          </button>
+          <button
+            onClick={() => setView('users')}
+            className={`rounded-full py-2.5 transition-all flex items-center justify-center gap-1.5 ${
+              view === 'users' ? 'bg-gradient-to-l from-amber-500 to-rose-500 text-white shadow' : 'text-muted-foreground'
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            کاربران
+            {userTotal > 0 && (
+              <span className="rounded-full bg-black/20 px-1.5 text-[11px]">{userTotal}</span>
+            )}
+          </button>
+        </div>
+
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
           {[
+            { label: 'کل کاربران', value: userTotal, icon: Users, color: 'from-violet-500 to-purple-600' },
+            { label: 'اعضای ویژه', value: users.filter((u) => u.vip).length, icon: Crown, color: 'from-amber-400 to-yellow-600' },
             { label: 'کل کامنت‌ها', value: comments.length, icon: MessageSquare, color: 'from-amber-500 to-rose-500' },
             { label: 'کامنت فیلم‌ها', value: comments.filter((c) => c.type === 'movie').length, icon: Film, color: 'from-sky-500 to-indigo-500' },
             { label: 'کامنت سریال‌ها', value: comments.filter((c) => c.type === 'serie').length, icon: MonitorPlay, color: 'from-emerald-500 to-teal-500' },
@@ -242,6 +329,8 @@ export default function AdminPage() {
           ))}
         </div>
 
+        {view === 'comments' ? (
+        <>
         {/* Filter tabs */}
         <div className="flex flex-wrap items-center gap-2 mb-5">
           {([
@@ -295,6 +384,16 @@ export default function AdminPage() {
                     {comment.name.slice(0, 1)}
                   </span>
                   <span className="text-sm font-bold">{comment.name}</span>
+                  {comment.vip ? (
+                    <span className="flex items-center gap-0.5 rounded-full bg-amber-500/15 px-2 py-px text-[10px] font-bold text-amber-300 ring-1 ring-amber-400/40">
+                      <Crown className="h-3 w-3" />
+                      ویژه
+                    </span>
+                  ) : comment.member ? (
+                    <span className="flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-2 py-px text-[10px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
+                      عضو
+                    </span>
+                  ) : null}
                   <span className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                     comment.type === 'movie'
                       ? 'bg-sky-500/15 text-sky-400 ring-1 ring-sky-400/30'
@@ -370,6 +469,84 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+        )}
+        </>
+
+        ) : (
+        <>
+        {/* Users search + refresh */}
+        <div className="flex flex-wrap items-center gap-2 mb-5">
+          <div className="relative flex-1 min-w-52">
+            <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              placeholder="جستجوی نام کاربر..."
+              className="w-full rounded-full bg-muted/50 py-2 pr-10 pl-4 text-sm ring-1 ring-border/60 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+            />
+          </div>
+          <button
+            onClick={loadUsers}
+            className="flex items-center gap-1.5 rounded-full bg-muted/50 px-4 py-2 text-sm text-muted-foreground ring-1 ring-border/50 transition-all hover:bg-muted hover:text-foreground"
+          >
+            <RefreshCw className={`h-4 w-4 ${loadingUsers ? 'animate-spin' : ''}`} />
+            بروزرسانی
+          </button>
+        </div>
+
+        {loadingUsers ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="glass rounded-2xl border border-border/60 p-4 animate-pulse">
+                <div className="h-4 w-1/3 rounded-full bg-muted/60" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {users
+              .filter((u) => !userSearch.trim() || u.name.includes(userSearch.trim()))
+              .map((u) => (
+                <div key={u.id} className="glass rounded-2xl border border-border/60 p-4 flex flex-wrap items-center gap-3 transition-colors hover:border-primary/25">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-700 text-white text-sm font-extrabold shadow-lg">
+                    {u.name.slice(0, 1)}
+                  </span>
+                  <div className="flex-1 min-w-32">
+                    <p className="flex items-center gap-1.5 text-sm font-bold">
+                      <span className="truncate">{u.name}</span>
+                      {u.vip && (
+                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-px text-[10px] font-bold text-amber-300 ring-1 ring-amber-400/40">
+                          <Crown className="h-3 w-3" />
+                          ویژه
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground/70">
+                      عضویت: {new Date(u.createdAt).toLocaleDateString('fa-IR')}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => toggleVip(u)}
+                    className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold ring-1 transition-all hover:scale-105 ${
+                      u.vip
+                        ? 'bg-amber-500/15 text-amber-300 ring-amber-400/40 hover:bg-amber-500/25'
+                        : 'bg-muted/60 text-muted-foreground ring-border/50 hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    <Crown className="h-3.5 w-3.5" />
+                    {u.vip ? 'حذف ویژه' : 'عضو ویژه کن'}
+                  </button>
+                </div>
+              ))}
+            {users.filter((u) => !userSearch.trim() || u.name.includes(userSearch.trim())).length === 0 && (
+              <div className="glass rounded-3xl border border-border/60 p-12 text-center">
+                <Users className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+                <p className="text-muted-foreground font-medium">کاربری یافت نشد</p>
+              </div>
+            )}
+          </div>
+        )}
+        </>
         )}
       </div>
     </main>

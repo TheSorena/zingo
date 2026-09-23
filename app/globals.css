@@ -175,4 +175,9 @@ video::cue {
   .mask-fade-x {
     mask-image: linear-gradient(to left, transparent, black 8%, black 92%, transparent);
   }
+  /* Tahoma-first stack: renders ق and similar glyphs unambiguously
+     on every device (used where the display font confuses readers) */
+  .font-fa-clear {
+    font-family: Tahoma, 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  }
 }

@@ -43,7 +43,7 @@ export function EpisodeCard({ episode, onPlay }: EpisodeCardProps) {
           onClick={() => onPlay(episode)}
           size="icon"
           title={`پخش آنلاین ${episode.title}`}
-          className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-l from-amber-500 to-rose-500 text-white shadow-md shadow-primary/25 hover:opacity-90"
+          className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-l from-amber-500 to-rose-500 text-white shadow-md shadow-primary/25 hover:opacity-90 active:scale-95 transition-transform"
         >
           <Play className="h-4 w-4 fill-current" />
         </Button>

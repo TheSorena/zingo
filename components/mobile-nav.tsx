@@ -25,7 +25,7 @@ export function MobileNav() {
                 }`}
               >
                 <item.icon size={20} className="transition-transform hover:scale-110" />
-                <span className="text-[11px] font-medium">{item.title}</span>
+                <span className="font-fa-clear text-[11px] font-medium">{item.title}</span>
               </div>
             </LoadingLink>
           ))}

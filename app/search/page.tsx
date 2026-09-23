@@ -7,6 +7,7 @@ import { ThemeToggle } from '../../components/theme-toggle';
 import { NavItems } from '../../components/nav-items-client';
 import { SearchResultCard } from "../../components/search-result-card";
 import { AccountButton } from "../../components/account-button";
+import { SiteLogo } from "../../components/site-logo";
 import Link from "next/link";
 import { headers } from "next/headers";
 import type { Metadata } from 'next';
@@ -72,10 +73,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <header className="sticky top-0 z-40 w-full border-b border-border/60 glass">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <img src="/zingo-logo.png" alt="زینگو" className="h-9 w-9 rounded-xl object-cover shadow-lg shadow-primary/20 ring-1 ring-primary/30 transition-transform group-hover:rotate-6" />
-            <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent">
-              زینگو
-            </h1>
+            <SiteLogo size="sm" />
           </Link>
           <div className="md:hidden flex items-center gap-1">
             <AccountButton />

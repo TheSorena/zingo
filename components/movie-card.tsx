@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Star, Play } from "lucide-react";
@@ -18,6 +19,7 @@ interface MovieCardProps {
 
 export function MovieCard({ movie }: MovieCardProps) {
   const router = useRouter();
+  const [imgOk, setImgOk] = useState(false);
 
   const handleClick = () => {
     localStorage.setItem("selectedMovie", JSON.stringify(movie));
@@ -35,9 +37,10 @@ export function MovieCard({ movie }: MovieCardProps) {
             src={movie.image}
             alt={movie.title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            className={`object-cover transition-all duration-500 group-hover:scale-110 ${imgOk ? 'opacity-100' : 'opacity-0'}`}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             loading="lazy"
+            onLoadingComplete={() => setImgOk(true)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
 

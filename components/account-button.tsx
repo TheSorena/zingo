@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { User, Heart, LogOut } from 'lucide-react';
+import { User, Heart, LogOut, Crown } from 'lucide-react';
 import { useAuth } from './auth-provider';
 import { AuthDialog } from './auth-dialog';
 
@@ -63,8 +63,13 @@ export function AccountButton() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuLabel className="text-right">
-          <span className="block truncate text-sm font-bold">{user.name}</span>
-          <span className="block text-[11px] font-normal text-muted-foreground">عضو زینگو</span>
+          <span className="flex items-center gap-1.5 truncate text-sm font-bold">
+            {user.name}
+            {user.vip && <Crown className="h-3.5 w-3.5 shrink-0 text-amber-300" />}
+          </span>
+          <span className="block text-[11px] font-normal text-muted-foreground">
+            {user.vip ? 'عضو ویژه زینگو' : 'عضو زینگو'}
+          </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="cursor-pointer">

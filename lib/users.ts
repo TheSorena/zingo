@@ -5,10 +5,23 @@ export interface PublicUser {
   name: string;
   color: number;
   createdAt: number;
+  vip: boolean;
 }
 
 interface StoredUser extends PublicUser {
   pass: string; // saltHex.hashHex (PBKDF2-SHA256)
+}
+
+const userCountKey = 'u:count';
+
+function toPublic(stored: Record<string, string>): PublicUser {
+  return {
+    id: stored.id,
+    name: stored.name,
+    color: Number(stored.color) || 0,
+    createdAt: Number(stored.createdAt) || Date.now(),
+    vip: stored.vip === 'true' || stored.vip === '1',
+  };
 }
 
 export const userCookieName = 'zingo_user';
@@ -118,13 +131,17 @@ export async function createUser(
     name: clean,
     color: colorFor(norm),
     createdAt: Date.now(),
+    vip: false,
     pass,
   };
   const taken = await redis.set(nameKey(norm), id, { nx: true });
   if (taken === null) return { error: 'این نام کاربری قبلاً گرفته شده' };
-  await redis.hset(userKey(id), { ...user } as any);
+  await redis.hset(userKey(id), { ...user, vip: false } as any);
+  try {
+    await redis.incr(userCountKey);
+  } catch {}
   const { pass: _p, ...pub } = user;
-  return { user: pub };
+  return { user: { ...pub, vip: false } };
 }
 
 export async function authenticate(
@@ -138,27 +155,14 @@ export async function authenticate(
   if (!stored || !stored['id']) return { error: 'کاربری با این نام پیدا نشد' };
   const ok = await verifyPassword(password, stored.pass);
   if (!ok) return { error: 'رمز عبور اشتباه است' };
-  const { pass: _p, ...pub } = stored;
-  return {
-    user: {
-      id: pub.id,
-      name: pub.name,
-      color: Number(pub.color) || 0,
-      createdAt: Number(pub.createdAt) || Date.now(),
-    },
-  };
+  return { user: toPublic(stored) };
 }
 
 export async function getUserById(id: string): Promise<PublicUser | null> {
   if (!redis || !id) return null;
   const stored = await redis.hgetall<Record<string, string>>(userKey(id));
   if (!stored || !stored.id) return null;
-  return {
-    id: stored.id,
-    name: stored.name,
-    color: Number(stored.color) || 0,
-    createdAt: Number(stored.createdAt) || Date.now(),
-  };
+  return toPublic(stored);
 }
 
 export async function setUserColor(id: string, color: number): Promise<PublicUser | null> {
@@ -167,8 +171,48 @@ export async function setUserColor(id: string, color: number): Promise<PublicUse
   const stored = await redis.hgetall<Record<string, string>>(userKey(id));
   if (!stored || !stored.id) return null;
   await redis.hset(userKey(id), { color: c });
-  const u = await getUserById(id);
-  return u;
+  return getUserById(id);
+}
+
+export async function setUserVip(id: string, vip: boolean): Promise<PublicUser | null> {
+  if (!redis) return null;
+  const stored = await redis.hgetall<Record<string, string>>(userKey(id));
+  if (!stored || !stored.id) return null;
+  await redis.hset(userKey(id), { vip: vip ? 'true' : 'false' });
+  return getUserById(id);
+}
+
+export async function getUserCount(): Promise<number> {
+  if (!redis) return 0;
+  try {
+    const n = await redis.get<number>(userCountKey);
+    if (typeof n === 'number') return n;
+    if (typeof n === 'string') return Number(n) || 0;
+  } catch {}
+  return 0;
+}
+
+/** Paginated admin user list (newest heuristic via scan order isn't guaranteed). */
+export async function listUsers(limit = 200): Promise<PublicUser[]> {
+  if (!redis) return [];
+  try {
+    const out: PublicUser[] = [];
+    let cursor: string | number = 0;
+    do {
+      const [next, keys] = await redis.scan(cursor, { match: 'u:id:*', count: 100 });
+      cursor = next as string | number;
+      for (const key of keys as string[]) {
+        if (out.length >= limit) break;
+        try {
+          const stored = await redis.hgetall<Record<string, string>>(key);
+          if (stored && stored.id) out.push(toPublic(stored));
+        } catch {}
+      }
+    } while ((cursor !== 0 && cursor !== '0') && out.length < limit);
+    return out.sort((a, b) => b.createdAt - a.createdAt);
+  } catch {
+    return [];
+  }
 }
 
 export async function createSessionToken(userId: string): Promise<string> {

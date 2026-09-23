@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { User, LogOut, Check, Cloud } from 'lucide-react';
+import { User, LogOut, Check, Cloud, Crown } from 'lucide-react';
 import { useAuth } from './auth-provider';
 import { AuthDialog } from './auth-dialog';
 import { AVATAR_GRADIENTS, avatarGradient } from './account-button';
@@ -56,7 +56,15 @@ export function ProfileCard() {
                 {user.name.slice(0, 1)}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="truncate text-lg font-extrabold">{user.name}</p>
+                <p className="flex items-center gap-1.5 truncate text-lg font-extrabold">
+                  {user.name}
+                  {user.vip && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-300 ring-1 ring-amber-400/40">
+                      <Crown className="h-3 w-3" />
+                      ویژه
+                    </span>
+                  )}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   عضو زینگو از {new Date(user.createdAt).toLocaleDateString('fa-IR')}
                 </p>

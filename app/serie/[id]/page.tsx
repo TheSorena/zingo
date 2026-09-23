@@ -91,11 +91,13 @@ export default function SerieDetailPage({
         <div className="flex flex-col items-center gap-4">
           <div className="relative h-16 w-16">
             <div className="absolute inset-0 rounded-full bg-gradient-to-l from-amber-400 via-orange-500 to-rose-500 opacity-25 blur-md animate-pulse" />
-            <img
-              src="/zingo-logo.png"
-              alt="زینگو"
-              className="h-full w-full rounded-full object-cover ring-1 ring-primary/30 animate-pulse"
-            />
+            <span
+              dir="ltr"
+              className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-rose-500 text-3xl font-extrabold text-white ring-1 ring-primary/30 animate-pulse"
+              style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif" }}
+            >
+              z
+            </span>
           </div>
           <p className="text-sm text-muted-foreground animate-pulse">در حال بارگذاری...</p>
         </div>

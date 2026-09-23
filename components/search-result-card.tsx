@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from "react";
 import Image from "next/image";
 import { Star, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,6 +21,7 @@ interface SearchResultCardProps {
 
 export function SearchResultCard({ result }: SearchResultCardProps) {
   const router = useRouter();
+  const [imgOk, setImgOk] = useState(false);
 
   const handleClick = () => {
     localStorage.setItem(
@@ -49,8 +51,9 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
             alt={result.title}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            className={`object-cover transition-all duration-500 group-hover:scale-110 ${imgOk ? 'opacity-100' : 'opacity-0'}`}
             loading="lazy"
+            onLoadingComplete={() => setImgOk(true)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
 

@@ -7,6 +7,7 @@ export interface AuthUser {
   name: string;
   color: number;
   createdAt: number;
+  vip: boolean;
 }
 
 interface AuthContextType {

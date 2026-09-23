@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck, BadgeCheck } from 'lucide-react';
+import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck, BadgeCheck, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from './auth-provider';
 import { avatarGradient } from './account-button';
@@ -17,6 +17,7 @@ interface CommentItem {
   reply?: string;
   repliedAt?: number;
   member?: boolean;
+  vip?: boolean;
 }
 
 interface CommentSectionProps {
@@ -214,12 +215,17 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate flex items-center gap-1.5">
                       {comment.name}
-                      {comment.member && (
+                      {comment.vip ? (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-px text-[10px] font-bold text-amber-300 ring-1 ring-amber-400/40">
+                          <Crown className="h-3 w-3" />
+                          ویژه
+                        </span>
+                      ) : comment.member ? (
                         <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-1.5 py-px text-[10px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
                           <BadgeCheck className="h-3 w-3" />
                           عضو
                         </span>
-                      )}
+                      ) : null}
                     </p>
                     <p className="text-[11px] text-muted-foreground/70">{timeAgo(comment.createdAt)}</p>
                   </div>

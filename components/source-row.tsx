@@ -162,7 +162,7 @@ export function SourceRow({ source }: { source: SourceItem }) {
 
   return (
     <>
-      <div className="flex items-center gap-2 rounded-2xl bg-secondary/40 hover:bg-secondary/60 ring-1 ring-border/50 px-3 py-2 transition-colors">
+      <div className="flex items-center gap-2 rounded-2xl bg-secondary/40 hover:bg-secondary/60 active:scale-[0.99] ring-1 ring-border/50 px-3 py-2 transition-all">
         <a
           href={source.url}
           onClick={handleDownload}

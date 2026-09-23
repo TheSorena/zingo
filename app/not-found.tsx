@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { Command } from 'lucide-react'
+import { SiteLogo } from '@/components/site-logo'
 
 export const metadata: Metadata = {
   title: 'صفحه پیدا نشد | Zingo | زینگو | Page Not Found',
@@ -18,10 +19,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <a href="/" className="flex items-center gap-2 group mb-8">
-        <img src="/zingo-logo.png" alt="زینگو" className="h-9 w-9 rounded-xl object-cover shadow-lg shadow-primary/20 ring-1 ring-primary/30 transition-transform group-hover:rotate-6" />
-        <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent">
-          زینگو
-        </h1>
+        <SiteLogo size="sm" />
       </a>
       <h2 className="text-3xl font-bold mb-4">404 | صفحه پیدا نشد</h2>
       <p className="text-muted-foreground mb-8 text-center">
