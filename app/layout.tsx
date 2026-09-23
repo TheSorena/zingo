@@ -6,7 +6,7 @@ import { AuthProvider } from '@/components/auth-provider';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: 'زینگو | Zingo',
+  title: 'zingo',
   description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
   manifest: '/manifest.json',
   themeColor: '#0a0a0b',
@@ -16,21 +16,21 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fa_IR',
     alternateLocale: 'en_US',
-    title: 'زینگو | Zingo',
+    title: 'zingo',
     description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
-    siteName: 'زینگو | Zingo',
+    siteName: 'zingo',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Zingo - Modern Movie Application | زینگو - اپلیکیشن مدرن فیلم و سریال',
+        alt: 'zingo - Modern Movie Application',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'زینگو | Zingo',
+    title: 'zingo',
     description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
     images: ['/og-image.png'],
   },
@@ -45,11 +45,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  icons: [
-    { rel: "icon", url: "/favicon.ico", type: "image/x-icon" },
-    { rel: "icon", url: "/favicon.png", type: "image/png" },
-    { rel: "apple-touch-icon", url: "/favicon.png" },
-  ],
 };
 
 export default function RootLayout({

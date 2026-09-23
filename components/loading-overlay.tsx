@@ -64,7 +64,8 @@ export function LoadingOverlay({ isVisible }: LoadingOverlayProps) {
               transition={{ delay: 0.15 }}
               className="text-center"
             >
-              <p className="text-lg font-bold text-foreground">در حال بارگذاری...</p>
+              <p dir="ltr" className="text-xs font-extrabold tracking-[0.35em] text-gradient-zingo">zingo</p>
+              <p className="text-lg font-bold text-foreground mt-1">در حال بارگذاری...</p>
               <p className="text-xs text-muted-foreground mt-1">لطفاً صبر کنید</p>
             </motion.div>
 

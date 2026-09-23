@@ -238,7 +238,9 @@ function cleanText(raw: string): string {
     .map((l) => l.trim().replace(/\s{2,}/g, ' '))
     .filter((l) => l.length > 0)
     // drop SDH noise: bracket-only directions and lone music notes
-    .filter((l) => !/^\[.*\]$/.test(l) && !/^[♪♫\s]+$/.test(l));
+    .filter((l) => !/^\[.*\]$/.test(l) && !/^[♪♫\s]+$/.test(l))
+    // drop muxer id lines like "default.177"
+    .filter((l) => !/^[a-zA-Z_]+\.\d+$/.test(l));
   return lines.join('\n').trim();
 }
 
@@ -258,25 +260,39 @@ function parseSrtPayload(payload: string): { text: string; durMs: number }[] {
   const out: { text: string; durMs: number }[] = [];
   const chunks = payload.replace(/\r\n/g, '\n').split(/\n{2,}/);
   for (const ch of chunks) {
-    const lines = ch.split('\n').map((l) => l.trim()).filter(Boolean);
+    const lines = ch
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean);
     if (!lines.length) continue;
-    let i = 0;
-    if (/^\d+$/.test(lines[0])) i = 1;
+    // Find the timing line ANYWHERE (headers may be "1", "default.177", …)
+    const ti = lines.findIndex((l) => /-->/.test(l));
     let durMs = 0;
-    if (i < lines.length && /-->/.test(lines[i])) {
-      const m = /(\d{2,}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2,}:\d{2}:\d{2}[,.]\d{3})/.exec(lines[i]);
+    let textLines: string[];
+    if (ti >= 0) {
+      const m = /(\d{2,}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2,}:\d{2}:\d{2}[,.]\d{3})/.exec(lines[ti]);
       if (m) {
         const p = (s: string) => {
           const a = /(\d+):(\d{2}):(\d{2})[,.](\d{3})/.exec(s)!;
           return Number(a[1]) * 3600000 + Number(a[2]) * 60000 + Number(a[3]) * 1000 + Number(a[4]);
         };
         durMs = Math.max(0, p(m[2]) - p(m[1]));
-        i++;
-      } else {
-        i++;
       }
+      textLines = lines.slice(ti + 1);
+    } else {
+      // no timing line: drop a leading numeric/id header if present
+      const startAt = /^\d+$/.test(lines[0]) || /^[a-zA-Z_]+\.\d+$/.test(lines[0]) ? 1 : 0;
+      textLines = lines.slice(startAt);
     }
-    const text = cleanText(lines.slice(i).join('\n'));
+    textLines = textLines.filter(
+      (l) =>
+        l.length > 0 &&
+        !/^[a-zA-Z_]+\.\d+$/.test(l) &&
+        !/^\d{2,}:\d{2}:\d{2}[,.]\d{3}$/.test(l) &&
+        !/-->/.test(l) &&
+        !/^(WEBVTT|Kind:|Language:).*/i.test(l)
+    );
+    const text = cleanText(textLines.join('\n'));
     if (text) out.push({ text, durMs });
   }
   return out;

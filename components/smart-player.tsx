@@ -168,6 +168,9 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   const [subAuto, setSubAuto] = useState<'idle' | 'loading' | 'on' | 'error'>('idle');
   const [subMsg, setSubMsg] = useState('');
   const [subCount, setSubCount] = useState(0);
+  const [subDelay, setSubDelay] = useState(0);
+  const delayRef = useRef(0);
+  const rawCuesRef = useRef<{ start: number; end: number; text: string }[]>([]);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // auto-subtitle internals (embedded MKV subs)
@@ -210,7 +213,15 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     autoTrackRef.current = null;
     addedCuesRef.current = new Set();
     lastSubRef.current = { norm: '', start: 0 };
+    rawCuesRef.current = [];
     autoTriedRef.current = false;
+    try {
+      const d = parseFloat(localStorage.getItem(`zingo-subdelay:${storageKey}`) || '0');
+      delayRef.current = Number.isFinite(d) ? Math.max(-5, Math.min(5, d)) : 0;
+    } catch {
+      delayRef.current = 0;
+    }
+    setSubDelay(delayRef.current);
     coveredRef.current = { from: 0, until: 0 };
     fetchingRef.current = false;
     metaRef.current = null;
@@ -386,6 +397,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     const v = videoRef.current;
     const track = autoTrackRef.current;
     if (!v || !track) return;
+    const shift = delayRef.current;
     let added = 0;
     for (const c of cues) {
       const key = `${c.start.toFixed(1)}|${c.text.slice(0, 24)}`;
@@ -400,8 +412,10 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
         continue;
       }
       addedCuesRef.current.add(key);
+      rawCuesRef.current.push({ start: c.start, end: c.end, text: c.text });
       try {
-        track.addCue(new VTTCue(c.start, Math.max(c.end, c.start + 0.5), c.text));
+        const s = Math.max(0.01, c.start + shift);
+        track.addCue(new VTTCue(s, Math.max(s + 0.5, c.end + shift), c.text));
         added++;
         if (norm) lastSubRef.current = { norm, start: c.start };
       } catch {}
@@ -413,6 +427,50 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       } catch {}
     }
   }, []);
+
+  const rebuildSubCues = useCallback(() => {
+    const track = autoTrackRef.current;
+    if (!track) return;
+    try {
+      const existing = track.cues ? Array.from(track.cues) : [];
+      for (const cue of existing) {
+        try {
+          track.removeCue(cue as TextTrackCue);
+        } catch {}
+      }
+    } catch {}
+    const shift = delayRef.current;
+    addedCuesRef.current = new Set();
+    lastSubRef.current = { norm: '', start: 0 };
+    let n = 0;
+    for (const c of rawCuesRef.current) {
+      try {
+        const s = Math.max(0.01, c.start + shift);
+        track.addCue(new VTTCue(s, Math.max(s + 0.5, c.end + shift), c.text));
+        addedCuesRef.current.add(`${c.start.toFixed(1)}|${c.text.slice(0, 24)}`);
+        n++;
+      } catch {}
+    }
+    setSubCount(n);
+    try {
+      track.mode = 'showing';
+    } catch {}
+  }, []);
+
+  const changeDelay = useCallback(
+    (d: number) => {
+      const next = Math.round(Math.max(-5, Math.min(5, delayRef.current + d)) * 2) / 2;
+      delayRef.current = next;
+      setSubDelay(next);
+      try {
+        localStorage.setItem(`zingo-subdelay:${storageKey}`, String(next));
+      } catch {}
+      rebuildSubCues();
+      flashMsg(next === 0 ? 'تأخیر زیرنویس صفر شد' : `تأخیر زیرنویس ${next > 0 ? '+' : ''}${next} ثانیه`);
+      pokeControls();
+    },
+    [storageKey, rebuildSubCues, pokeControls]
+  );
 
   const fetchWindowAt = useCallback(
     async (t: number) => {
@@ -797,6 +855,35 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
           }`}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Subtitle sync row (visible while subs are on) */}
+          {subAuto === 'on' && (
+            <div className="mb-1 flex items-center justify-center gap-2" dir="rtl">
+              <span className="text-[10px] font-bold text-white/70">هماهنگی زیرنویس</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  changeDelay(-0.5);
+                }}
+                aria-label="زیرنویس عقب‌تر"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-sm font-extrabold text-white transition-colors hover:bg-white/25"
+              >
+                −
+              </button>
+              <span className="min-w-12 text-center text-[11px] font-bold tabular-nums text-amber-300" dir="ltr">
+                {subDelay > 0 ? `+${subDelay}` : `${subDelay}`}s
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  changeDelay(0.5);
+                }}
+                aria-label="زیرنویس جلوتر"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-sm font-extrabold text-white transition-colors hover:bg-white/25"
+              >
+                +
+              </button>
+            </div>
+          )}
           {/* Seek bar */}
           <div className="group/bar relative mb-1.5 flex h-5 items-center" dir="ltr">
             <div className="absolute h-1 w-full overflow-hidden rounded-full bg-white/20">
