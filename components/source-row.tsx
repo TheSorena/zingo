@@ -93,6 +93,7 @@ export function describeSource(s: Pick<SourceItem, 'quality' | 'type' | 'url'>):
 
   if (/dubbed|دوبله|farsi/i.test(hay)) tags.push('دوبله');
   else if (/hardsub|هاردساب/i.test(hay)) tags.push('هاردساب');
+  else if (/softsub|سافت‌ساب/i.test(hay)) tags.push('سافت‌ساب');
   else if (/زیرنویس/i.test(hay)) tags.push('زیرنویس');
 
   const ext =

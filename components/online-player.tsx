@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  Play,
-  Loader2,
   AlertTriangle,
   RefreshCw,
   Copy,
@@ -18,7 +16,9 @@ import {
   getDeviceType,
   triggerDownload,
 } from '../lib/utils';
-import { needsExternalPlayer, copyText, describeSource } from './source-row';
+import { needsExternalPlayer, copyText } from './source-row';
+import { SmartPlayer } from './smart-player';
+import { describeSource } from './source-row';
 
 interface PlayerSource {
   id?: number;
@@ -34,11 +34,6 @@ interface OnlinePlayerProps {
   storageKey: string;
 }
 
-type FailKind = 'network' | 'unsupported' | 'unknown';
-
-const proxyUrl = (url: string) =>
-  `https://http-video.liara.run/?url=${encodeURIComponent(url)}`;
-
 function scoreSource(s: PlayerSource): number {
   const q = (s.quality || '').toLowerCase();
   const u = (s.url || '').toLowerCase();
@@ -53,6 +48,9 @@ function scoreSource(s: PlayerSource): number {
   if (/تیزر/.test(q)) sc -= 10;
   return sc;
 }
+
+const proxyUrl = (url: string) =>
+  `https://http-video.liara.run/?url=${encodeURIComponent(url)}`;
 
 function mxPlayerIntent(url: string, title: string): string {
   const m = /^(https?):\/\/(.*)$/i.exec(url);
@@ -79,27 +77,20 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
 
   const [active, setActive] = useState<PlayerSource | null>(() => playable[0] || null);
   const [useProxy, setUseProxy] = useState(false);
-  const [failKind, setFailKind] = useState<FailKind | null>(null);
-  const [buffering, setBuffering] = useState(false);
-  const [started, setStarted] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const lastSavedRef = useRef(0);
-  const resumeAtRef = useRef(0);
+  const [fatal, setFatal] = useState(false);
+  const [runId, setRunId] = useState(0);
 
   // Reset when switching content
   useEffect(() => {
     setActive(playable[0] || null);
     setUseProxy(false);
-    setFailKind(null);
-    setStarted(false);
-    try {
-      const saved = parseFloat(localStorage.getItem(`zingo-pos:${storageKey}`) || '0');
-      resumeAtRef.current = saved > 30 ? saved : 0;
-    } catch {
-      resumeAtRef.current = 0;
-    }
+    setFatal(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
+
+  if (!playable.length) {
+    return null;
+  }
 
   const src = active ? (useProxy ? proxyUrl(active.url) : active.url) : '';
   const isMixedBlocked =
@@ -109,100 +100,23 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
     !useProxy &&
     !isWebView();
 
-  const handleError = useCallback(() => {
-    let code = 0;
-    try {
-      code = videoRef.current?.error?.code || 0;
-    } catch {}
-    if (code === 2 || code === 1) {
-      // network/aborted: retry once through the proxy host
-      if (active && !useProxy) {
-        setUseProxy(true);
-        setBuffering(true);
-        return;
-      }
-      setFailKind('network');
-    } else if (code === 4) {
-      setFailKind('unsupported');
-    } else if (code === 3) {
-      setFailKind('unsupported');
-    } else {
-      if (active && !useProxy) {
-        setUseProxy(true);
-        setBuffering(true);
-        return;
-      }
-      setFailKind('unknown');
-    }
-    setBuffering(false);
-  }, [active, useProxy]);
+  const showMx = getDeviceType() === 'android';
 
-  const switchQuality = (s: PlayerSource) => {
-    let t = 0;
-    try {
-      if (videoRef.current) t = videoRef.current.currentTime;
-    } catch {}
-    setActive(s);
-    setUseProxy(false);
-    setFailKind(null);
-    setBuffering(true);
-    requestAnimationFrame(() => {
-      if (t > 0 && videoRef.current) {
-        const seek = () => {
-          try {
-            videoRef.current!.currentTime = t;
-          } catch {}
-          videoRef.current!.removeEventListener('loadedmetadata', seek);
-        };
-        videoRef.current.addEventListener('loadedmetadata', seek);
-      }
-    });
+  const handleFirstError = () => {
+    // Silent single retry through the proxy host — no scary panel yet
+    if (!useProxy) {
+      setUseProxy(true);
+    } else {
+      setFatal(true);
+    }
   };
 
   const retry = () => {
-    setFailKind(null);
+    setFatal(false);
     setUseProxy(false);
-    setStarted(false);
-    setBuffering(false);
+    setActive(playable[0] || null);
+    setRunId((v) => v + 1);
   };
-
-  const onLoadedMetadata = () => {
-    if (resumeAtRef.current > 0 && videoRef.current) {
-      const d = videoRef.current.duration;
-      if (!isNaN(d) && resumeAtRef.current < d - 20) {
-        videoRef.current.currentTime = resumeAtRef.current;
-      } else {
-        try { localStorage.removeItem(`zingo-pos:${storageKey}`); } catch {}
-      }
-      resumeAtRef.current = 0;
-    }
-  };
-
-  const onTimeUpdate = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    const now = Date.now();
-    if (now - lastSavedRef.current > 5000 && v.currentTime > 10) {
-      lastSavedRef.current = now;
-      try { localStorage.setItem(`zingo-pos:${storageKey}`, String(v.currentTime)); } catch {}
-    }
-  };
-
-  const onEnded = () => {
-    try { localStorage.removeItem(`zingo-pos:${storageKey}`); } catch {}
-  };
-
-  if (!playable.length) {
-    return null;
-  }
-
-  const showMx = getDeviceType() === 'android';
-  const failTitle =
-    failKind === 'network'
-      ? 'اتصال به سرور فایل برقرار نشد'
-      : failKind === 'unsupported'
-        ? 'مرورگر نمی‌تواند این فرمت را پخش کند'
-        : 'پخش این کیفیت ممکن نیست';
 
   return (
     <div className="glass rounded-3xl border border-border/60 overflow-hidden relative">
@@ -221,7 +135,11 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
             return (
               <button
                 key={s.id ?? s.url}
-                onClick={() => switchQuality(s)}
+                onClick={() => {
+                  setActive(s);
+                  setUseProxy(false);
+                  setFatal(false);
+                }}
                 title={ext ? 'احتمالاً فقط با VLC پخش می‌شود' : label}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ring-1 flex items-center gap-1.5 ${
                   active?.url === s.url
@@ -244,69 +162,27 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
           })}
         </div>
 
-        <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/70 ring-1 ring-border/40 group">
-          {!started && !failKind && (
-            <button
-              onClick={() => {
-                setStarted(true);
-                setBuffering(true);
-              }}
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-black/60 via-black/40 to-black/70"
-            >
-              {poster && (
-                <img
-                  src={poster}
-                  alt={title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-40"
-                />
-              )}
-              <span className="relative flex h-20 w-20 items-center justify-center">
-                <span className="absolute inset-0 rounded-full bg-gradient-to-l from-amber-400 to-rose-500 opacity-30 blur-md animate-pulse" />
-                <span className="relative h-16 w-16 rounded-full bg-gradient-to-l from-amber-500 to-rose-500 flex items-center justify-center shadow-2xl shadow-primary/40 transition-transform duration-300 group-hover:scale-105">
-                  <Play className="h-7 w-7 fill-current text-white mr-1" />
-                </span>
-              </span>
-              <span className="relative text-sm font-bold text-white drop-shadow">پخش {title}</span>
-              {active && needsExternalPlayer(active) && (
-                <span className="relative text-[11px] text-amber-300/90">
-                  این کیفیت در مرورگر پخش نمی‌شود — با VLC تماشا کنید
-                </span>
-              )}
-            </button>
-          )}
+        {active && needsExternalPlayer(active) && !fatal && (
+          <p className="mb-3 rounded-2xl bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-300 ring-1 ring-amber-400/25">
+            این کیفیت (x265 یا MKV) معمولاً در مرورگر پخش نمی‌شود؛ کیفیت MP4 را انتخاب کنید یا با VLC تماشا کنید.
+          </p>
+        )}
 
-          {started && !failKind && (
-            <>
-              <video
-                ref={videoRef}
-                key={src}
-                src={src}
-                poster={poster}
-                controls
-                controlsList="nodownload"
-                playsInline
-                preload="metadata"
-                className="w-full h-full"
-                onLoadedMetadata={onLoadedMetadata}
-                onTimeUpdate={onTimeUpdate}
-                onEnded={onEnded}
-                onWaiting={() => setBuffering(true)}
-                onPlaying={() => setBuffering(false)}
-                onCanPlay={() => setBuffering(false)}
-                onError={handleError}
-              />
-              {buffering && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <Loader2 className="h-12 w-12 text-amber-400 animate-spin drop-shadow-lg" />
-                </div>
-              )}
-            </>
-          )}
-
-          {failKind && (
+        {!fatal ? (
+          <SmartPlayer
+            key={`${storageKey}:${runId}`}
+            src={src}
+            title={title}
+            poster={poster}
+            storageKey={storageKey}
+            onFirstError={handleFirstError}
+            onFatal={() => setFatal(true)}
+          />
+        ) : (
+          <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/70 ring-1 ring-border/40">
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 text-center px-5 py-4 bg-black/70 overflow-y-auto">
               <AlertTriangle className="h-9 w-9 text-amber-400 shrink-0" />
-              <p className="text-sm text-white font-bold">{failTitle}</p>
+              <p className="text-sm text-white font-bold">پخش این کیفیت ممکن نیست</p>
               {isMixedBlocked ? (
                 <p className="text-[11px] text-amber-200/90 leading-relaxed max-w-md">
                   مرورگر شما اجازه پخش مستقیم فایل‌های رمزنگاری‌نشده (http) را در صفحه امن نمی‌دهد.
@@ -371,13 +247,13 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
                 )}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed flex items-start gap-1.5">
           <Info className="h-3.5 w-3.5 shrink-0 mt-px" />
           <span>
-            بهترین کیفیت سازگار به‌صورت خودکار انتخاب می‌شود. کیفیت‌های دارای برچسب VLC (معمولاً x265 و MKV) در مرورگر پخش نمی‌شوند. محل تماشای شما ذخیره می‌شود.
+            بهترین کیفیت سازگار به‌صورت خودکار انتخاب می‌شود. با دکمه آپلود می‌توانید فایل زیرنویس (.srt) خودتان را اضافه کنید. محل تماشای شما ذخیره می‌شود.
           </span>
         </p>
       </div>
