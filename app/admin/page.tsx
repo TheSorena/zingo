@@ -6,7 +6,6 @@ import {
   Film, MonitorPlay, AlertTriangle, Reply,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Toaster } from 'sonner';
 
 interface CommentItem {
   id: string;
@@ -51,11 +50,15 @@ export default function AdminPage() {
         setAuthed(false);
         return;
       }
+      if (!res.ok) {
+        setComments([]);
+        return;
+      }
       const data = await res.json();
       setComments(data.comments || []);
       setAuthed(true);
     } catch {
-      setAuthed(false);
+      setComments([]);
     } finally {
       setLoadingComments(false);
     }
@@ -195,7 +198,6 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <Toaster richColors closeButton position="top-center" />
       <div className="fixed inset-0 -z-10">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-amber-500/10 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-rose-500/10 blur-3xl" />

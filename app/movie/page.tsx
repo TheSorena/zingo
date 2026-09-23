@@ -25,9 +25,7 @@ import {
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Toaster } from "sonner";
-import { isChromeBrowser, getDownloadMessage } from "../../lib/utils";
-import ReactPlayer from "react-player";
+import { isChromeBrowser, getDownloadMessage, triggerDownload, isWebView } from "../../lib/utils";
 import { ShareButton } from "../../components/share-button";
 import { FavoriteButton } from "../../components/favorite-button";
 import { CommentSection } from "../../components/comment-section";
@@ -51,37 +49,22 @@ interface MovieDetails {
 
 export default function MoviePage() {
   const [movie, setMovie] = useState<MovieDetails | null>(null);
-  const [showVlcGuide, setShowVlcGuide] = useState(false);
-  const [showTrailer, setShowTrailer] = useState(false);
+  const [vlcSourceId, setVlcSourceId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
   const [currentUrl, setCurrentUrl] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
   const router = useRouter();
-
-  const ensureHttps = (url: string) => {
-    if (url.startsWith('http://')) {
-      return url.replace('http://', 'https://');
-    }
-    return url;
-  };
 
   const handleDownload = (e: React.MouseEvent, url: string) => {
     e.preventDefault();
-    
+
     if (isChromeBrowser()) {
       setCurrentUrl(url);
       setShowAlert(true);
       return;
     }
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = ''; // Forces download
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    triggerDownload(url);
   };
 
   const copyToClipboard = async (url: string) => {
@@ -104,23 +87,21 @@ export default function MoviePage() {
     }
   };
 
-  const getProxyUrl = (url: string) => {
-    if (!url) return "";
-    return `https://http-video.liara.run/?url=${encodeURIComponent(url)}`;
-  };
-
   useEffect(() => {
-    const movieData = localStorage.getItem("selectedMovie");
-    if (movieData) {
-      const parsedMovie = JSON.parse(movieData);
-      // Find trailer URL from sources
-      const trailerSource = parsedMovie.sources?.find(
-        (source: { quality?: string }) => !source.quality || source.quality.includes("تیزر")
-      );
-      if (trailerSource) {
-        parsedMovie.trailer_url = trailerSource.url;
+    try {
+      const movieData = localStorage.getItem("selectedMovie");
+      if (movieData) {
+        const parsedMovie = JSON.parse(movieData);
+        const trailerSource = parsedMovie.sources?.find(
+          (source: { quality?: string }) => !source.quality || source.quality.includes("تیزر")
+        );
+        if (trailerSource) {
+          parsedMovie.trailer_url = trailerSource.url;
+        }
+        setMovie(parsedMovie);
       }
-      setMovie(parsedMovie);
+    } catch {
+      setMovie(null);
     }
     setIsLoading(false);
   }, []);
@@ -330,7 +311,10 @@ export default function MoviePage() {
                       کپی لینک
                     </Button>
                     {!source.quality?.includes("تیزر") && (
-                      <Dialog open={showVlcGuide} onOpenChange={setShowVlcGuide}>
+                      <Dialog
+                        open={vlcSourceId === source.id}
+                        onOpenChange={(open) => setVlcSourceId(open ? source.id : null)}
+                      >
                         <DialogTrigger asChild>
                           <Button
                             className="flex-1 rounded-full bg-muted/60 backdrop-blur-sm hover:bg-muted/80 text-muted-foreground text-sm ring-1 ring-border/50"
@@ -366,10 +350,14 @@ export default function MoviePage() {
                                   کپی لینک
                                 </Button>
 
-                                <Button className="flex-1">
-                                  <Eye className="ml-2 w-4 h-4" />
-                                  <a href={'vlc://' + source.url}>
-                                  تماشا با VLC
+                                <Button className="flex-1" asChild>
+                                  <a
+                                    href={'vlc://' + source.url}
+                                    target={!isWebView() ? '_blank' : undefined}
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Eye className="ml-2 w-4 h-4" />
+                                    تماشا با VLC
                                   </a>
                                 </Button>
 
@@ -410,7 +398,6 @@ export default function MoviePage() {
       </main>
 
       <MobileNav />
-      <Toaster richColors closeButton position="top-center" />
 
       <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
         <AlertDialogContent>

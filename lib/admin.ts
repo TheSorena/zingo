@@ -1,6 +1,28 @@
 const COOKIE_NAME = 'zingo_admin';
 const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+export function safeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  if (ab.length !== bb.length) {
+    // still walk the longer buffer to keep timing less predictable
+    let diff = ab.length ^ bb.length;
+    const len = Math.max(ab.length, bb.length);
+    for (let i = 0; i < len; (i = (i + 1) | 0)) {
+      const x = i < ab.length ? ab[i] : 0;
+      const y = i < bb.length ? bb[i] : 0;
+      diff |= x ^ y;
+    }
+    return diff === 0;
+  }
+  let diff = 0;
+  for (let i = 0; i < ab.length; (i = (i + 1) | 0)) {
+    diff |= ab[i] ^ bb[i];
+  }
+  return diff === 0;
+}
+
 function getSecret(): string {
   return process.env.ADMIN_SECRET || process.env.ADMIN_PASSCODE || '';
 }
@@ -35,7 +57,7 @@ export async function verifyAdminToken(token: string | undefined): Promise<boole
   if (isNaN(age) || age < 0 || age > TOKEN_TTL_MS) return false;
 
   const expected = await sign(ts);
-  return sig === expected;
+  return safeEqual(sig, expected);
 }
 
 export const adminCookieName = COOKIE_NAME;

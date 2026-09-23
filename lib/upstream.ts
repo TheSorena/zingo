@@ -30,13 +30,14 @@ export async function fetchUpstreamJson<T = unknown>(
       cache: 'no-store',
       signal: controller.signal,
     });
-    clearTimeout(timer);
-
     if (!res.ok) {
+      clearTimeout(timer);
       throw new Error(`Upstream responded ${res.status}`);
     }
 
+    // Keep the abort timer armed while the body streams
     const data = (await res.json()) as T;
+    clearTimeout(timer);
 
     if (redis) {
       try {
@@ -63,4 +64,10 @@ export async function fetchUpstreamJson<T = unknown>(
   }
 
   throw liveError ?? new Error('Upstream fetch failed');
+}
+
+/** Extract the upstream HTTP status from a fetchUpstreamJson error, if any. */
+export function upstreamErrorStatus(err: unknown): number | null {
+  const match = /responded (\d{3})/.exec(String((err as Error)?.message ?? ''));
+  return match ? Number(match[1]) : null;
 }

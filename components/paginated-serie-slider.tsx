@@ -46,7 +46,7 @@ export function PaginatedSerieSlider({
       if (data && data.length > 0) {
         setSeries(data);
         setMaxPageReached(Math.max(maxPageReached, page));
-        setHasNextPage(data.length === 30); // Assume full page means more pages exist
+        setHasNextPage(data.length > 0);
         // Scroll to first item after updating series
         setTimeout(() => {
           sliderRef.current?.scrollToFirst();

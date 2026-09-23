@@ -2,42 +2,38 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { verifyAdminToken, adminCookieName } from './lib/admin'
 
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Max-Age': '86400',
+}
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
 
-  // Handle CORS for API routes
   if (path.startsWith('/api/')) {
+    // Protect admin API routes BEFORE the generic CORS passthrough
+    const isAdminApi =
+      path.startsWith('/api/admin') && !path.startsWith('/api/admin/login')
+
+    if (isAdminApi && request.method !== 'OPTIONS') {
+      const token = request.cookies.get(adminCookieName)?.value
+      const isValid = await verifyAdminToken(token)
+      if (!isValid) {
+        return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 401 })
+      }
+    }
+
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD',
-          'Access-Control-Allow-Headers': '*',
-          'Access-Control-Allow-Credentials': 'true',
-          'Access-Control-Max-Age': '86400',
-        },
-      })
+      return new Response(null, { status: 200, headers: CORS_HEADERS })
     }
 
     const response = NextResponse.next()
-    response.headers.set('Access-Control-Allow-Origin', '*')
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD')
-    response.headers.set('Access-Control-Allow-Headers', '*')
-    response.headers.set('Access-Control-Allow-Credentials', 'true')
-    response.headers.set('Access-Control-Max-Age', '86400')
-    return response
-  }
-
-  // Protect admin API routes (the /admin page itself handles auth client-side)
-  const isAdminApi = path.startsWith('/api/admin') && !path.startsWith('/api/admin/login')
-
-  if (isAdminApi) {
-    const token = request.cookies.get(adminCookieName)?.value
-    const isValid = await verifyAdminToken(token)
-    if (!isValid) {
-      return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 401 })
+    for (const [key, value] of Object.entries(CORS_HEADERS)) {
+      response.headers.set(key, value)
     }
+    return response
   }
 
   return NextResponse.next()

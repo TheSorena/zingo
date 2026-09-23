@@ -22,8 +22,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'شناسه نامعتبر است' }, { status: 400 });
   }
 
-  const comments = await listComments(type, targetId);
-  return NextResponse.json({ comments });
+  try {
+    const comments = await listComments(type, targetId);
+    return NextResponse.json({ comments });
+  } catch (error) {
+    console.error('Error listing comments:', error);
+    return NextResponse.json({ comments: [] });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -34,40 +39,45 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await request.json().catch(() => null);
-  const type = body?.type;
-  const targetId = Number(body?.targetId);
-  const hasSpoiler = !!body?.hasSpoiler;
+  try {
+    const body = await request.json().catch(() => null);
+    const type = body?.type;
+    const targetId = Number(body?.targetId);
+    const hasSpoiler = !!body?.hasSpoiler;
 
-  if (type !== 'movie' && type !== 'serie') {
-    return NextResponse.json({ error: 'نوع نامعتبر است' }, { status: 400 });
+    if (type !== 'movie' && type !== 'serie') {
+      return NextResponse.json({ error: 'نوع نامعتبر است' }, { status: 400 });
+    }
+    if (!Number.isInteger(targetId) || targetId <= 0) {
+      return NextResponse.json({ error: 'شناسه نامعتبر است' }, { status: 400 });
+    }
+
+    const validationError = validateComment(body || {});
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    const ip = getClientIp(request);
+    const rateKey = `rl:${ip}`;
+    const rateLimit = await redis.set(rateKey, '1', { nx: true, ex: 60 });
+    if (rateLimit === null) {
+      return NextResponse.json(
+        { error: 'لطفاً یک دقیقه صبر کنید و دوباره تلاش کنید' },
+        { status: 429 }
+      );
+    }
+
+    const comment = await addComment({
+      type,
+      targetId,
+      name: body.name.trim(),
+      text: body.text.trim(),
+      hasSpoiler,
+    });
+
+    return NextResponse.json({ comment }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating comment:', error);
+    return NextResponse.json({ error: 'خطا در ثبت کامنت' }, { status: 500 });
   }
-  if (!Number.isInteger(targetId) || targetId <= 0) {
-    return NextResponse.json({ error: 'شناسه نامعتبر است' }, { status: 400 });
-  }
-
-  const validationError = validateComment(body || {});
-  if (validationError) {
-    return NextResponse.json({ error: validationError }, { status: 400 });
-  }
-
-  const ip = getClientIp(request);
-  const rateKey = `rl:${ip}`;
-  const rateLimit = await redis.set(rateKey, '1', { nx: true, ex: 60 });
-  if (rateLimit === null) {
-    return NextResponse.json(
-      { error: 'لطفاً یک دقیقه صبر کنید و دوباره تلاش کنید' },
-      { status: 429 }
-    );
-  }
-
-  const comment = await addComment({
-    type,
-    targetId,
-    name: body.name.trim(),
-    text: body.text.trim(),
-    hasSpoiler,
-  });
-
-  return NextResponse.json({ comment }, { status: 201 });
 }

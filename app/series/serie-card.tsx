@@ -14,6 +14,12 @@ export function SerieCard({ serie }: SerieCardProps) {
 
   const handleSerieClick = () => {
     localStorage.setItem('selectedSerie', JSON.stringify(serie));
+    fetch(`/api/serie/${serie.id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(serie),
+      keepalive: true,
+    }).catch(() => {});
     router.push(`/serie/${serie.id}`);
   };
 

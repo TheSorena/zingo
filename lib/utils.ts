@@ -5,9 +5,30 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function isWebView(): boolean {
+  if (typeof window === 'undefined') return false;
+  // Android WebView (the Zingo app) — native intercepts handle downloads
+  return /; wv\)/.test(navigator.userAgent);
+}
+
 export function isChromeBrowser(): boolean {
   if (typeof window === 'undefined') return false;
-  return /Chrome/.test(navigator.userAgent) && !/Chromium/.test(navigator.userAgent);
+  if (isWebView()) return false;
+  const ua = navigator.userAgent;
+  return /Chrome\//.test(ua) && !/Edg|OPR|Brave|Chromium|SamsungBrowser|YaBrowser|CriOS/.test(ua);
+}
+
+export function triggerDownload(url: string): void {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = '';
+  link.rel = 'noopener noreferrer';
+  if (!isWebView()) {
+    link.target = '_blank';
+  }
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 export function getDeviceType(): 'desktop' | 'android' | 'ios' | 'other' {

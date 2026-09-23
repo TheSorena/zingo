@@ -28,6 +28,12 @@ export function ClientRedirect({ type, content }: ClientRedirectProps) {
         router.push('/movie');
       } else {
         localStorage.setItem('selectedSerie', JSON.stringify(content));
+        fetch(`/api/serie/${content.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(content),
+          keepalive: true,
+        }).catch(() => {});
         console.log('Stored serie in localStorage, redirecting to /serie/' + content.id);
         router.push(`/serie/${content.id}`);
       }

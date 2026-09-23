@@ -64,6 +64,14 @@ export default function FavoritesPage() {
       item.type === 'serie' ? 'selectedSerie' : 'selectedMovie',
       JSON.stringify(item)
     );
+    if (item.type === 'serie') {
+      fetch(`/api/serie/${item.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item),
+        keepalive: true,
+      }).catch(() => {});
+    }
     router.push(item.type === 'serie' ? `/serie/${item.id}` : '/movie');
   };
 

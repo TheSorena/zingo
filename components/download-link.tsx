@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
-import { isChromeBrowser, getDownloadMessage } from "../lib/utils";
+import { isChromeBrowser, getDownloadMessage, triggerDownload, isWebView } from "../lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,20 +47,13 @@ export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
 
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
-    
+
     if (isChromeBrowser()) {
       setShowAlert(true);
       return;
     }
 
-    // Create a hidden anchor element
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = ''; // This forces download behavior
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    triggerDownload(url);
   };
 
   return (
@@ -77,9 +70,13 @@ export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
             <Badge variant="outline">{quality}</Badge>
           )}
         </a>
-        <Button className="flex-2">
-          <a href={'vlc://' + url}>
-          تماشا با VLC
+        <Button className="flex-2" asChild>
+          <a
+            href={'vlc://' + url}
+            target={!isWebView() ? '_blank' : undefined}
+            rel="noopener noreferrer"
+          >
+            تماشا با VLC
           </a>
         </Button>
 
@@ -103,7 +100,7 @@ export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:justify-start">
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => {
                 copyToClipboard(url);
                 setShowAlert(false);
@@ -117,4 +114,4 @@ export function DownloadLink({ url, type, quality }: DownloadLinkProps) {
       </AlertDialog>
     </>
   );
-} 
+}

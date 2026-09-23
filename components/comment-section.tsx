@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { Toaster } from 'sonner';
 
 interface CommentItem {
   id: string;
@@ -105,7 +104,6 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
 
   return (
     <section className="mt-8">
-      <Toaster richColors closeButton position="top-center" />
       <div className="flex items-center gap-3 mb-6">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-white shadow-lg shadow-primary/20">
           <MessageSquare className="h-5 w-5" />

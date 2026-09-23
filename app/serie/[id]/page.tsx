@@ -11,11 +11,9 @@ import { Button } from "../../../components/ui/button";
 import { WatchButton } from "../../../components/watch-button";
 import { DownloadLink } from "../../../components/download-link";
 import { toast } from "sonner";
-import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
-import ReactPlayer from "react-player";
 import { ShareButton } from "../../../components/share-button";
 import { FavoriteButton } from "../../../components/favorite-button";
 import { CommentSection } from "../../../components/comment-section";
@@ -30,10 +28,8 @@ import {
 
 async function getSerieSeasons(id: string) {
   try {
-    const response = await fetch(`/api/seasons/${id}`, {
-      next: { revalidate: 3600 }
-    });
-    if (!response.ok) throw new Error("خطا در دریافت اطلاعات");
+    const response = await fetch(`/api/seasons/${id}`);
+    if (!response.ok) return [];
     return response.json();
   } catch (error) {
     console.error("Error fetching seasons:", error);
@@ -43,10 +39,8 @@ async function getSerieSeasons(id: string) {
 
 async function getSerieById(id: string) {
   try {
-    const response = await fetch(`/api/serie/${id}`, {
-      next: { revalidate: 3600 }
-    });
-    if (!response.ok) throw new Error("خطا در دریافت اطلاعات");
+    const response = await fetch(`/api/serie/${id}`);
+    if (!response.ok) return null;
     return response.json();
   } catch (error) {
     console.error("Error fetching serie:", error);
@@ -64,55 +58,36 @@ export default function SerieDetailPage({
   const [seasons, setSeasons] = useState<SerieSeason[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [trailerUrl, setTrailerUrl] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const getProxyUrl = (url: string) => {
-    if (!url) return "";
-    return `https://http-video.liara.run/?url=${encodeURIComponent(url)}`;
-  };
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Try to get serie data from localStorage first
-        const storedSerie = localStorage.getItem('selectedSerie');
-        let serieData = null;
+        let serieData: any = null;
 
-        if (storedSerie) {
-          const parsed = JSON.parse(storedSerie);
-          if (parsed.id.toString() === params.id) {
-            serieData = parsed;
+        try {
+          const storedSerie = localStorage.getItem('selectedSerie');
+          if (storedSerie) {
+            const parsed = JSON.parse(storedSerie);
+            if (parsed && String(parsed.id) === params.id) {
+              serieData = parsed;
+            }
           }
+        } catch {
+          // ignore corrupted localStorage
         }
 
-        // If not in localStorage or ID doesn't match, fetch from API
         if (!serieData) {
           serieData = await getSerieById(params.id);
         }
 
-        if (!serieData) {
+        if (!serieData || serieData.error) {
           setError('سریال یافت نشد');
           return;
         }
 
         setSerie(serieData);
         const seasonsData = await getSerieSeasons(params.id);
-        setSeasons(seasonsData);
-
-        // Find trailer URL from episodes
-        for (const season of seasonsData) {
-          for (const episode of season.episodes) {
-            if (!episode.title || episode.title.includes("تیزر")) {
-              const trailerSource = episode.sources[0];
-              if (trailerSource) {
-                setTrailerUrl(trailerSource.url);
-                break;
-              }
-            }
-          }
-          if (trailerUrl) break;
-        }
+        setSeasons(Array.isArray(seasonsData) ? seasonsData : []);
       } catch (err) {
         setError('خطا در دریافت اطلاعات');
       } finally {
@@ -174,7 +149,6 @@ export default function SerieDetailPage({
 
   return (
     <main className="min-h-screen pb-20 md:pb-0">
-      <Toaster richColors closeButton position="top-center" />
       {/* Back Button */}
       <button
         onClick={() => {
@@ -296,33 +270,6 @@ export default function SerieDetailPage({
       </div>
 
       <div className="container max-w-7xl mx-auto px-4 mt-8">
-        {/* Video Player Section */}
-        {/* {trailerUrl && (
-          <div className="mb-6">
-            <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/50">
-              <ReactPlayer
-                url={getProxyUrl(trailerUrl)}
-                width="100%"
-                height="100%"
-                playing={isPlaying}
-                controls={true}
-                playsinline={true}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-                config={{
-                  file: {
-                    attributes: {
-                      controlsList: "nodownload",
-                      disablePictureInPicture: true,
-                    },
-                  },
-                }}
-                style={{ position: "absolute", top: 0, left: 0 }}
-              />
-            </div>
-          </div>
-        )} */}
-
         <div className="glass p-5 md:p-6 rounded-3xl border border-border/60 relative overflow-hidden mb-8">
           <div className="absolute -top-10 -left-10 h-32 w-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
           <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
@@ -331,6 +278,12 @@ export default function SerieDetailPage({
         </div>
 
         <div id="episodes" className="scroll-mt-8">
+          {seasons.length === 0 ? (
+            <div className="glass rounded-3xl border border-border/60 p-10 text-center">
+              <p className="text-muted-foreground font-medium">فصلی برای این سریال یافت نشد</p>
+              <p className="text-sm text-muted-foreground/60 mt-1">بعداً دوباره تلاش کنید</p>
+            </div>
+          ) : (
           <Tabs defaultValue={seasons[0]?.id.toString()} className="w-full">
             <TabsList className="w-full flex flex-wrap h-auto gap-2 bg-background/50 backdrop-blur p-2 rounded-2xl ring-1 ring-border/40">
               {seasons.map((season) => (
@@ -400,6 +353,7 @@ export default function SerieDetailPage({
               </TabsContent>
             ))}
           </Tabs>
+          )}
         </div>
 
         <CommentSection type="serie" targetId={serie.id} />

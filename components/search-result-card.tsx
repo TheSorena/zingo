@@ -26,6 +26,14 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
       result.type === 'serie' ? 'selectedSerie' : 'selectedMovie',
       JSON.stringify(result)
     );
+    if (result.type === 'serie') {
+      fetch(`/api/serie/${result.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(result),
+        keepalive: true,
+      }).catch(() => {});
+    }
     router.push(result.type === 'serie' ? `/serie/${result.id}` : '/movie');
   };
 

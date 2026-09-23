@@ -11,4 +11,12 @@ export const metadata: Metadata = {
     title: 'علاقه‌مندی‌ها | Zingo | زینگو',
     description: 'Your favorite movies and series | فیلم‌ها و سریال‌های مورد علاقه شما',
   },
-}; 
+};
+
+export default function FavoritesLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return children;
+}

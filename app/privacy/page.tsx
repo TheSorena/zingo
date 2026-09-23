@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Info, Check, ChevronRight, Lock } from "lucide-react";
 import { motion, useScroll, useSpring, useTransform, useMotionValue } from "framer-motion";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 
 export default function PrivacyPage() {
   const router = useRouter();
@@ -314,9 +314,6 @@ export default function PrivacyPage() {
           </Card>
         </motion.div>
       </div>
-
-      {/* Add Toaster component */}
-      <Toaster richColors position="top-center" />
     </main>
   );
 } 

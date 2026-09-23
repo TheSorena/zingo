@@ -28,6 +28,14 @@ export function HeroCta({ movie }: HeroCtaProps) {
       movie.type === 'serie' ? 'selectedSerie' : 'selectedMovie',
       JSON.stringify(movie)
     );
+    if (movie.type === 'serie') {
+      fetch(`/api/serie/${movie.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(movie),
+        keepalive: true,
+      }).catch(() => {});
+    }
     router.push(movie.type === 'serie' ? `/serie/${movie.id}` : '/movie');
   };
 

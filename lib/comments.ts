@@ -17,11 +17,14 @@ const listKey = (type: string, targetId: number) => `c:${type}:${targetId}`;
 const allKey = 'c:all';
 
 export function validateComment(input: {
-  name?: string;
-  text?: string;
+  name?: unknown;
+  text?: unknown;
 }): string | null {
-  const name = input.name?.trim() || '';
-  const text = input.text?.trim() || '';
+  if (typeof input.name !== 'string' || typeof input.text !== 'string') {
+    return 'نام و متن کامنت الزامی است';
+  }
+  const name = input.name.trim();
+  const text = input.text.trim();
 
   if (name.length < 2 || name.length > 30) {
     return 'نام باید بین ۲ تا ۳۰ حرف باشد';

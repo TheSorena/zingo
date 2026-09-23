@@ -10,9 +10,18 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  images: { 
+  images: {
     unoptimized: true,
     domains: ['hostinnegar.com', 'server-hi-speed-iran.info']
+  },
+  async redirects() {
+    return [
+      {
+        source: '/series',
+        destination: '/',
+        permanent: false,
+      },
+    ];
   },
 };
 
