@@ -14,7 +14,6 @@ import { Button } from "../components/ui/button";
 import { HeroCta } from "../components/hero-cta";
 import { ContinueWatching } from "../components/continue-watching";
 import { AccountButton } from "../components/account-button";
-import { SiteLogo } from "../components/site-logo";
 import { headers } from "next/headers";
 
 // Get the base URL for internal API calls (works in dev, prod and Vercel previews)
@@ -188,7 +187,13 @@ export default async function Home() {
       <header className="sticky top-0 z-40 w-full border-b border-border/50 glass">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <LoadingLink href="/" className="flex items-center gap-2.5 group">
-            <SiteLogo />
+            <span className="relative">
+              <img src="/zingo-logo.png" alt="زینگو" className="h-10 w-10 rounded-2xl object-cover shadow-lg shadow-primary/30 ring-1 ring-primary/40 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-105" />
+              <span className="absolute -inset-1 -z-10 rounded-2xl bg-primary/30 blur-md opacity-0 transition-opacity group-hover:opacity-100" />
+            </span>
+            <span className="text-2xl md:hidden lg:block md:text-3xl font-extrabold tracking-tight text-gradient-zingo">
+              زینگو
+            </span>
           </LoadingLink>
           <div className="md:hidden flex items-center gap-1">
             <AccountButton />

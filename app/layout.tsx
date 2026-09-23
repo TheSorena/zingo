@@ -1,8 +1,23 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import localFont from 'next/font/local';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LoadingProvider } from '@/components/loading-provider';
 import { AuthProvider } from '@/components/auth-provider';
+
+// Self-hosted + preloaded: no render-blocking webfont requests, works offline
+const pinar = localFont({
+  src: [
+    { path: '../public/fonts/Pinar-Light.ttf', weight: '300' },
+    { path: '../public/fonts/Pinar-Regular.ttf', weight: '400' },
+    { path: '../public/fonts/Pinar-Medium.ttf', weight: '500' },
+    { path: '../public/fonts/Pinar-SemiBold.ttf', weight: '600' },
+    { path: '../public/fonts/Pinar-Bold.ttf', weight: '700' },
+    { path: '../public/fonts/Pinar-ExtraBold.ttf', weight: '800' },
+  ],
+  display: 'swap',
+  preload: true,
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
@@ -45,7 +60,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body suppressHydrationWarning>
+      <body suppressHydrationWarning className={pinar.className}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

@@ -49,13 +49,11 @@ export function LoadingOverlay({ isVisible }: LoadingOverlayProps) {
                 transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
               />
               <div className="absolute inset-2.5 rounded-full bg-background flex items-center justify-center overflow-hidden ring-1 ring-primary/30">
-                <span
-                  dir="ltr"
-                  className="text-2xl font-extrabold text-gradient-zingo"
-                  style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif" }}
-                >
-                  z
-                </span>
+                <img
+                  src="/zingo-logo.png"
+                  alt="زینگو"
+                  className="h-full w-full object-cover"
+                />
               </div>
             </div>
 
@@ -66,8 +64,7 @@ export function LoadingOverlay({ isVisible }: LoadingOverlayProps) {
               transition={{ delay: 0.15 }}
               className="text-center"
             >
-              <p dir="ltr" className="text-xs font-extrabold tracking-[0.35em] text-gradient-zingo">zingo</p>
-              <p className="text-lg font-bold text-foreground mt-1">در حال بارگذاری...</p>
+              <p className="text-lg font-bold text-foreground">در حال بارگذاری...</p>
               <p className="text-xs text-muted-foreground mt-1">لطفاً صبر کنید</p>
             </motion.div>
 

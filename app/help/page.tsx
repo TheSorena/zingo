@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from 'next';
 import { Button } from "@/components/ui/button";
-import { SiteLogo } from "@/components/site-logo";
 
 export const metadata: Metadata = {
   title: 'راهنمای استفاده | Zingo | زینگو',
@@ -17,7 +16,10 @@ export default function HelpPage() {
       <header className="sticky top-0 z-40 w-full border-b border-border/60 glass">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <SiteLogo size="sm" />
+            <img src="/zingo-logo.png" alt="زینگو" className="h-9 w-9 rounded-xl object-cover shadow-lg shadow-primary/20 ring-1 ring-primary/30 transition-transform group-hover:rotate-6" />
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent">
+              زینگو
+            </h1>
           </Link>
           <div className="flex items-center">
             <Link href="/search">

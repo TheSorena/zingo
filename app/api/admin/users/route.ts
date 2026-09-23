@@ -7,9 +7,10 @@ export const runtime = 'nodejs';
 
 export async function GET() {
   try {
-    const [users, total] = await Promise.all([listUsers(200), getUserCount()]);
+    const [users, counted] = await Promise.all([listUsers(200), getUserCount()]);
     const vip = users.filter((u) => u.vip).length;
-    return NextResponse.json({ users, total, vip });
+    // counter started after launch — fall back to list length for older installs
+    return NextResponse.json({ users, total: counted || users.length, vip });
   } catch (error) {
     console.error('admin users error:', error);
     return NextResponse.json({ error: 'خطا در دریافت کاربران' }, { status: 500 });

@@ -23,7 +23,6 @@ import {
 } from "../../components/ui/alert-dialog";
 import { SearchInput } from '@/components/search-input';
 import { AccountButton } from '@/components/account-button';
-import { SiteLogo } from '@/components/site-logo';
 import { useAuth } from '@/components/auth-provider';
 import { Cloud } from 'lucide-react';
 
@@ -68,17 +67,17 @@ export default function FavoritesPage() {
             const cloud: FavoriteItem[] = Array.isArray(data.items) ? data.items : [];
             const seen = new Set(cloud.map((f) => `${f.type}:${f.id}`));
             const onlyLocal = local.filter((f) => !seen.has(`${f.type}:${f.id}`));
-            // push local-only items to the cloud (migration)
-            for (const item of onlyLocal.slice(0, 50)) {
-              try {
-                await fetch('/api/favorites', {
+            const merged = [...cloud, ...onlyLocal];
+            // push local-only items to the cloud (migration), in parallel
+            await Promise.all(
+              onlyLocal.slice(0, 50).map((item) =>
+                fetch('/api/favorites', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ item }),
-                });
-              } catch {}
-            }
-            const merged = [...cloud, ...onlyLocal];
+                }).catch(() => null)
+              )
+            );
             setFavorites(merged.slice().reverse());
             try {
               localStorage.setItem('favorites', JSON.stringify(merged));
@@ -143,7 +142,10 @@ export default function FavoritesPage() {
       <header className="sticky top-0 z-40 w-full border-b border-border/60 glass">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <SiteLogo size="sm" />
+            <img src="/zingo-logo.png" alt="زینگو" className="h-9 w-9 rounded-xl object-cover shadow-lg shadow-primary/20 ring-1 ring-primary/30 transition-transform group-hover:rotate-6" />
+            <h1 className="text-2xl md:hidden lg:block md:text-3xl font-bold bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent">
+              زینگو
+            </h1>
           </Link>
           <div className="md:hidden flex items-center gap-1">
             <AccountButton />
@@ -168,7 +170,7 @@ export default function FavoritesPage() {
           <div className="text-center space-y-4 max-w-2xl mx-auto">
             <div className="flex items-center justify-center gap-2 text-primary">
               <Heart className="h-8 w-8 text-red-500 animate-pulse" />
-              <h2 className="font-fa-clear text-4xl font-bold tracking-tight text-gradient-zingo">
+              <h2 className="text-4xl font-bold tracking-tight text-gradient-zingo">
                 علاقه‌مندی‌های شما
               </h2>
             </div>
@@ -323,7 +325,7 @@ export default function FavoritesPage() {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
                 <Heart className="h-8 w-8" />
               </div>
-              <p className="font-fa-clear text-2xl font-semibold text-muted-foreground">هیچ علاقه‌مندی ثبت نشده است</p>
+              <p className="text-2xl font-semibold text-muted-foreground">هیچ علاقه‌مندی ثبت نشده است</p>
               <p className="text-muted-foreground max-w-md mx-auto">
                 شما هنوز هیچ فیلم یا سریالی را به علاقه‌مندی‌های خود اضافه نکرده‌اید. برای افزودن به این لیست، آیکن قلب را در صفحه فیلم یا سریال انتخاب کنید.
               </p>
