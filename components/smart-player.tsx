@@ -289,6 +289,20 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     };
   }, [pokeControls]);
 
+  // never fire autoplay after unmount (e.g. dialog closed mid-countdown)
+  useEffect(() => {
+    return () => {
+      if (countTimer.current) {
+        clearInterval(countTimer.current);
+        countTimer.current = null;
+      }
+      if (flashTimer.current) {
+        clearTimeout(flashTimer.current);
+        flashTimer.current = null;
+      }
+    };
+  }, []);
+
   // Sync fullscreen state (covers Fullscreen API + WebView custom view)
   useEffect(() => {
     const onFs = () => {
