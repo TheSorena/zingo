@@ -1,0 +1,98 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
+import { Card, CardContent } from './ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import type { SerieEpisode, SerieSeason } from '../types';
+import { EpisodeCard } from './episode-card';
+import { OnlinePlayer } from './online-player';
+
+interface SeasonEpisodesProps {
+  season: SerieSeason;
+  serieId: number;
+  serieTitle: string;
+  poster: string;
+}
+
+/**
+ * One season's episode list: search filter for long seasons + compact
+ * episode boxes + a SINGLE shared player dialog (not one per episode).
+ */
+export function SeasonEpisodes({ season, serieId, serieTitle, poster }: SeasonEpisodesProps) {
+  const [query, setQuery] = useState('');
+  const [playing, setPlaying] = useState<SerieEpisode | null>(null);
+
+  const episodes = useMemo(() => season.episodes || [], [season.episodes]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim();
+    if (!q) return episodes;
+    return episodes.filter((ep) => (ep.title || '').includes(q));
+  }, [episodes, query]);
+
+  return (
+    <>
+      <Card className="bg-card/50 backdrop-blur border-0">
+        <CardContent className="pt-4 md:pt-6">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              {episodes.length} قسمت
+              {query.trim() && ` — ${filtered.length} نمایش`}
+            </p>
+            {episodes.length > 8 && (
+              <div className="relative w-44 sm:w-56">
+                <Search className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="جستجوی قسمت..."
+                  className="w-full rounded-full bg-muted/50 py-1.5 pl-3 pr-9 text-xs ring-1 ring-border/60 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+                />
+              </div>
+            )}
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="rounded-2xl border border-border/60 p-8 text-center">
+              <p className="text-sm text-muted-foreground">قسمتی با این نام پیدا نشد</p>
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              {filtered.map((episode) => (
+                <EpisodeCard
+                  key={episode.id}
+                  episode={episode}
+                  onPlay={setPlaying}
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!playing} onOpenChange={(open) => !open && setPlaying(null)}>
+        <DialogContent className="max-w-3xl p-4">
+          <DialogHeader>
+            <DialogTitle className="text-right">
+              {serieTitle} — {playing?.title}
+            </DialogTitle>
+          </DialogHeader>
+          {playing && (
+            <OnlinePlayer
+              title={playing.title}
+              poster={poster}
+              sources={playing.sources || []}
+              storageKey={`serie-${serieId}-ep-${playing.id}`}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

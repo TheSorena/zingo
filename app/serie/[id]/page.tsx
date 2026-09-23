@@ -1,30 +1,17 @@
 'use client';
 
 import { Serie, SerieSeason } from "../../../types";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../../components/ui/accordion";
-import { Badge } from "../../../components/ui/badge";
-import { Star, Calendar, Clock, Globe2, ArrowLeft, Play, Copy } from "lucide-react";
+import { Star, Calendar, Clock, Globe2 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { Button } from "../../../components/ui/button";
 import { WatchButton } from "../../../components/watch-button";
-import { DownloadLink } from "../../../components/download-link";
-import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { ShareButton } from "../../../components/share-button";
 import { FavoriteButton } from "../../../components/favorite-button";
 import { CommentSection } from "../../../components/comment-section";
-import { OnlinePlayer } from "../../../components/online-player";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../../../components/ui/dialog";
+import { SeasonEpisodes } from "../../../components/season-episodes";
 
 async function getSerieSeasons(id: string) {
   try {
@@ -126,26 +113,6 @@ export default function SerieDetailPage({
       </div>
     );
   }
-
-  const copyToClipboard = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("لینک با موفقیت کپی شد", {
-        description: "لینک در کلیپ‌بورد شما ذخیره شد",
-        duration: 3000,
-        position: "top-center",
-        className: "bg-green-500/10 border-green-500/20 text-green-500",
-        icon: <Copy className="w-5 h-5" />,
-      });
-    } catch (err) {
-      toast.error("خطا در کپی لینک", {
-        description: "لطفاً دوباره تلاش کنید",
-        duration: 3000,
-        position: "top-center",
-        className: "bg-red-500/10 border-red-500/20 text-red-500",
-      });
-    }
-  };
 
   return (
     <main className="min-h-screen pb-20 md:pb-0">
@@ -304,52 +271,12 @@ export default function SerieDetailPage({
             </TabsList>
             {seasons.map((season) => (
               <TabsContent key={season.id} value={season.id.toString()}>
-                <Card className="bg-card/50 backdrop-blur border-0">
-                  <CardContent className="pt-6">
-                    <Accordion type="single" collapsible className="w-full">
-                      {season.episodes.map((episode) => (
-                        <AccordionItem key={episode.id} value={episode.id.toString()}>
-                          <AccordionTrigger className="text-right">
-                            {episode.title}
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div className="grid gap-2">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button className="w-full rounded-xl bg-gradient-to-l from-amber-500 to-rose-500 text-white font-bold shadow-lg shadow-primary/25 hover:opacity-90 transition-opacity">
-                                    <Play className="ml-2 w-4 h-4 fill-current" />
-                                    پخش آنلاین {episode.title}
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-3xl p-4">
-                                  <DialogHeader>
-                                    <DialogTitle className="text-right">
-                                      {serie.title} — {episode.title}
-                                    </DialogTitle>
-                                  </DialogHeader>
-                                  <OnlinePlayer
-                                    title={episode.title}
-                                    poster={serie.image || serie.cover}
-                                    sources={episode.sources}
-                                    storageKey={`serie-${serie.id}-ep-${episode.id}`}
-                                  />
-                                </DialogContent>
-                              </Dialog>
-                              {episode.sources.map((source) => (
-                                <DownloadLink
-                                  key={source.id}
-                                  url={source.url}
-                                  type={source.type}
-                                  quality={source.quality}
-                                />
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </CardContent>
-                </Card>
+                <SeasonEpisodes
+                  season={season}
+                  serieId={serie.id}
+                  serieTitle={serie.title}
+                  poster={serie.image || serie.cover}
+                />
               </TabsContent>
             ))}
           </Tabs>

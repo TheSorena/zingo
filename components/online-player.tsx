@@ -1,7 +1,24 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { Play, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import {
+  Play,
+  Loader2,
+  AlertTriangle,
+  RefreshCw,
+  Copy,
+  Download,
+  Clapperboard,
+  ExternalLink,
+  Info,
+} from 'lucide-react';
+import { Button } from './ui/button';
+import {
+  isWebView,
+  getDeviceType,
+  triggerDownload,
+} from '../lib/utils';
+import { needsExternalPlayer, copyText } from './source-row';
 
 interface PlayerSource {
   id?: number;
@@ -17,29 +34,52 @@ interface OnlinePlayerProps {
   storageKey: string;
 }
 
+type FailKind = 'network' | 'unsupported' | 'unknown';
+
 const proxyUrl = (url: string) =>
   `https://http-video.liara.run/?url=${encodeURIComponent(url)}`;
 
-// NOTE: sources are plain-http file servers; forcing https breaks them.
+function scoreSource(s: PlayerSource): number {
+  const q = (s.quality || '').toLowerCase();
+  const u = (s.url || '').toLowerCase();
+  const t = (s.type || '').toLowerCase();
+  let sc = 0;
+  if (/\.mp4(\?|$)/.test(u) || t.includes('mp4')) sc += 4;
+  if (/\.webm(\?|$)/.test(u)) sc += 2;
+  if (/x265|hevc/.test(q + u)) sc -= 5;
+  if (/\.mkv(\?|$)/.test(u) || t === 'mkv') sc -= 2;
+  if (/720/.test(q)) sc += 2;
+  else if (/480/.test(q)) sc += 1;
+  if (/تیزر/.test(q)) sc -= 10;
+  return sc;
+}
+
+function mxPlayerIntent(url: string, title: string): string {
+  const m = /^(https?):\/\/(.*)$/i.exec(url);
+  if (!m) return url;
+  return `intent://${m[2]}#Intent;scheme=${m[1].toLowerCase()};package=com.mxtech.videoplayer.ad;S.title=${encodeURIComponent(title)};end`;
+}
+
+// NOTE: sources live on plain-http file servers; forcing https breaks them.
 // Inside the Android WebView we enable mixed-content compatibility mode,
 // so the original scheme must be preserved here.
 export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlayerProps) {
-  const playable = sources.filter(
-    (s) => s.url && /\.(mp4|mkv|webm|mov|m3u8)(\?|$)/i.test(s.url) &&
-      !(s.quality || '').includes('تیزر')
+  const playable = useMemo(
+    () =>
+      (sources || [])
+        .filter(
+          (s) =>
+            s.url &&
+            /\.(mp4|mkv|webm|mov|m3u8)(\?|$)/i.test(s.url) &&
+            !(s.quality || '').includes('تیزر')
+        )
+        .sort((a, b) => scoreSource(b) - scoreSource(a)),
+    [sources]
   );
 
-  const pickDefault = (): PlayerSource | null => {
-    if (!playable.length) return null;
-    const mp4 = playable.find((s) => s.type?.toLowerCase().includes('mp4') || /\.mp4(\?|$)/i.test(s.url));
-    if (mp4) return mp4;
-    const q720 = playable.find((s) => (s.quality || '').includes('720'));
-    return q720 || playable[0];
-  };
-
-  const [active, setActive] = useState<PlayerSource | null>(() => pickDefault());
+  const [active, setActive] = useState<PlayerSource | null>(() => playable[0] || null);
   const [useProxy, setUseProxy] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failKind, setFailKind] = useState<FailKind | null>(null);
   const [buffering, setBuffering] = useState(false);
   const [started, setStarted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -48,9 +88,9 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
 
   // Reset when switching content
   useEffect(() => {
-    setActive(pickDefault());
+    setActive(playable[0] || null);
     setUseProxy(false);
-    setFailed(false);
+    setFailKind(null);
     setStarted(false);
     try {
       const saved = parseFloat(localStorage.getItem(`zingo-pos:${storageKey}`) || '0');
@@ -62,15 +102,39 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
   }, [storageKey]);
 
   const src = active ? (useProxy ? proxyUrl(active.url) : active.url) : '';
+  const isMixedBlocked =
+    typeof window !== 'undefined' &&
+    window.location.protocol === 'https:' &&
+    !!active?.url?.startsWith('http:') &&
+    !useProxy &&
+    !isWebView();
 
   const handleError = useCallback(() => {
-    if (active && !useProxy) {
-      setUseProxy(true);
-      setBuffering(true);
+    let code = 0;
+    try {
+      code = videoRef.current?.error?.code || 0;
+    } catch {}
+    if (code === 2 || code === 1) {
+      // network/aborted: retry once through the proxy host
+      if (active && !useProxy) {
+        setUseProxy(true);
+        setBuffering(true);
+        return;
+      }
+      setFailKind('network');
+    } else if (code === 4) {
+      setFailKind('unsupported');
+    } else if (code === 3) {
+      setFailKind('unsupported');
     } else {
-      setFailed(true);
-      setBuffering(false);
+      if (active && !useProxy) {
+        setUseProxy(true);
+        setBuffering(true);
+        return;
+      }
+      setFailKind('unknown');
     }
+    setBuffering(false);
   }, [active, useProxy]);
 
   const switchQuality = (s: PlayerSource) => {
@@ -79,17 +143,27 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
       if (videoRef.current) t = videoRef.current.currentTime;
     } catch {}
     setActive(s);
-    setFailed(false);
+    setUseProxy(false);
+    setFailKind(null);
     setBuffering(true);
     requestAnimationFrame(() => {
       if (t > 0 && videoRef.current) {
         const seek = () => {
-          videoRef.current!.currentTime = t;
+          try {
+            videoRef.current!.currentTime = t;
+          } catch {}
           videoRef.current!.removeEventListener('loadedmetadata', seek);
         };
         videoRef.current.addEventListener('loadedmetadata', seek);
       }
     });
+  };
+
+  const retry = () => {
+    setFailKind(null);
+    setUseProxy(false);
+    setStarted(false);
+    setBuffering(false);
   };
 
   const onLoadedMetadata = () => {
@@ -122,6 +196,14 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
     return null;
   }
 
+  const showMx = getDeviceType() === 'android';
+  const failTitle =
+    failKind === 'network'
+      ? 'اتصال به سرور فایل برقرار نشد'
+      : failKind === 'unsupported'
+        ? 'مرورگر نمی‌تواند این فرمت را پخش کند'
+        : 'پخش این کیفیت ممکن نیست';
+
   return (
     <div className="glass rounded-3xl border border-border/60 overflow-hidden relative">
       <div className="absolute -top-10 -left-10 h-32 w-32 rounded-full bg-primary/10 blur-2xl pointer-events-none z-0" />
@@ -133,23 +215,37 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
 
         {/* Quality Chips */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
-          {playable.map((s) => (
-            <button
-              key={s.id ?? s.url}
-              onClick={() => switchQuality(s)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ring-1 ${
-                active?.url === s.url
-                  ? 'bg-gradient-to-l from-amber-500 to-rose-500 text-white shadow-lg shadow-primary/30 ring-transparent'
-                  : 'bg-secondary/50 text-muted-foreground hover:bg-secondary/80 hover:text-foreground ring-border/50'
-              }`}
-            >
-              {(s.quality || 'کیفیت').replace('کیفیت', '').trim() || 'پخش'}
-            </button>
-          ))}
+          {playable.map((s) => {
+            const label = (s.quality || 'پخش').replace('کیفیت', '').trim() || 'پخش';
+            const ext = needsExternalPlayer(s);
+            return (
+              <button
+                key={s.id ?? s.url}
+                onClick={() => switchQuality(s)}
+                title={ext ? 'احتمالاً فقط با VLC پخش می‌شود' : label}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ring-1 flex items-center gap-1.5 ${
+                  active?.url === s.url
+                    ? 'bg-gradient-to-l from-amber-500 to-rose-500 text-white shadow-lg shadow-primary/30 ring-transparent'
+                    : 'bg-secondary/50 text-muted-foreground hover:bg-secondary/80 hover:text-foreground ring-border/50'
+                }`}
+              >
+                {label}
+                {ext && (
+                  <span
+                    className={`rounded-full px-1.5 py-px text-[9px] ${
+                      active?.url === s.url ? 'bg-white/25 text-white' : 'bg-amber-500/15 text-amber-400'
+                    }`}
+                  >
+                    VLC
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/70 ring-1 ring-border/40 group">
-          {!started && !failed && (
+          {!started && !failKind && (
             <button
               onClick={() => {
                 setStarted(true);
@@ -171,10 +267,15 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
                 </span>
               </span>
               <span className="relative text-sm font-bold text-white drop-shadow">پخش {title}</span>
+              {active && needsExternalPlayer(active) && (
+                <span className="relative text-[11px] text-amber-300/90">
+                  این کیفیت در مرورگر پخش نمی‌شود — با VLC تماشا کنید
+                </span>
+              )}
             </button>
           )}
 
-          {started && !failed && (
+          {started && !failKind && (
             <>
               <video
                 ref={videoRef}
@@ -183,7 +284,6 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
                 poster={poster}
                 controls
                 controlsList="nodownload"
-                disablePictureInPicture={false}
                 playsInline
                 preload="metadata"
                 className="w-full h-full"
@@ -203,32 +303,82 @@ export function OnlinePlayer({ title, poster, sources, storageKey }: OnlinePlaye
             </>
           )}
 
-          {failed && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6 bg-black/60">
-              <AlertTriangle className="h-10 w-10 text-amber-400" />
-              <p className="text-sm text-white font-bold">پخش این کیفیت ممکن نیست</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                کیفیت دیگری را امتحان کنید، از دکمه «تماشا با VLC» استفاده کنید<br />
-                یا فیلم را دانلود کرده و آفلاین تماشا کنید
-              </p>
-              <button
-                onClick={() => {
-                  setFailed(false);
-                  setStarted(false);
-                  setUseProxy(false);
-                  setActive(pickDefault());
-                }}
-                className="inline-flex items-center gap-1.5 mt-1 px-4 py-2 rounded-full bg-secondary/60 hover:bg-secondary text-xs font-bold text-foreground ring-1 ring-border/50 transition-colors"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                تلاش مجدد
-              </button>
+          {failKind && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 text-center px-5 py-4 bg-black/70 overflow-y-auto">
+              <AlertTriangle className="h-9 w-9 text-amber-400 shrink-0" />
+              <p className="text-sm text-white font-bold">{failTitle}</p>
+              {isMixedBlocked ? (
+                <p className="text-[11px] text-amber-200/90 leading-relaxed max-w-md">
+                  مرورگر شما اجازه پخش مستقیم فایل‌های رمزنگاری‌نشده (http) را در صفحه امن نمی‌دهد.
+                  لینک را کپی کنید یا با VLC / MX Player تماشا کنید.
+                </p>
+              ) : (
+                <p className="text-[11px] text-muted-foreground leading-relaxed max-w-md">
+                  کیفیت دیگری را امتحان کنید یا از روش‌های زیر برای تماشا استفاده کنید
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
+                <Button
+                  onClick={retry}
+                  size="sm"
+                  className="rounded-full bg-gradient-to-l from-amber-500 to-rose-500 text-white text-xs font-bold"
+                >
+                  <RefreshCw className="ml-1.5 h-3.5 w-3.5" />
+                  تلاش مجدد
+                </Button>
+                {active && (
+                  <>
+                    <Button
+                      onClick={() => copyText(active.url)}
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full text-xs"
+                    >
+                      <Copy className="ml-1.5 h-3.5 w-3.5" />
+                      کپی لینک
+                    </Button>
+                    <Button asChild size="sm" variant="outline" className="rounded-full text-xs">
+                      <a
+                        href={'vlc://' + active.url}
+                        target={!isWebView() ? '_blank' : undefined}
+                        rel="noopener noreferrer"
+                      >
+                        <Clapperboard className="ml-1.5 h-3.5 w-3.5" />
+                        تماشا با VLC
+                      </a>
+                    </Button>
+                    {showMx && (
+                      <Button asChild size="sm" variant="outline" className="rounded-full text-xs">
+                        <a
+                          href={mxPlayerIntent(active.url, title)}
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                          MX Player
+                        </a>
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => triggerDownload(active.url)}
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full text-xs"
+                    >
+                      <Download className="ml-1.5 h-3.5 w-3.5" />
+                      دانلود
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
 
-        <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
-          در صورت بافر شدن، چند لحظه صبر کنید یا کیفیت پایینتر را انتخاب کنید. محل تماشای شما بهصورت خودکار ذخیره میشود.
+        <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed flex items-start gap-1.5">
+          <Info className="h-3.5 w-3.5 shrink-0 mt-px" />
+          <span>
+            بهترین کیفیت سازگار به‌صورت خودکار انتخاب می‌شود. کیفیت‌های دارای برچسب VLC (معمولاً x265 و MKV) در مرورگر پخش نمی‌شوند. محل تماشای شما ذخیره می‌شود.
+          </span>
         </p>
       </div>
     </div>

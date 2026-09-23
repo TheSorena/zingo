@@ -4,32 +4,13 @@ import { useEffect, useState } from "react";
 import { MobileNav } from "../../components/mobile-nav";
 import Image from "next/image";
 import { Button } from "../../components/ui/button";
-import { Play, Download, Star, Clock, Calendar, Copy, Video, Eye, Globe2 } from "lucide-react";
-import Link from "next/link";
+import { Star, Clock, Calendar, Globe2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../../components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../../components/ui/alert-dialog";
-import { toast } from "sonner";
-import { isChromeBrowser, getDownloadMessage, triggerDownload, isWebView } from "../../lib/utils";
 import { ShareButton } from "../../components/share-button";
 import { FavoriteButton } from "../../components/favorite-button";
 import { CommentSection } from "../../components/comment-section";
 import { OnlinePlayer } from "../../components/online-player";
+import { SourceRow } from "../../components/source-row";
 
 interface MovieDetails {
   id: number;
@@ -49,43 +30,8 @@ interface MovieDetails {
 
 export default function MoviePage() {
   const [movie, setMovie] = useState<MovieDetails | null>(null);
-  const [vlcSourceId, setVlcSourceId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showAlert, setShowAlert] = useState(false);
-  const [currentUrl, setCurrentUrl] = useState("");
   const router = useRouter();
-
-  const handleDownload = (e: React.MouseEvent, url: string) => {
-    e.preventDefault();
-
-    if (isChromeBrowser()) {
-      setCurrentUrl(url);
-      setShowAlert(true);
-      return;
-    }
-
-    triggerDownload(url);
-  };
-
-  const copyToClipboard = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("لینک با موفقیت کپی شد", {
-        description: "لینک در کلیپ‌بورد شما ذخیره شد",
-        duration: 3000,
-        position: "top-center",
-        className: "bg-green-500/10 border-green-500/20 text-green-500",
-        icon: <Copy className="w-5 h-5" />,
-      });
-    } catch (err) {
-      toast.error("خطا در کپی لینک", {
-        description: "لطفاً دوباره تلاش کنید",
-        duration: 3000,
-        position: "top-center",
-        className: "bg-red-500/10 border-red-500/20 text-red-500",
-      });
-    }
-  };
 
   useEffect(() => {
     try {
@@ -276,108 +222,25 @@ export default function MoviePage() {
               </div>
             )}
 
-            {/* Download/Watch Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-              {movie.sources?.map((source) => (
-                <div key={source.id} className="flex flex-col gap-2.5">
-                  <Link href={source.url} onClick={(e) => handleDownload(e, source.url)} className="block">
-                    <Button
-                      className="group relative w-full overflow-hidden rounded-full bg-gradient-to-l from-amber-500 to-rose-500 py-6 text-white shadow-xl shadow-primary/25 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/40 text-sm font-bold"
-                      variant="ghost"
-                    >
-                      <span className="absolute inset-0 overflow-hidden rounded-full">
-                        <span className="absolute inset-y-0 w-1/3 -left-1/3 bg-white/25 blur-md -skew-x-12 translate-x-0 transition-transform duration-700 group-hover:translate-x-[400%]" />
-                      </span>
-                      {!source.quality || source.quality.includes("تیزر") ? (
-                        <>
-                          <Play className="ml-2 w-4 h-4 fill-current" />
-                          دانلود تریلر
-                        </>
-                      ) : (
-                        <>
-                          <Download className="ml-2 w-4 h-4" />
-                          دانلود {source.quality}
-                        </>
-                      )}
-                    </Button>
-                  </Link>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => copyToClipboard(source.url)}
-                      className="flex-1 rounded-full bg-muted/60 backdrop-blur-sm hover:bg-muted/80 text-muted-foreground text-sm ring-1 ring-border/50"
-                      variant="ghost"
-                    >
-                      <Copy className="ml-2 w-4 h-4" />
-                      کپی لینک
-                    </Button>
-                    {!source.quality?.includes("تیزر") && (
-                      <Dialog
-                        open={vlcSourceId === source.id}
-                        onOpenChange={(open) => setVlcSourceId(open ? source.id : null)}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                            className="flex-1 rounded-full bg-muted/60 backdrop-blur-sm hover:bg-muted/80 text-muted-foreground text-sm ring-1 ring-border/50"
-                            variant="ghost"
-                          >
-                            <Video className="ml-2 w-4 h-4" />
-                            پخش با VLC
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle className="text-right mt-5">راهنمای پخش با VLC</DialogTitle>
-                            <DialogDescription className="space-y-4 text-right">
-                              <p>برای پخش فیلم با VLC:</p>
-                              <ol className="list-decimal list-inside space-y-2 text-right">
-                                <li>ابتدا VLC را از سایت رسمی دانلود و نصب کنید</li>
-                                <li>لینک زیر را کپی کنید</li>
-                                <li>VLC را باز کنید</li>
-                                <li>از منوی Media گزینه Open Network Stream را انتخاب کنید</li>
-                                <li>لینک کپی شده را در قسمت URL وارد کنید</li>
-                                <li>روی دکمه Play کلیک کنید</li>
-                                <p className="text-blue-500 mt-2">
-                                  توجه !!
-                                  دکمه‌ی تماشا با VLC ممکن است به خوبی کار نکند !
-                                </p>
-                              </ol>
-                              <div className="flex gap-2 mt-4">
-                                <Button
-                                  onClick={() => copyToClipboard(source.url)}
-                                  className="flex-1"
-                                >
-                                  <Copy className="ml-2 w-4 h-4" />
-                                  کپی لینک
-                                </Button>
-
-                                <Button className="flex-1" asChild>
-                                  <a
-                                    href={'vlc://' + source.url}
-                                    target={!isWebView() ? '_blank' : undefined}
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Eye className="ml-2 w-4 h-4" />
-                                    تماشا با VLC
-                                  </a>
-                                </Button>
-
-                                <Button
-                                  onClick={() => window.open("https://www.videolan.org/vlc/", "_blank")}
-                                  className="flex-1"
-                                  variant="outline"
-                                >
-                                  دانلود VLC
-                                </Button>
-                              </div>
-                            </DialogDescription>
-                          </DialogHeader>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </div>
+            {/* Download Box */}
+            {movie.sources && movie.sources.length > 0 && (
+              <div className="glass rounded-3xl border border-border/60 p-4 md:p-5 mb-8 relative overflow-hidden">
+                <div className="absolute -top-10 -left-10 h-32 w-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="relative pr-4 text-xl font-bold text-foreground before:absolute before:right-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-1.5 before:rounded-full before:bg-gradient-to-b before:from-amber-400 before:to-rose-500">
+                    باکس دانلود
+                  </h2>
+                  <span className="text-[11px] font-bold bg-secondary/60 ring-1 ring-border/50 rounded-full px-2.5 py-1 text-muted-foreground">
+                    {movie.sources.length} کیفیت
+                  </span>
                 </div>
-              ))}
-            </div>
+                <div className="grid gap-2">
+                  {movie.sources.map((source) => (
+                    <SourceRow key={source.id} source={source} />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Description */}
             <div className="glass p-5 md:p-6 rounded-3xl border border-border/60 relative overflow-hidden">
@@ -398,28 +261,6 @@ export default function MoviePage() {
       </main>
 
       <MobileNav />
-
-      <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-right">دانلود در مرورگر کروم</AlertDialogTitle>
-            <AlertDialogDescription className="text-right whitespace-pre-line mt-4 leading-relaxed">
-              {getDownloadMessage()}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="sm:justify-start">
-            <AlertDialogAction 
-              onClick={() => {
-                copyToClipboard(currentUrl);
-                setShowAlert(false);
-              }}
-              className="w-full sm:w-auto"
-            >
-              کپی لینک دانلود
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
