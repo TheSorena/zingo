@@ -14,6 +14,27 @@ import {
   Captions,
   Upload,
 } from 'lucide-react';
+import {
+  probeMkv,
+  fetchSubtitleWindow,
+  pickTrack,
+  type MkvMeta,
+} from '../lib/mkv-subs';
+
+const metaCache = new Map<string, Promise<MkvMeta>>();
+
+/**
+ * Same-origin range fetch through /api/mkv-range so plain-http file hosts
+ * are reachable without mixed-content blocks (WebView + browsers).
+ */
+async function apiRangeFetch(url: string, headers?: Record<string, string>): Promise<Response> {
+  const m = /bytes=(\d+)-(\d+)/.exec(headers?.Range || '');
+  const start = m ? Number(m[1]) : 0;
+  const len = m ? Number(m[2]) - Number(m[1]) + 1 : 2 * 1024 * 1024;
+  return fetch(
+    `/api/mkv-range?url=${encodeURIComponent(url)}&start=${start}&len=${len}`
+  );
+}
 
 interface SmartPlayerProps {
   src: string;
@@ -73,7 +94,18 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   const [trackUrl, setTrackUrl] = useState<string | null>(null);
   const [ccOn, setCcOn] = useState(false);
   const [posterOk, setPosterOk] = useState(true);
+  const [subAuto, setSubAuto] = useState<'idle' | 'loading' | 'on' | 'error'>('idle');
+  const [subMsg, setSubMsg] = useState('');
+  const [subCount, setSubCount] = useState(0);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // auto-subtitle internals (embedded MKV subs)
+  const autoTrackRef = useRef<TextTrack | null>(null);
+  const addedCuesRef = useRef<Set<string>>(new Set());
+  const coveredRef = useRef({ from: 0, until: 0 });
+  const fetchingRef = useRef(false);
+  const metaRef = useRef<MkvMeta | null>(null);
+  const trackNumRef = useRef(0);
 
   // Load saved position once per content
   useEffect(() => {
@@ -98,6 +130,18 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   useEffect(() => {
     const v = videoRef.current;
     if (!v || !src) return;
+    // reset auto subtitles for the new source
+    try {
+      if (autoTrackRef.current) autoTrackRef.current.mode = 'disabled';
+    } catch {}
+    autoTrackRef.current = null;
+    addedCuesRef.current = new Set();
+    coveredRef.current = { from: 0, until: 0 };
+    fetchingRef.current = false;
+    metaRef.current = null;
+    setSubAuto('idle');
+    setSubMsg('');
+    setSubCount(0);
     try {
       pendingSeekRef.current = v.currentTime > 5 ? v.currentTime : 0;
     } catch {
@@ -262,6 +306,125 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     pokeControls();
   };
 
+  // ---- auto subtitles (embedded MKV SoftSub) ----
+  const addAutoCues = useCallback((cues: { start: number; end: number; text: string }[]) => {
+    const v = videoRef.current;
+    const track = autoTrackRef.current;
+    if (!v || !track) return;
+    let added = 0;
+    for (const c of cues) {
+      const key = `${c.start.toFixed(1)}|${c.text.slice(0, 24)}`;
+      if (addedCuesRef.current.has(key)) continue;
+      addedCuesRef.current.add(key);
+      try {
+        track.addCue(new VTTCue(c.start, Math.max(c.end, c.start + 0.5), c.text));
+        added++;
+      } catch {}
+    }
+    if (added > 0) {
+      setSubCount((n) => n + added);
+      try {
+        track.mode = 'showing';
+      } catch {}
+    }
+  }, []);
+
+  const fetchWindowAt = useCallback(
+    async (t: number) => {
+      const v = videoRef.current;
+      if (!v || !src || fetchingRef.current || !autoTrackRef.current || !metaRef.current) return;
+      fetchingRef.current = true;
+      try {
+        const w = await fetchSubtitleWindow(src, metaRef.current, trackNumRef.current, t, 180, apiRangeFetch);
+        addAutoCues(w.cues.filter((c) => c.start >= t - 15));
+        coveredRef.current = {
+          from: Math.min(coveredRef.current.from || Infinity, t),
+          until: Math.max(coveredRef.current.until, w.coveredUntilMs / 1000),
+        };
+      } catch {
+        // keep what we have; next timeupdate will retry once playback advances
+      } finally {
+        fetchingRef.current = false;
+      }
+    },
+    [src, addAutoCues]
+  );
+
+  const maybeFetchMore = useCallback(
+    (t: number) => {
+      if (subAuto !== 'on') return;
+      const { from, until } = coveredRef.current;
+      if (until === 0 || t < from - 5 || t > until - 45) {
+        void fetchWindowAt(t);
+      }
+    },
+    [subAuto, fetchWindowAt]
+  );
+
+  const enableAutoSubs = useCallback(async () => {
+    const v = videoRef.current;
+    if (!v || !src || subAuto === 'loading' || subAuto === 'on') return;
+    setSubAuto('loading');
+    setSubMsg('در حال آماده‌سازی زیرنویس...');
+    pokeControls();
+    try {
+      let p = metaCache.get(src);
+      if (!p) {
+        p = probeMkv(src, apiRangeFetch);
+        metaCache.set(src, p);
+      }
+      const meta = await p;
+      const track = pickTrack(meta.tracks);
+      if (!track) throw new Error('notrack');
+      metaRef.current = meta;
+      trackNumRef.current = track.num;
+      if (!autoTrackRef.current) {
+        try {
+          autoTrackRef.current = v.addTextTrack('subtitles', 'فارسی', 'fa');
+          autoTrackRef.current.mode = 'showing';
+        } catch {
+          throw new Error('track');
+        }
+      } else {
+        try {
+          autoTrackRef.current.mode = 'showing';
+        } catch {}
+      }
+      coveredRef.current = { from: 0, until: 0 };
+      await fetchWindowAt(v.currentTime || 0);
+      if (addedCuesRef.current.size === 0) {
+        // try a later window before giving up (subs may start late)
+        await fetchWindowAt(Math.max(60, v.currentTime || 0) + 300);
+      }
+      if (addedCuesRef.current.size === 0) throw new Error('empty');
+      setSubAuto('on');
+      setSubMsg('');
+      flashMsg('زیرنویس فارسی فعال شد');
+    } catch (e) {
+      const msg = (e as Error)?.message;
+      setSubAuto('error');
+      setSubMsg(
+        msg === 'notrack'
+          ? 'زیرنویس داخلی در این فایل پیدا نشد'
+          : 'خطا در خواندن زیرنویس — فایل .srt آپلود کنید'
+      );
+      setTimeout(() => {
+        setSubAuto((s) => (s === 'error' ? 'idle' : s));
+        setSubMsg('');
+      }, 4000);
+    }
+    pokeControls();
+  }, [src, subAuto, fetchWindowAt, pokeControls]);
+
+  const disableAutoSubs = useCallback(() => {
+    try {
+      if (autoTrackRef.current) autoTrackRef.current.mode = 'disabled';
+    } catch {}
+    setSubAuto('idle');
+    setSubMsg('');
+    pokeControls();
+  }, [pokeControls]);
+
   // ---- video events ----
   const onLoadedMetadata = () => {
     const v = videoRef.current;
@@ -292,6 +455,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     if (!v || seeking) return;
     try {
       setTime(v.currentTime);
+      maybeFetchMore(v.currentTime);
       const now = Date.now();
       if (now - lastSavedRef.current > 5000 && v.currentTime > 10) {
         lastSavedRef.current = now;
@@ -329,6 +493,12 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     setControls(true);
     try {
       localStorage.removeItem(`zingo-pos:${storageKey}`);
+    } catch {}
+  };
+
+  const onSeeked = () => {
+    try {
+      if (videoRef.current) maybeFetchMore(videoRef.current.currentTime);
     } catch {}
   };
 
@@ -398,6 +568,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
         onWaiting={onWaiting}
         onCanPlay={onCanPlay}
         onEnded={onEnded}
+        onSeeked={onSeeked}
         onError={onVideoError}
         onClick={togglePlay}
         onDoubleClick={toggleFs}
@@ -464,6 +635,22 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       {started && buffering && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
           <Loader2 className="h-12 w-12 animate-spin text-amber-400 drop-shadow-lg" />
+        </div>
+      )}
+
+      {/* Subtitle status line */}
+      {started && subMsg && (
+        <div className="absolute left-1/2 top-3 z-20 -translate-x-1/2">
+          <span
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ring-1 ${
+              subAuto === 'error'
+                ? 'bg-black/70 text-red-300 ring-red-400/30'
+                : 'bg-black/70 text-amber-300 ring-amber-400/30'
+            }`}
+          >
+            {subAuto === 'loading' && <Loader2 className="h-3 w-3 animate-spin" />}
+            {subMsg}
+          </span>
         </div>
       )}
 
@@ -554,6 +741,29 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
             </span>
 
             <span className="flex-1" />
+
+            {/* Auto embedded subtitle (SoftSub inside MKV) */}
+            <button
+              onClick={() => (subAuto === 'on' ? disableAutoSubs() : void enableAutoSubs())}
+              aria-label="زیرنویس خودکار"
+              title={
+                subAuto === 'on'
+                  ? `زیرنویس فارسی فعال (${subCount} خط) — بزن برای خاموش`
+                  : subAuto === 'loading'
+                    ? 'در حال آماده‌سازی زیرنویس...'
+                    : 'روشن کردن زیرنویس فارسی داخل فایل'
+              }
+              className={`flex h-9 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold transition-colors hover:bg-white/15 ${
+                subAuto === 'on' ? 'text-amber-300' : subAuto === 'error' ? 'text-red-300' : 'text-white/70'
+              }`}
+            >
+              {subAuto === 'loading' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Captions className="h-4 w-4" />
+              )}
+              زیرنویس
+            </button>
 
             {trackUrl ? (
               <button
