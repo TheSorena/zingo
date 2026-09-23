@@ -277,6 +277,7 @@ export default function SerieDetailPage({
                   serieTitle={serie.title}
                   poster={serie.image || serie.cover}
                   snapshot={serie}
+                  allSeasons={seasons}
                 />
               </TabsContent>
             ))}

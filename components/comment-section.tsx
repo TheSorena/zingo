@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck, BadgeCheck, Crown } from 'lucide-react';
+import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from './auth-provider';
 import { avatarGradient } from './account-button';
@@ -216,8 +216,8 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
                     <p className="text-sm font-bold truncate flex items-center gap-1.5">
                       {comment.name}
                       {comment.vip ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-px text-[10px] font-bold text-amber-300 ring-1 ring-amber-400/40">
-                          <Crown className="h-3 w-3" />
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-sky-500/15 px-1.5 py-px text-[10px] font-bold text-sky-400 ring-1 ring-sky-400/40">
+                          <BadgeCheck className="h-3 w-3 fill-sky-500/20" />
                           ویژه
                         </span>
                       ) : comment.member ? (

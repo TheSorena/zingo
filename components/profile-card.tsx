@@ -1,16 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { User, LogOut, Check, Cloud, Crown } from 'lucide-react';
+import { User, LogOut, Check, Cloud, BadgeCheck, History, Heart, Clock } from 'lucide-react';
 import { useAuth } from './auth-provider';
 import { AuthDialog } from './auth-dialog';
 import { AVATAR_GRADIENTS, avatarGradient } from './account-button';
+import { readHistory } from './smart-player';
+
+function useWatchStats() {
+  const [stats, setStats] = useState({ watching: 0, minutes: 0, favs: 0 });
+  useEffect(() => {
+    try {
+      const h = readHistory();
+      const minutes = Math.round(h.reduce((s, x) => s + (x.pos || 0), 0) / 60);
+      let favs = 0;
+      try {
+        const raw = localStorage.getItem('favorites');
+        const arr = raw ? JSON.parse(raw) : [];
+        favs = Array.isArray(arr) ? arr.length : 0;
+      } catch {}
+      setStats({ watching: h.length, minutes, favs });
+    } catch {}
+  }, []);
+  return stats;
+}
 
 export function ProfileCard() {
   const { user, loading, logout, setColor } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const stats = useWatchStats();
 
   return (
     <Card className="group hover:shadow-md transition-all duration-300 overflow-hidden">
@@ -59,8 +79,8 @@ export function ProfileCard() {
                 <p className="flex items-center gap-1.5 truncate text-lg font-extrabold">
                   {user.name}
                   {user.vip && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-300 ring-1 ring-amber-400/40">
-                      <Crown className="h-3 w-3" />
+                    <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2 py-0.5 text-[11px] font-bold text-sky-400 ring-1 ring-sky-400/40">
+                      <BadgeCheck className="h-3 w-3 fill-sky-500/20" />
                       ویژه
                     </span>
                   )}
@@ -102,6 +122,21 @@ export function ProfileCard() {
               <Cloud className="h-3.5 w-3.5 text-emerald-400" />
               علاقه‌مندی‌های شما با این حساب همگام‌سازی می‌شود
             </p>
+
+            {/* Watch stats */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'در حال تماشا', value: stats.watching, icon: History },
+                { label: 'دقیقه تماشا', value: stats.minutes, icon: Clock },
+                { label: 'علاقه‌مندی', value: stats.favs, icon: Heart },
+              ].map((s) => (
+                <div key={s.label} className="rounded-2xl bg-muted/50 p-3 text-center ring-1 ring-border/50">
+                  <s.icon className="mx-auto h-4 w-4 text-amber-400" />
+                  <p className="mt-1 text-lg font-extrabold tabular-nums">{s.value}</p>
+                  <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </CardContent>

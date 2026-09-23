@@ -13,6 +13,8 @@ import {
   RotateCw,
   Captions,
   Upload,
+  Timer,
+  SkipForward,
 } from 'lucide-react';
 import {
   probeMkv,
@@ -74,6 +76,9 @@ interface SmartPlayerProps {
     image: string;
     snapshot: unknown;
   };
+  /** Next episode (series binge): title + callback to play it */
+  nextTitle?: string;
+  onNext?: () => void;
 }
 
 export interface HistoryEntry {
@@ -136,7 +141,7 @@ function fmt(t: number): string {
  * The <video> element stays mounted for life — source switches never
  * remount it, so exiting fullscreen or changing quality can't glitch.
  */
-export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFatal, history }: SmartPlayerProps) {
+export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFatal, history, nextTitle, onNext }: SmartPlayerProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -171,6 +176,14 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   const [subDelay, setSubDelay] = useState(0);
   const delayRef = useRef(0);
   const rawCuesRef = useRef<{ start: number; end: number; text: string }[]>([]);
+  // autoplay next episode + sleep timer
+  const [ended, setEnded] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [autoplay, setAutoplay] = useState(true);
+  const [sleepMin, setSleepMin] = useState(0);
+  const sleepEndRef = useRef(0);
+  const countTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const speedRef = useRef(0);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // auto-subtitle internals (embedded MKV subs)
@@ -183,18 +196,33 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   const trackNumRef = useRef(0);
   const autoTriedRef = useRef(false);
 
-  // Load saved position once per content
+  // Load saved position + prefs once per content
   useEffect(() => {
     hasPlayedRef.current = false;
     firstErrorFiredRef.current = false;
     retryingRef.current = false;
     pendingSeekRef.current = 0;
+    setEnded(false);
+    setCountdown(null);
+    if (countTimer.current) {
+      clearInterval(countTimer.current);
+      countTimer.current = null;
+    }
     try {
       const saved = parseFloat(localStorage.getItem(`zingo-pos:${storageKey}`) || '0');
       resumeAtRef.current = saved > 30 ? saved : 0;
     } catch {
       resumeAtRef.current = 0;
     }
+    try {
+      setAutoplay(localStorage.getItem('zingo-autoplay') !== '0');
+    } catch {}
+    try {
+      const sp = parseInt(localStorage.getItem('zingo-speed') || '0', 10);
+      const idx = Number.isFinite(sp) ? Math.max(0, Math.min(SPEEDS.length - 1, sp)) : 0;
+      speedRef.current = idx;
+      setSpeedIdx(idx);
+    } catch {}
     setStarted(false);
     setPlaying(false);
     setTime(0);
@@ -342,12 +370,33 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   const cycleSpeed = () => {
     const next = (speedIdx + 1) % SPEEDS.length;
     setSpeedIdx(next);
+    speedRef.current = next;
     try {
+      localStorage.setItem('zingo-speed', String(next));
       if (videoRef.current) videoRef.current.playbackRate = SPEEDS[next];
     } catch {}
     flashMsg(`سرعت ${SPEEDS[next]}x`);
     pokeControls();
   };
+
+  const SLEEP_STEPS = [0, 15, 30, 45, 60];
+
+  const cycleSleep = () => {
+    const i = SLEEP_STEPS.indexOf(sleepMin);
+    const next = SLEEP_STEPS[(i + 1) % SLEEP_STEPS.length];
+    setSleepMin(next);
+    sleepEndRef.current = next > 0 ? Date.now() + next * 60000 : 0;
+    flashMsg(next > 0 ? `تایمر خواب: ${next} دقیقه` : 'تایمر خواب خاموش شد');
+    pokeControls();
+  };
+
+  const cancelCountdown = useCallback(() => {
+    if (countTimer.current) {
+      clearInterval(countTimer.current);
+      countTimer.current = null;
+    }
+    setCountdown(null);
+  }, []);
 
   const toggleMute = () => {
     const v = videoRef.current;
@@ -589,6 +638,9 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     const v = videoRef.current;
     if (!v) return;
     try {
+      v.playbackRate = SPEEDS[speedRef.current] || 1;
+    } catch {}
+    try {
       setDur(v.duration || 0);
       let target = 0;
       if (pendingSeekRef.current > 0) {
@@ -615,6 +667,13 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     try {
       setTime(v.currentTime);
       maybeFetchMore(v.currentTime);
+      // sleep timer
+      if (sleepEndRef.current > 0 && Date.now() >= sleepEndRef.current) {
+        sleepEndRef.current = 0;
+        setSleepMin(0);
+        v.pause();
+        flashMsg('تایمر خواب: پخش متوقف شد');
+      }
       const now = Date.now();
       if (now - lastSavedRef.current > 5000 && v.currentTime > 10) {
         lastSavedRef.current = now;
@@ -677,6 +736,30 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       localStorage.removeItem(`zingo-pos:${storageKey}`);
     } catch {}
     dropHistory(storageKey);
+    // autoplay next episode (binge)
+    if (onNext && nextTitle) {
+      setEnded(true);
+      try {
+        if (localStorage.getItem('zingo-autoplay') !== '0') {
+          setCountdown(5);
+          if (countTimer.current) clearInterval(countTimer.current);
+          countTimer.current = setInterval(() => {
+            setCountdown((c) => {
+              if (c === null) return null;
+              if (c <= 1) {
+                if (countTimer.current) {
+                  clearInterval(countTimer.current);
+                  countTimer.current = null;
+                }
+                setTimeout(() => onNext(), 50);
+                return null;
+              }
+              return c - 1;
+            });
+          }, 1000);
+        }
+      } catch {}
+    }
   };
 
   const onSeeked = () => {
@@ -847,6 +930,62 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
         </div>
       )}
 
+      {/* Next-episode autoplay overlay */}
+      {ended && onNext && nextTitle && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/80 px-6 text-center">
+          <p className="text-[11px] font-bold text-amber-300">تمام شد</p>
+          <p className="text-sm font-extrabold text-white line-clamp-2">قسمت بعد: {nextTitle}</p>
+          {countdown !== null ? (
+            <>
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-l from-amber-500 to-rose-500 text-xl font-extrabold text-white shadow-2xl tabular-nums">
+                {countdown}
+              </span>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button
+                  onClick={() => {
+                    cancelCountdown();
+                    onNext();
+                  }}
+                  className="flex items-center gap-1.5 rounded-full bg-gradient-to-l from-amber-500 to-rose-500 px-5 py-2 text-xs font-bold text-white shadow-lg"
+                >
+                  <SkipForward className="h-3.5 w-3.5 fill-current" />
+                  الان پخش کن
+                </button>
+                <button
+                  onClick={cancelCountdown}
+                  className="rounded-full bg-white/10 px-5 py-2 text-xs font-bold text-white ring-1 ring-white/25 hover:bg-white/20"
+                >
+                  انصراف
+                </button>
+              </div>
+            </>
+          ) : (
+            <button
+              onClick={onNext}
+              className="flex items-center gap-1.5 rounded-full bg-gradient-to-l from-amber-500 to-rose-500 px-5 py-2 text-xs font-bold text-white shadow-lg"
+            >
+              <Play className="h-3.5 w-3.5 fill-current" />
+              پخش قسمت بعد
+            </button>
+          )}
+          <label className="flex cursor-pointer items-center gap-2 text-[11px] text-white/70 select-none">
+            <input
+              type="checkbox"
+              checked={autoplay}
+              onChange={(e) => {
+                setAutoplay(e.target.checked);
+                try {
+                  localStorage.setItem('zingo-autoplay', e.target.checked ? '1' : '0');
+                } catch {}
+                if (!e.target.checked) cancelCountdown();
+              }}
+              className="h-4 w-4 accent-amber-500"
+            />
+            پخش خودکار قسمت بعد
+          </label>
+        </div>
+      )}
+
       {/* Controls */}
       {started && (
         <div
@@ -1013,6 +1152,22 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
               className="h-9 rounded-full px-2 text-[11px] font-bold text-white/90 transition-colors hover:bg-white/15"
             >
               {SPEEDS[speedIdx]}x
+            </button>
+
+            <button
+              onClick={cycleSleep}
+              aria-label="تایمر خواب"
+              title={sleepMin > 0 ? `تایمر خواب: ${sleepMin} دقیقه (بزن برای تغییر)` : 'تایمر خواب (توقف خودکار پخش)'}
+              className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-white/15 ${
+                sleepMin > 0 ? 'text-amber-300' : 'text-white/70'
+              }`}
+            >
+              <Timer className="h-5 w-5" />
+              {sleepMin > 0 && (
+                <span className="absolute -bottom-0.5 rounded-full bg-amber-500 px-1 text-[8px] font-extrabold leading-3 text-black tabular-nums">
+                  {sleepMin}
+                </span>
+              )}
             </button>
 
             <button

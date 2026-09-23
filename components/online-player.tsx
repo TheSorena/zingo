@@ -28,6 +28,8 @@ interface OnlinePlayerProps {
   sources: PlayerSource[];
   storageKey: string;
   history?: Omit<HistoryEntry, 'key' | 'pos' | 'dur' | 'at'>;
+  nextTitle?: string;
+  onNext?: () => void;
 }
 
 function scoreSource(s: PlayerSource): number {
@@ -51,7 +53,7 @@ const proxyUrl = (url: string) =>
 // NOTE: sources live on plain-http file servers; forcing https breaks them.
 // Inside the Android WebView we enable mixed-content compatibility mode,
 // so the original scheme must be preserved here.
-export function OnlinePlayer({ title, poster, sources, storageKey, history }: OnlinePlayerProps) {
+export function OnlinePlayer({ title, poster, sources, storageKey, history, nextTitle, onNext }: OnlinePlayerProps) {
   const playable = useMemo(
     () =>
       (sources || [])
@@ -154,6 +156,8 @@ export function OnlinePlayer({ title, poster, sources, storageKey, history }: On
             poster={poster}
             storageKey={storageKey}
             history={history}
+            nextTitle={nextTitle}
+            onNext={onNext}
             onFirstError={handleFirstError}
             onFatal={() => setFatal(true)}
           />

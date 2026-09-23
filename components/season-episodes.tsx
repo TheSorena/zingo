@@ -20,13 +20,14 @@ interface SeasonEpisodesProps {
   serieTitle: string;
   poster: string;
   snapshot?: unknown;
+  allSeasons?: SerieSeason[];
 }
 
 /**
  * One season's episode list: search filter for long seasons + compact
  * episode boxes + a SINGLE shared player dialog (not one per episode).
  */
-export function SeasonEpisodes({ season, serieId, serieTitle, poster, snapshot }: SeasonEpisodesProps) {
+export function SeasonEpisodes({ season, serieId, serieTitle, poster, snapshot, allSeasons }: SeasonEpisodesProps) {
   const [query, setQuery] = useState('');
   const [playing, setPlaying] = useState<SerieEpisode | null>(null);
   const [visible, setVisible] = useState(30);
@@ -44,6 +45,21 @@ export function SeasonEpisodes({ season, serieId, serieTitle, poster, snapshot }
   }, [query, season.id]);
 
   const shown = filtered.slice(0, visible);
+
+  // next episode for autoplay (same season, else first episode of next season)
+  const nextEpisode: SerieEpisode | null = useMemo(() => {
+    if (!playing) return null;
+    const eps = season.episodes || [];
+    const idx = eps.findIndex((e) => e.id === playing.id);
+    if (idx >= 0 && idx + 1 < eps.length) return eps[idx + 1];
+    if (allSeasons && allSeasons.length) {
+      const sIdx = allSeasons.findIndex((s) => s.id === season.id);
+      for (let i = sIdx + 1; i < allSeasons.length; i++) {
+        if (allSeasons[i]?.episodes?.length) return allSeasons[i].episodes[0];
+      }
+    }
+    return null;
+  }, [playing, season, allSeasons]);
 
   return (
     <>
@@ -117,6 +133,8 @@ export function SeasonEpisodes({ season, serieId, serieTitle, poster, snapshot }
                 image: poster,
                 snapshot: snapshot ?? null,
               }}
+              nextTitle={nextEpisode ? nextEpisode.title : undefined}
+              onNext={nextEpisode ? () => setPlaying(nextEpisode) : undefined}
             />
           )}
         </DialogContent>

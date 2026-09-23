@@ -30,6 +30,7 @@ const SESSION_TTL_S = 30 * 24 * 60 * 60;
 const userKey = (id: string) => `u:id:${id}`;
 const nameKey = (normalized: string) => `u:name:${normalized}`;
 const favKey = (id: string) => `u:fav:${id}`;
+const allUsersKey = 'u:all';
 
 const enc = new TextEncoder();
 
@@ -140,6 +141,9 @@ export async function createUser(
   try {
     await redis.incr(userCountKey);
   } catch {}
+  try {
+    await redis.sadd(allUsersKey, id);
+  } catch {}
   const { pass: _p, ...pub } = user;
   return { user: { ...pub, vip: false } };
 }
@@ -192,27 +196,42 @@ export async function getUserCount(): Promise<number> {
   return 0;
 }
 
-/** Paginated admin user list (newest heuristic via scan order isn't guaranteed). */
+/** Admin user list — SET-based (deterministic), SCAN as fallback. */
 export async function listUsers(limit = 200): Promise<PublicUser[]> {
   if (!redis) return [];
+  const ids = new Set<string>();
   try {
-    const out: PublicUser[] = [];
-    let cursor: string | number = 0;
-    do {
-      const [next, keys] = await redis.scan(cursor, { match: 'u:id:*', count: 100 });
-      cursor = next as string | number;
-      for (const key of keys as string[]) {
-        if (out.length >= limit) break;
-        try {
-          const stored = await redis.hgetall<Record<string, string>>(key);
-          if (stored && stored.id) out.push(toPublic(stored));
-        } catch {}
-      }
-    } while ((cursor !== 0 && cursor !== '0') && out.length < limit);
-    return out.sort((a, b) => b.createdAt - a.createdAt);
-  } catch {
-    return [];
+    const members = await redis.smembers<string[]>(allUsersKey);
+    for (const id of members || []) {
+      if (typeof id === 'string' && id) ids.add(id);
+      if (ids.size >= limit) break;
+    }
+  } catch {}
+  if (ids.size < limit) {
+    // fallback: key scan for users registered before the set existed
+    try {
+      let cursor = '0';
+      do {
+        const [next, keys] = await redis.scan(cursor, { match: 'u:id:*', count: 100 });
+        cursor = String(next);
+        for (const key of (keys as string[]) || []) {
+          const m = /^u:id:(.+)$/.exec(key);
+          if (m && m[1]) ids.add(m[1]);
+          if (ids.size >= limit) break;
+        }
+      } while (cursor !== '0' && ids.size < limit);
+    } catch {}
   }
+  const out: PublicUser[] = [];
+  const idList = Array.from(ids);
+  for (let i = 0; i < idList.length && out.length < limit; i++) {
+    const id = idList[i];
+    try {
+      const u = await getUserById(id);
+      if (u) out.push(u);
+    } catch {}
+  }
+  return out.sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function createSessionToken(userId: string): Promise<string> {

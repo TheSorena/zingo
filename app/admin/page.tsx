@@ -112,15 +112,15 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: u.id, vip: !u.vip }),
       });
-      if (!res.ok) {
-        toast.error('خطا در به‌روزرسانی');
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.user) {
+        toast.error(data?.error || 'خطا در به‌روزرسانی');
         return;
       }
-      const data = await res.json();
       setUsers((prev) => prev.map((x) => (x.id === u.id ? data.user : x)));
       toast.success(data.user.vip ? `${u.name} عضو ویژه شد` : `ویژه بودن ${u.name} برداشته شد`);
     } catch {
-      toast.error('خطا در به‌روزرسانی');
+      toast.error('خطا در ارتباط با سرور');
     }
   };
 
