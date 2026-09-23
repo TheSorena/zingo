@@ -139,6 +139,17 @@ video::cue {
   .font-fa-clear {
     font-family: Tahoma, 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
   }
+  /* Persian headings: solid theme color (no gradient-clip) + zero
+     letter-spacing + roomy line box. Gradient text + tracking breaks
+     Arabic shaping in Chromium/WebView and drops dots (e.g. ق → ف). */
+  .heading-fa {
+    color: hsl(var(--primary));
+    font-weight: 700;
+    letter-spacing: 0 !important;
+    line-height: 1.9;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+  }
 }
 
 /* ===== Performance (lite) mode: html[data-perf="low"] =====

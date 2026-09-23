@@ -170,7 +170,7 @@ export default function FavoritesPage() {
           <div className="text-center space-y-4 max-w-2xl mx-auto">
             <div className="flex items-center justify-center gap-2 text-primary">
               <Heart className="h-8 w-8 text-red-500 animate-pulse" />
-              <h2 className="text-4xl font-bold tracking-tight text-gradient-zingo">
+              <h2 className="heading-fa text-4xl">
                 علاقه‌مندی‌های شما
               </h2>
             </div>

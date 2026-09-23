@@ -99,7 +99,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="text-center space-y-4 max-w-2xl mx-auto">
             <div className="flex items-center justify-center gap-2 text-primary">
               <Sparkles className="h-8 w-8 animate-pulse" />
-              <h2 className="text-4xl font-bold tracking-tight text-gradient-zingo">
+              <h2 className="heading-fa text-4xl">
                 جستجوی هوشمند
               </h2>
             </div>
