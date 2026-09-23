@@ -31,9 +31,25 @@ async function apiRangeFetch(url: string, headers?: Record<string, string>): Pro
   const m = /bytes=(\d+)-(\d+)/.exec(headers?.Range || '');
   const start = m ? Number(m[1]) : 0;
   const len = m ? Number(m[2]) - Number(m[1]) + 1 : 2 * 1024 * 1024;
-  return fetch(
+  const res = await fetch(
     `/api/mkv-range?url=${encodeURIComponent(url)}&start=${start}&len=${len}`
   );
+  if (!res.ok) throw new Error(`proxy ${res.status}`);
+  return res;
+}
+
+/**
+ * Direct first (user networks reach the file hosts; Vercel often doesn't),
+ * same-origin proxy as fallback.
+ */
+async function bestEffortRangeFetch(url: string, headers?: Record<string, string>): Promise<Response> {
+  try {
+    const res = await fetch(url, { headers });
+    if (res.ok || res.status === 206) return res;
+    throw new Error(`direct ${res.status}`);
+  } catch {
+    return apiRangeFetch(url, headers);
+  }
 }
 
 interface SmartPlayerProps {
@@ -335,7 +351,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       if (!v || !src || fetchingRef.current || !autoTrackRef.current || !metaRef.current) return;
       fetchingRef.current = true;
       try {
-        const w = await fetchSubtitleWindow(src, metaRef.current, trackNumRef.current, t, 180, apiRangeFetch);
+        const w = await fetchSubtitleWindow(src, metaRef.current, trackNumRef.current, t, 180, bestEffortRangeFetch);
         addAutoCues(w.cues.filter((c) => c.start >= t - 15));
         coveredRef.current = {
           from: Math.min(coveredRef.current.from || Infinity, t),
@@ -370,7 +386,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     try {
       let p = metaCache.get(src);
       if (!p) {
-        p = probeMkv(src, apiRangeFetch);
+        p = probeMkv(src, bestEffortRangeFetch);
         metaCache.set(src, p);
       }
       const meta = await p;
