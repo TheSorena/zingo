@@ -108,7 +108,7 @@ export default function SerieDetailPage({
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <div className="text-lg text-red-500">{error}</div>
         <Button onClick={() => router.push('/')}>
-          بازگشت به صفحه اضلی
+          بازگشت به صفحه اصلی
         </Button>
       </div>
     );

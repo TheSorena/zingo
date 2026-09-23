@@ -144,10 +144,10 @@
     @apply bg-gradient-to-l from-amber-200 via-orange-300 to-rose-300 bg-clip-text text-transparent;
   }
   .glass {
-    @apply bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60;
+    @apply bg-background/70 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60;
   }
   .glass-card {
-    @apply border border-border/60 bg-card/60 backdrop-blur-xl supports-[backdrop-filter]:bg-card/50;
+    @apply border border-border/60 bg-card/60 backdrop-blur-lg supports-[backdrop-filter]:bg-card/50;
   }
   .glow-amber {
     box-shadow: 0 0 30px -6px hsl(var(--primary) / 0.5);

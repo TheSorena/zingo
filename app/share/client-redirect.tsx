@@ -13,10 +13,7 @@ export function ClientRedirect({ type, content }: ClientRedirectProps) {
 
   useEffect(() => {
     try {
-      console.log('ClientRedirect: Saving content to localStorage', { type, contentId: content?.id });
-      
       if (!content) {
-        console.error('No content provided');
         router.push('/');
         return;
       }
@@ -24,7 +21,6 @@ export function ClientRedirect({ type, content }: ClientRedirectProps) {
       // Store the content in localStorage
       if (type === 'movie') {
         localStorage.setItem('selectedMovie', JSON.stringify(content));
-        console.log('Stored movie in localStorage, redirecting to /movie');
         router.push('/movie');
       } else {
         localStorage.setItem('selectedSerie', JSON.stringify(content));
@@ -34,7 +30,6 @@ export function ClientRedirect({ type, content }: ClientRedirectProps) {
           body: JSON.stringify(content),
           keepalive: true,
         }).catch(() => {});
-        console.log('Stored serie in localStorage, redirecting to /serie/' + content.id);
         router.push(`/serie/${content.id}`);
       }
     } catch (error) {

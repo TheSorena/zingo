@@ -161,19 +161,23 @@ async function getTopRatedSeries() {
 }
 
 export default async function Home() {
-  const newMovies = await getNewMovies();
-  const topRatedMovies = await getTopRatedMovies();
-  const newSeries = await getNewSeries();
-  const topRatedSeries = await getTopRatedSeries();
-  const bestSeries = await getBestSeries();
-  const updateSerie = await getUpdateSeries();
+  // All six lists in parallel — sequential awaits made home ~6x slower
+  const [newMovies, topRatedMovies, newSeries, topRatedSeries, bestSeries, updateSerie] =
+    await Promise.all([
+      getNewMovies(),
+      getTopRatedMovies(),
+      getNewSeries(),
+      getTopRatedSeries(),
+      getBestSeries(),
+      getUpdateSeries(),
+    ]);
 
   const heroMovie = newMovies?.[0] || topRatedMovies?.[0];
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Ambient Glow Background */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      {/* Ambient Glow Background (desktop only — big blurs cost mobile GPU frames) */}
+      <div className="pointer-events-none fixed inset-0 -z-10 hidden overflow-hidden md:block">
         <div className="absolute -top-48 right-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl animate-glow-pulse" />
         <div className="absolute top-1/3 -left-40 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
       </div>
@@ -231,7 +235,7 @@ export default async function Home() {
                     جدیدترین اضافه شده
                   </span>
                 </div>
-                <h2 className="mb-4 text-3xl md:text-5xl font-extrabold leading-[1.15] tracking-tight drop-shadow-lg">
+                <h2 className="mb-4 text-3xl md:text-5xl font-extrabold leading-[1.15] tracking-tight drop-shadow-lg line-clamp-2">
                   <span className="text-gradient-warm">{heroMovie.title}</span>
                 </h2>
                 <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
@@ -264,13 +268,13 @@ export default async function Home() {
         {/* Help Image for Mobile/Tablet */}
         <div className="lg:hidden mb-6">
           <LoadingLink href="/help" className="block transition-transform hover:scale-[1.01]">
-            <Image
+              <Image
               src="/help.jpg"
               alt="راهنمای استفاده"
               width={1200}
               height={300}
+              loading="lazy"
               className="w-full rounded-2xl object-cover ring-1 ring-border/50"
-              priority
             />
           </LoadingLink>
         </div>
