@@ -26,6 +26,9 @@ export const metadata: Metadata = {
   description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
   manifest: '/manifest.json',
   themeColor: '#0a0a0b',
+  // Explicit empty icon: overrides any cached legacy favicon in browsers.
+  // (No custom icon is shipped on purpose.)
+  icons: [{ rel: 'icon', url: 'data:,' }],
   keywords: ['movie', 'cinema', 'film', 'series', 'فیلم', 'سریال', 'سینما', 'زینگو'],
   authors: [{ name: 'Zingo' }],
   openGraph: {

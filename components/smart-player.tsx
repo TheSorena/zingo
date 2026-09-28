@@ -15,6 +15,7 @@ import {
   Upload,
   Timer,
   SkipForward,
+  Languages,
 } from 'lucide-react';
 import {
   probeMkv,
@@ -125,6 +126,43 @@ function dropHistory(key: string) {
 
 const SPEEDS = [1, 1.25, 1.5, 2];
 
+const AUDIO_LANG_FA: Record<string, string> = {
+  jpn: 'ژاپنی',
+  ja: 'ژاپنی',
+  eng: 'انگلیسی',
+  en: 'انگلیسی',
+  fas: 'فارسی',
+  per: 'فارسی',
+  fa: 'فارسی',
+  ara: 'عربی',
+  ar: 'عربی',
+  fre: 'فرانسوی',
+  fra: 'فرانسوی',
+  fr: 'فرانسوی',
+  ger: 'آلمانی',
+  deu: 'آلمانی',
+  de: 'آلمانی',
+  spa: 'اسپانیایی',
+  es: 'اسپانیایی',
+  kor: 'کره‌ای',
+  ko: 'کره‌ای',
+  chi: 'چینی',
+  zho: 'چینی',
+  zh: 'چینی',
+  hin: 'هندی',
+  hi: 'هندی',
+  tur: 'ترکی',
+  tr: 'ترکی',
+  rus: 'روسی',
+  ru: 'روسی',
+};
+
+function audioLabel(lang: string, label: string, index: number): string {
+  if (label && !/^track\s*\d*$/i.test(label)) return label;
+  const key = (lang || '').toLowerCase();
+  return AUDIO_LANG_FA[key] || (lang ? `${lang}` : `صدا ${index + 1}`);
+}
+
 function fmt(t: number): string {
   if (!isFinite(t) || t < 0) t = 0;
   const h = Math.floor(t / 3600);
@@ -184,6 +222,12 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   const sleepEndRef = useRef(0);
   const countTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const speedRef = useRef(0);
+  // audio tracks (dual-audio files, e.g. anime JP/EN)
+  const [audioOpts, setAudioOpts] = useState<{ index: number; label: string }[]>([]);
+  const [audioIdx, setAudioIdx] = useState(0);
+  // big center play/pause flash on tap
+  const [bigIcon, setBigIcon] = useState<'play' | 'pause' | null>(null);
+  const bigTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // auto-subtitle internals (embedded MKV subs)
@@ -256,6 +300,8 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     setSubAuto('idle');
     setSubMsg('');
     setSubCount(0);
+    setAudioOpts([]);
+    setAudioIdx(0);
     try {
       pendingSeekRef.current = v.currentTime > 5 ? v.currentTime : 0;
     } catch {
@@ -300,6 +346,10 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
         clearTimeout(flashTimer.current);
         flashTimer.current = null;
       }
+      if (bigTimer.current) {
+        clearTimeout(bigTimer.current);
+        bigTimer.current = null;
+      }
     };
   }, []);
 
@@ -322,6 +372,50 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     flashTimer.current = setTimeout(() => setFlash(null), 800);
   };
 
+  const flashBig = (which: 'play' | 'pause') => {
+    setBigIcon(which);
+    if (bigTimer.current) clearTimeout(bigTimer.current);
+    bigTimer.current = setTimeout(() => setBigIcon(null), 550);
+  };
+
+  const refreshAudioTracks = useCallback(() => {
+    try {
+      const v = videoRef.current as any;
+      const list = v?.audioTracks;
+      if (!list || list.length < 2) {
+        setAudioOpts([]);
+        return;
+      }
+      const opts: { index: number; label: string }[] = [];
+      for (let i = 0; i < list.length; i++) {
+        const t = list[i];
+        opts.push({ index: i, label: audioLabel(t.language || '', t.label || '', i) });
+        if (t.enabled) setAudioIdx(i);
+      }
+      setAudioOpts(opts);
+    } catch {
+      setAudioOpts([]);
+    }
+  }, []);
+
+  const cycleAudio = useCallback(() => {
+    try {
+      const v = videoRef.current as any;
+      const list = v?.audioTracks;
+      if (!list || list.length < 2) return;
+      setAudioIdx((prev) => {
+        const next = (prev + 1) % list.length;
+        for (let i = 0; i < list.length; i++) {
+          try {
+            list[i].enabled = i === next;
+          } catch {}
+        }
+        return next;
+      });
+      pokeControls();
+    } catch {}
+  }, [pokeControls]);
+
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -329,13 +423,16 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       setStarted(true);
       setBuffering(true);
       v.play().catch(() => setBuffering(false));
+      flashBig('play');
       pokeControls();
       return;
     }
     if (v.paused) {
       v.play().catch(() => {});
+      flashBig('play');
     } else {
       v.pause();
+      flashBig('pause');
     }
     pokeControls();
   }, [started, pokeControls]);
@@ -654,6 +751,14 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     try {
       v.playbackRate = SPEEDS[speedRef.current] || 1;
     } catch {}
+    refreshAudioTracks();
+    try {
+      const list = (v as any)?.audioTracks;
+      if (list) {
+        list.onaddtrack = () => refreshAudioTracks();
+        list.onremovetrack = () => refreshAudioTracks();
+      }
+    } catch {}
     try {
       setDur(v.duration || 0);
       let target = 0;
@@ -832,6 +937,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       ref={wrapRef}
       className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black ring-1 ring-border/40 select-none"
       onMouseMove={pokeControls}
+      onContextMenu={(e) => e.preventDefault()}
     >
       <video
         ref={videoRef}
@@ -884,19 +990,19 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
         </button>
       )}
 
-      {/* Side double-tap zones (±10s) once started */}
+      {/* Side tap zones: single tap = play/pause, double tap = ±10s */}
       {started && (
         <>
           <button
-            aria-label="ده ثانیه عقب"
+            aria-label="پخش/توقف و ده ثانیه عقب"
+            onClick={togglePlay}
             onDoubleClick={() => seekBy(-10)}
-            onClick={(e) => e.stopPropagation()}
             className="absolute inset-y-0 left-0 z-[5] w-1/4"
           />
           <button
-            aria-label="ده ثانیه جلو"
+            aria-label="پخش/توقف و ده ثانیه جلو"
+            onClick={togglePlay}
             onDoubleClick={() => seekBy(10)}
-            onClick={(e) => e.stopPropagation()}
             className="absolute inset-y-0 right-0 z-[5] w-1/4"
           />
         </>
@@ -907,6 +1013,19 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
           <span className="rounded-full bg-black/70 px-4 py-2 text-sm font-bold text-white ring-1 ring-white/20">
             {flash}
+          </span>
+        </div>
+      )}
+
+      {/* Big play/pause tap feedback */}
+      {bigIcon && started && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/60 text-white ring-1 ring-white/25">
+            {bigIcon === 'play' ? (
+              <Play className="ml-1 h-7 w-7 fill-current" />
+            ) : (
+              <Pause className="h-7 w-7 fill-current" />
+            )}
           </span>
         </div>
       )}
@@ -1106,6 +1225,23 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
             </span>
 
             <span className="flex-1" />
+
+            {/* Audio track (dual-audio files, e.g. anime) */}
+            {audioOpts.length > 1 && (
+              <button
+                onClick={() => {
+                  cycleAudio();
+                  const next = audioOpts[(audioIdx + 1) % audioOpts.length];
+                  if (next) flashMsg(`زبان: ${next.label}`);
+                }}
+                aria-label="زبان صوتی"
+                title={`زبان صوتی: ${audioOpts[audioIdx]?.label || ''}`}
+                className="flex h-9 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold text-amber-300 transition-colors hover:bg-white/15"
+              >
+                <Languages className="h-4 w-4" />
+                <span className="max-w-16 truncate">{audioOpts[audioIdx]?.label}</span>
+              </button>
+            )}
 
             {/* Auto embedded subtitle (SoftSub inside MKV) */}
             <button

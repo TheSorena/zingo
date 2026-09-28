@@ -161,6 +161,10 @@ export default function SettingsPage() {
                   );
                 })}
               </div>
+              <p className="mt-4 rounded-xl bg-muted/50 px-4 py-3 text-xs leading-relaxed text-muted-foreground ring-1 ring-border/50">
+                گزینه «تنظیمات سیستم» از تم خود مرورگر پیروی می‌کند. اگر می‌خواهید دقیقاً با سیستم‌عامل یکی باشد،
+                تم مرورگر (مثلاً کروم) را روی «پیش‌فرض دستگاه» بگذارید؛ سایت‌ها به تنظیم داخلی مرورگر دسترسی ندارند.
+              </p>
             </CardContent>
           </Card>
 
