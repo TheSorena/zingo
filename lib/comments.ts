@@ -18,6 +18,7 @@ export type CommentItem = {
 const dataKey = (id: string) => `c:data:${id}`;
 const listKey = (type: string, targetId: number) => `c:${type}:${targetId}`;
 const allKey = 'c:all';
+const userCommentsKey = (uid: string) => `c:user:${uid}`;
 
 export function validateComment(input: {
   name?: unknown;
@@ -54,6 +55,9 @@ export async function addComment(
       member: item.id,
     }),
     redis?.zadd(allKey, { score: item.createdAt, member: item.id }),
+    item.userId
+      ? redis?.zadd(userCommentsKey(item.userId), { score: item.createdAt, member: item.id })
+      : Promise.resolve(),
   ]);
 
   return item;
@@ -117,4 +121,19 @@ export async function addReply(id: string, reply: string): Promise<boolean> {
 export async function countComments(): Promise<number> {
   if (!redis) return 0;
   return redis.zcard(allKey);
+}
+
+export async function listUserComments(uid: string, limit = 5): Promise<CommentItem[]> {
+  if (!redis || !uid) return [];
+  try {
+    const client = redis;
+    const ids = await client.zrange<string[]>(userCommentsKey(uid), 0, limit - 1, { rev: true });
+    if (!ids.length) return [];
+    const entries = await Promise.all(ids.map((id) => client.hgetall<CommentItem>(dataKey(id))));
+    return entries
+      .filter((e): e is CommentItem => !!e && !!e.id)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  } catch {
+    return [];
+  }
 }

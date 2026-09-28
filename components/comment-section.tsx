@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck, BadgeCheck } from 'lucide-react';
+import { MessageSquare, Send, AlertTriangle, Eye, EyeOff, ShieldCheck, BadgeCheck, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from './auth-provider';
+import { AuthDialog } from './auth-dialog';
 import { avatarGradient } from './account-button';
 
 interface CommentItem {
@@ -51,6 +52,7 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
 
   const loadComments = useCallback(async () => {
     try {
@@ -123,6 +125,21 @@ export function CommentSection({ type, targetId }: CommentSectionProps) {
       </div>
 
       {/* Comment Form */}
+      {!user && (
+        <button
+          onClick={() => setLoginOpen(true)}
+          className="mb-3 flex w-full items-center justify-between gap-2 rounded-2xl bg-gradient-to-l from-amber-500/10 to-rose-500/10 px-4 py-2.5 text-xs ring-1 ring-primary/25 transition-all hover:from-amber-500/20 hover:to-rose-500/20"
+        >
+          <span className="text-muted-foreground">
+            با حساب کاربری نظر بده، <span className="font-bold text-emerald-400">بج عضو</span> بگیر و اسمت همیشه محفوظه
+          </span>
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-l from-amber-500 to-rose-500 px-3 py-1.5 font-bold text-white shadow">
+            <LogIn className="h-3.5 w-3.5" />
+            ورود
+          </span>
+        </button>
+      )}
+      <AuthDialog open={loginOpen} onOpenChange={setLoginOpen} />
       <form onSubmit={handleSubmit} className="glass rounded-3xl border border-border/60 p-4 md:p-5 mb-6 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           {user ? (

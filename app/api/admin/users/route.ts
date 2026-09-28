@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserCount, listUsers, setUserVip } from '../../../../lib/users';
+import { getSignupsToday, getUserCount, listUsers, setUserVip } from '../../../../lib/users';
 
 export const runtime = 'nodejs';
 
@@ -7,10 +7,14 @@ export const runtime = 'nodejs';
 
 export async function GET() {
   try {
-    const [users, counted] = await Promise.all([listUsers(200), getUserCount()]);
+    const [users, counted, signupsToday] = await Promise.all([
+      listUsers(200),
+      getUserCount(),
+      getSignupsToday(),
+    ]);
     const vip = users.filter((u) => u.vip).length;
     // counter started after launch — fall back to list length for older installs
-    return NextResponse.json({ users, total: counted || users.length, vip });
+    return NextResponse.json({ users, total: counted || users.length, vip, signupsToday });
   } catch (error) {
     console.error('admin users error:', error);
     return NextResponse.json({ error: 'خطا در دریافت کاربران' }, { status: 500 });

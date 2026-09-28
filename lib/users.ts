@@ -144,6 +144,12 @@ export async function createUser(
   try {
     await redis.sadd(allUsersKey, id);
   } catch {}
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const k = `u:count:${day}`;
+    await redis.incr(k);
+    await redis.expire(k, 30 * 24 * 3600);
+  } catch {}
   const { pass: _p, ...pub } = user;
   return { user: { ...pub, vip: false } };
 }
@@ -185,7 +191,6 @@ export async function setUserVip(id: string, vip: boolean): Promise<PublicUser |
   await redis.hset(userKey(id), { vip: vip ? 'true' : 'false' });
   return getUserById(id);
 }
-
 export async function getUserCount(): Promise<number> {
   if (!redis) return 0;
   try {
@@ -194,6 +199,60 @@ export async function getUserCount(): Promise<number> {
     if (typeof n === 'string') return Number(n) || 0;
   } catch {}
   return 0;
+}
+
+export async function getSignupsToday(): Promise<number> {
+  if (!redis) return 0;
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const n = await redis.get<number>(`u:count:${day}`);
+    if (typeof n === 'number') return n;
+    if (typeof n === 'string') return Number(n) || 0;
+  } catch {}
+  return 0;
+}
+
+// ---- site-wide notice (admin broadcast) ----
+export interface SiteNotice {
+  text: string;
+  until: number;
+  createdAt: number;
+}
+
+const noticeKey = 'site:notice';
+
+export async function getNotice(): Promise<SiteNotice | null> {
+  if (!redis) return null;
+  try {
+    const raw = await redis.get<string>(noticeKey);
+    if (!raw) return null;
+    const n = (typeof raw === 'string' ? JSON.parse(raw) : raw) as SiteNotice;
+    if (!n || !n.text || n.until < Date.now()) return null;
+    return n;
+  } catch {
+    return null;
+  }
+}
+
+export async function setNotice(text: string, days: number): Promise<SiteNotice | null> {
+  if (!redis) return null;
+  const clean = text.trim().slice(0, 200);
+  if (!clean) return null;
+  const d = Math.max(1, Math.min(30, Math.floor(days) || 7));
+  const notice: SiteNotice = { text: clean, until: Date.now() + d * 24 * 3600 * 1000, createdAt: Date.now() };
+  try {
+    await redis.set(noticeKey, JSON.stringify(notice));
+    return notice;
+  } catch {
+    return null;
+  }
+}
+
+export async function clearNotice(): Promise<void> {
+  if (!redis) return;
+  try {
+    await redis.del(noticeKey);
+  } catch {}
 }
 
 /** Admin user list — SET-based (deterministic), SCAN as fallback. */

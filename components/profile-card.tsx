@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { User, LogOut, Check, Cloud, BadgeCheck, History, Heart, Clock } from 'lucide-react';
+import { User, LogOut, Check, Cloud, BadgeCheck, History, Heart, Clock, Star, MessageSquare } from 'lucide-react';
 import { useAuth } from './auth-provider';
 import { AuthDialog } from './auth-dialog';
 import { AVATAR_GRADIENTS, avatarGradient } from './account-button';
 import { readHistory } from './smart-player';
 
 function useWatchStats() {
-  const [stats, setStats] = useState({ watching: 0, minutes: 0, favs: 0 });
+  const [stats, setStats] = useState({ watching: 0, minutes: 0, favs: 0, rated: 0 });
   useEffect(() => {
     try {
       const h = readHistory();
@@ -21,16 +21,39 @@ function useWatchStats() {
         const arr = raw ? JSON.parse(raw) : [];
         favs = Array.isArray(arr) ? arr.length : 0;
       } catch {}
-      setStats({ watching: h.length, minutes, favs });
+      setStats((prev) => ({ ...prev, watching: h.length, minutes, favs }));
     } catch {}
+    fetch('/api/ratings/mine')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && Array.isArray(d.items)) {
+          setStats((prev) => ({ ...prev, rated: d.items.length }));
+        }
+      })
+      .catch(() => {});
   }, []);
   return stats;
+}
+
+function useMyComments(enabled: boolean) {
+  const [items, setItems] = useState<{ id: string; type: string; text: string; createdAt: number }[]>([]);
+  useEffect(() => {
+    if (!enabled) return;
+    fetch('/api/comments/mine')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && Array.isArray(d.comments)) setItems(d.comments.slice(0, 3));
+      })
+      .catch(() => {});
+  }, [enabled]);
+  return items;
 }
 
 export function ProfileCard() {
   const { user, loading, logout, setColor } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const stats = useWatchStats();
+  const myComments = useMyComments(!!user);
 
   return (
     <Card className="group hover:shadow-md transition-all duration-300 overflow-hidden">
@@ -124,11 +147,12 @@ export function ProfileCard() {
             </p>
 
             {/* Watch stats */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {[
                 { label: 'در حال تماشا', value: stats.watching, icon: History },
                 { label: 'دقیقه تماشا', value: stats.minutes, icon: Clock },
                 { label: 'علاقه‌مندی', value: stats.favs, icon: Heart },
+                { label: 'امتیاز من', value: stats.rated, icon: Star },
               ].map((s) => (
                 <div key={s.label} className="rounded-2xl bg-muted/50 p-3 text-center ring-1 ring-border/50">
                   <s.icon className="mx-auto h-4 w-4 text-amber-400" />
@@ -137,6 +161,27 @@ export function ProfileCard() {
                 </div>
               ))}
             </div>
+
+            {/* My recent comments */}
+            {myComments.length > 0 && (
+              <div>
+                <p className="mb-2 flex items-center gap-1.5 text-sm font-bold">
+                  <MessageSquare className="h-4 w-4 text-amber-400" />
+                  نظرهای اخیر من
+                </p>
+                <div className="space-y-2">
+                  {myComments.map((c) => (
+                    <div key={c.id} className="rounded-2xl bg-muted/50 px-3 py-2 ring-1 ring-border/50">
+                      <p className="truncate text-xs text-foreground/90">{c.text}</p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground">
+                        {c.type === 'movie' ? 'فیلم' : 'سریال'} •{' '}
+                        {new Date(c.createdAt).toLocaleDateString('fa-IR')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

@@ -12,6 +12,7 @@ import { ShareButton } from "../../../components/share-button";
 import { FavoriteButton } from "../../../components/favorite-button";
 import { CommentSection } from "../../../components/comment-section";
 import { SeasonEpisodes } from "../../../components/season-episodes";
+import { RatingWidget } from "../../../components/rating-widget";
 
 async function getSerieSeasons(id: string) {
   try {
@@ -286,6 +287,9 @@ export default function SerieDetailPage({
         </div>
 
         <CommentSection type="serie" targetId={serie.id} />
+        <div className="mt-6">
+          <RatingWidget type="serie" targetId={serie.id} />
+        </div>
       </div>
     </main>
   );

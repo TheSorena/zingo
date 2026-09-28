@@ -14,6 +14,7 @@ import { Button } from "../components/ui/button";
 import { HeroCta } from "../components/hero-cta";
 import { ContinueWatching } from "../components/continue-watching";
 import { AccountButton } from "../components/account-button";
+import { SiteNotice } from "../components/site-notice";
 import { headers } from "next/headers";
 
 // Get the base URL for internal API calls (works in dev, prod and Vercel previews)
@@ -289,6 +290,8 @@ export default async function Home() {
         </div>
 
         <ContinueWatching />
+
+        <SiteNotice />
 
         {/* Content Sliders */}
         <div className="space-y-12 md:space-y-16">

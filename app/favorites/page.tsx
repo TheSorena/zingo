@@ -23,6 +23,7 @@ import {
 } from "../../components/ui/alert-dialog";
 import { SearchInput } from '@/components/search-input';
 import { AccountButton } from '@/components/account-button';
+import { AuthDialog } from '@/components/auth-dialog';
 import { useAuth } from '@/components/auth-provider';
 import { Cloud } from 'lucide-react';
 
@@ -42,6 +43,7 @@ export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [synced, setSynced] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
 
@@ -182,6 +184,19 @@ export default function FavoritesPage() {
                 <Cloud className="h-3.5 w-3.5" />
                 با حساب {user.name} همگام‌سازی شده — در همه دستگاه‌ها همراه شماست
               </p>
+            )}
+            {!user && !isLoading && (
+              <button
+                onClick={() => setLoginOpen(true)}
+                className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl bg-gradient-to-l from-amber-500/10 to-rose-500/10 px-4 py-3 text-xs ring-1 ring-primary/25 transition-all hover:from-amber-500/20 hover:to-rose-500/20"
+              >
+                <span className="text-right leading-relaxed text-muted-foreground">
+                  وارد شو تا <span className="font-bold text-foreground">علاقه‌مندی‌ها در همه دستگاه‌ها</span> ذخیره بشن و هیچ‌وقت گمشون نکنی
+                </span>
+                <span className="shrink-0 rounded-full bg-gradient-to-l from-amber-500 to-rose-500 px-4 py-2 font-bold text-white shadow">
+                  ورود / ثبت‌نام
+                </span>
+              </button>
             )}
           </div>
 
@@ -342,6 +357,7 @@ export default function FavoritesPage() {
       </div>
 
       <MobileNav />
+      <AuthDialog open={loginOpen} onOpenChange={setLoginOpen} />
     </main>
   );
 } 

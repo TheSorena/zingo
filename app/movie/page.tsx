@@ -11,6 +11,7 @@ import { FavoriteButton } from "../../components/favorite-button";
 import { CommentSection } from "../../components/comment-section";
 import { OnlinePlayer } from "../../components/online-player";
 import { SourceRow } from "../../components/source-row";
+import { RatingWidget } from "../../components/rating-widget";
 
 interface MovieDetails {
   id: number;
@@ -263,6 +264,9 @@ export default function MoviePage() {
             </div>
 
             <CommentSection type="movie" targetId={movie.id} />
+            <div className="mt-6">
+              <RatingWidget type="movie" targetId={movie.id} />
+            </div>
           </div>
         </div>
       </main>
