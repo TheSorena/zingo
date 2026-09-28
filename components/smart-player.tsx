@@ -33,12 +33,13 @@ const metaCache = new Map<string, Promise<MkvMeta>>();
  * Same-origin range fetch through /api/mkv-range so plain-http file hosts
  * are reachable without mixed-content blocks (WebView + browsers).
  */
-async function apiRangeFetch(url: string, headers?: Record<string, string>): Promise<Response> {
+async function apiRangeFetch(url: string, headers?: Record<string, string>, signal?: AbortSignal): Promise<Response> {
   const m = /bytes=(\d+)-(\d+)/.exec(headers?.Range || '');
   const start = m ? Number(m[1]) : 0;
   const len = m ? Number(m[2]) - Number(m[1]) + 1 : 2 * 1024 * 1024;
   const res = await fetch(
-    `/api/mkv-range?url=${encodeURIComponent(url)}&start=${start}&len=${len}`
+    `/api/mkv-range?url=${encodeURIComponent(url)}&start=${start}&len=${len}`,
+    signal ? { signal } : undefined
   );
   if (!res.ok) throw new Error(`proxy ${res.status}`);
   return res;
@@ -49,14 +50,14 @@ async function apiRangeFetch(url: string, headers?: Record<string, string>): Pro
  * same-origin proxy as fallback. Inside the Zingo app the native bridge
  * bypasses WebView mixed-content/CORS limits entirely.
  */
-async function bestEffortRangeFetch(url: string, headers?: Record<string, string>): Promise<Response> {
+async function bestEffortRangeFetch(url: string, headers?: Record<string, string>, signal?: AbortSignal): Promise<Response> {
   if (hasNativeBridge()) return bridgeFetch(url, headers);
   try {
-    const res = await fetch(url, { headers });
+    const res = await fetch(url, signal ? { headers, signal } : { headers });
     if (res.ok || res.status === 206) return res;
     throw new Error(`direct ${res.status}`);
   } catch {
-    return apiRangeFetch(url, headers);
+    return apiRangeFetch(url, headers, signal);
   }
 }
 
@@ -225,6 +226,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   // audio tracks (dual-audio files, e.g. anime JP/EN)
   const [audioOpts, setAudioOpts] = useState<{ index: number; label: string }[]>([]);
   const [audioIdx, setAudioIdx] = useState(0);
+  const audioProbedRef = useRef(false);
   // big center play/pause flash on tap
   const [bigIcon, setBigIcon] = useState<'play' | 'pause' | null>(null);
   const bigTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -302,6 +304,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     setSubCount(0);
     setAudioOpts([]);
     setAudioIdx(0);
+    audioProbedRef.current = false;
     try {
       pendingSeekRef.current = v.currentTime > 5 ? v.currentTime : 0;
     } catch {
@@ -378,6 +381,26 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     bigTimer.current = setTimeout(() => setBigIcon(null), 550);
   };
 
+  const probeAudioTracks = useCallback(async () => {
+    if (!src || audioProbedRef.current || !/\.mkv(\?|$)/i.test(src)) return;
+    audioProbedRef.current = true;
+    try {
+      let p = metaCache.get(src);
+      if (!p) {
+        p = probeMkv(src, bestEffortRangeFetch);
+        metaCache.set(src, p);
+      }
+      const meta = await p;
+      if (meta.audioTracks.length > 1) {
+        setAudioOpts((prev) =>
+          prev.length > 1
+            ? prev
+            : meta.audioTracks.map((t, i) => ({ index: i, label: audioLabel(t.lang || '', '', i) }))
+        );
+      }
+    } catch {}
+  }, [src]);
+
   const refreshAudioTracks = useCallback(() => {
     try {
       const v = videoRef.current as any;
@@ -402,19 +425,23 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     try {
       const v = videoRef.current as any;
       const list = v?.audioTracks;
-      if (!list || list.length < 2) return;
-      setAudioIdx((prev) => {
-        const next = (prev + 1) % list.length;
-        for (let i = 0; i < list.length; i++) {
-          try {
-            list[i].enabled = i === next;
-          } catch {}
-        }
-        return next;
-      });
+      if (!list || list.length < 2) {
+        flashMsg('این مرورگر تغییر ترک صوتی را پشتیبانی نمی‌کند');
+        pokeControls();
+        return;
+      }
+      const next = (audioIdx + 1) % list.length;
+      for (let i = 0; i < list.length; i++) {
+        try {
+          list[i].enabled = i === next;
+        } catch {}
+      }
+      setAudioIdx(next);
+      const label = audioOpts[next]?.label || `صدا ${next + 1}`;
+      flashMsg(`زبان: ${label}`);
       pokeControls();
     } catch {}
-  }, [pokeControls]);
+  }, [pokeControls, audioIdx, audioOpts]);
 
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
@@ -832,6 +859,8 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     setBuffering(false);
     setTransient(false);
     retryingRef.current = false;
+    refreshAudioTracks();
+    void probeAudioTracks();
     // MX-like: embedded subs just work — try once, silently
     if (
       !autoTriedRef.current &&
@@ -1229,11 +1258,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
             {/* Audio track (dual-audio files, e.g. anime) */}
             {audioOpts.length > 1 && (
               <button
-                onClick={() => {
-                  cycleAudio();
-                  const next = audioOpts[(audioIdx + 1) % audioOpts.length];
-                  if (next) flashMsg(`زبان: ${next.label}`);
-                }}
+                onClick={cycleAudio}
                 aria-label="زبان صوتی"
                 title={`زبان صوتی: ${audioOpts[audioIdx]?.label || ''}`}
                 className="flex h-9 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold text-amber-300 transition-colors hover:bg-white/15"

@@ -23,17 +23,24 @@ export interface MkvSubTrack {
   lang: string;
 }
 
+export interface MkvAudioTrack {
+  num: number;
+  codec: string;
+  lang: string;
+}
+
 export interface MkvMeta {
   timecodeScale: number; // ns per tick (default 1_000_000)
   durationSec: number;
   tracks: MkvSubTrack[];
+  audioTracks: MkvAudioTrack[];
   cues: { timeMs: number; pos: number }[]; // pos = offset from segment data start
   segDataStart: number;
   totalSize: number;
   rangesOk: boolean;
 }
 
-type FetchFn = (url: string, headers?: Record<string, string>) => Promise<Response>;
+type FetchFn = (url: string, headers?: Record<string, string>, signal?: AbortSignal) => Promise<Response>;
 
 // EBML element IDs we care about
 const ID = {
@@ -68,6 +75,7 @@ const ID = {
 };
 
 const TRACK_TYPE_SUB = 17;
+const TRACK_TYPE_AUDIO = 2;
 
 class Reader {
   view: DataView;
@@ -211,7 +219,8 @@ async function fetchRange(
   start: number,
   length: number
 ): Promise<{ buf: Uint8Array; total: number; ranges: boolean }> {
-  const res = await fetchFn(url, { Range: `bytes=${start}-${start + length - 1}` });
+  const headers = { Range: `bytes=${start}-${start + length - 1}` };
+  const res = await robustFetch(fetchFn, url, headers);
   if (!res.ok && res.status !== 206 && res.status !== 200) {
     throw new Error(`range fetch failed: ${res.status}`);
   }
@@ -221,6 +230,78 @@ async function fetchRange(
   // If the server ignored Range (200 + huge body), bail instead of buffering GBs
   const buf = await readCapped(res, length + 1024 * 1024);
   return { buf, total, ranges };
+}
+
+/**
+ * File hosts sit behind several backends and some of them ignore the
+ * Range header (full 200 instead of 206). Race parallel requests — each
+ * opens its own connection (usually a different backend) — and take the
+ * first proper 206, aborting the losers. Falls back to one more race.
+ */
+async function robustFetch(
+  fetchFn: FetchFn,
+  url: string,
+  headers: Record<string, string>,
+  racers = 3
+): Promise<Response> {
+  const attempt = async (): Promise<Response> => {
+    const controllers: AbortController[] = [];
+    let winner: AbortController | null = null;
+    const cancelLosers = () => {
+      for (const c of controllers) {
+        if (c !== winner) {
+          try {
+            c.abort();
+          } catch {}
+        }
+      }
+    };
+    try {
+      const results = await Promise.all(
+        Array.from({ length: racers }, async (_, idx) => {
+          const c = new AbortController();
+          controllers[idx] = c;
+          let timer: ReturnType<typeof setTimeout> | undefined;
+          try {
+            timer = setTimeout(() => {
+              try {
+                c.abort();
+              } catch {}
+            }, 30000);
+            const res = await fetchFn(url, headers, c.signal);
+            if (res && res.status === 206) return { res, idx } as const;
+            try {
+              await res?.arrayBuffer?.();
+            } catch {}
+            return { bad: res?.status || 0 } as const;
+          } catch (err) {
+            return { err } as const;
+          } finally {
+            if (timer) clearTimeout(timer);
+          }
+        })
+      );
+      const win = results.find((r) => 'res' in r) as { res: Response; idx: number } | undefined;
+      if (win) {
+        winner = controllers[win.idx] || null;
+        cancelLosers();
+        return win.res;
+      }
+      cancelLosers();
+      const last = results[results.length - 1];
+      if (last && 'bad' in last && last.bad) throw new Error(`range fetch failed: ${last.bad}`);
+      throw new Error('range fetch failed');
+    } catch (e) {
+      cancelLosers();
+      throw e;
+    }
+  };
+  try {
+    return await attempt();
+  } catch {
+    await new Promise((r) => setTimeout(r, 600));
+    return await attempt();
+  }
 }
 
 function pickTrack(tracks: MkvSubTrack[]): MkvSubTrack | null {
@@ -491,7 +572,7 @@ function parseClusterBuffer(
 
 export async function probeMkv(
   url: string,
-  fetchFn: FetchFn = fetch
+  fetchFn: FetchFn = (u, h, s) => fetch(u, { headers: h, signal: s })
 ): Promise<MkvMeta> {
   const head = await fetchRange(fetchFn, url, 0, 2 * 1024 * 1024);
   const r = new Reader(head.buf);
@@ -499,6 +580,7 @@ export async function probeMkv(
   let timecodeScale = 1000000;
   let durationSec = 0;
   const tracks: MkvSubTrack[] = [];
+  const audioTracks: MkvAudioTrack[] = [];
   let cuesPos = -1;
   let haveTracks = false;
 
@@ -569,6 +651,8 @@ export async function probeMkv(
         });
         if (type === TRACK_TYPE_SUB && num > 0 && !encoded) {
           tracks.push({ num, codec, lang });
+        } else if (type === TRACK_TYPE_AUDIO && num > 0) {
+          audioTracks.push({ num, codec, lang });
         }
       });
     }
@@ -620,6 +704,7 @@ export async function probeMkv(
     timecodeScale,
     durationSec,
     tracks,
+    audioTracks,
     cues,
     segDataStart,
     totalSize: head.total,
@@ -641,7 +726,7 @@ export async function fetchSubtitleWindow(
   trackNum: number,
   timeSec: number,
   windowSec = 180,
-  fetchFn: FetchFn = fetch
+  fetchFn: FetchFn = (u, h, s) => fetch(u, { headers: h, signal: s })
 ): Promise<WindowResult> {
   const track = meta.tracks.find((t) => t.num === trackNum) || pickTrack(meta.tracks);
   if (!track) throw new Error('no subtitle track');
@@ -721,7 +806,7 @@ export function normalizeCues(input: SubCue[]): SubCue[] {
 export async function pickBestTrack(
   url: string,
   meta: MkvMeta,
-  fetchFn: FetchFn = fetch
+  fetchFn: FetchFn = (u, h, s) => fetch(u, { headers: h, signal: s })
 ): Promise<MkvSubTrack | null> {
   const direct = pickTrack(meta.tracks);
   if (direct && /^(per|fas|fa|fa-ir)$/i.test(direct.lang)) return direct;
