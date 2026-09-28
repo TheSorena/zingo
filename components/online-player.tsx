@@ -117,7 +117,9 @@ export function OnlinePlayer({ title, poster, sources, storageKey, history, next
         </h2>
 
         {/* Quality Chips */}
-        <div className="flex flex-wrap items-center gap-2 mb-3">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="shrink-0 text-[11px] font-bold text-muted-foreground">کیفیت:</span>
+          <div className="no-scrollbar flex flex-1 flex-nowrap items-center gap-2 overflow-x-auto mask-fade-x pb-0.5">
           {playable.map((s) => {
             const label = describeSource(s).label;
             const ext = needsExternalPlayer(s);
@@ -130,7 +132,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey, history, next
                   setFatal(false);
                 }}
                 title={ext ? 'ممکن است در مرورگر پخش نشود' : label}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ring-1 flex items-center gap-1.5 ${
+                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ring-1 ${
                   active?.url === s.url
                     ? 'bg-gradient-to-l from-amber-500 to-rose-500 text-white shadow-lg shadow-primary/30 ring-transparent'
                     : 'bg-secondary/50 text-muted-foreground hover:bg-secondary/80 hover:text-foreground ring-border/50'
@@ -140,6 +142,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey, history, next
               </button>
             );
           })}
+          </div>
         </div>
 
         {active && needsExternalPlayer(active) && !fatal && (
@@ -215,7 +218,7 @@ export function OnlinePlayer({ title, poster, sources, storageKey, history, next
         <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed flex items-start gap-1.5">
           <Info className="h-3.5 w-3.5 shrink-0 mt-px" />
           <span>
-            بهترین کیفیت سازگار به‌صورت خودکار انتخاب می‌شود. با دکمه آپلود می‌توانید فایل زیرنویس (.srt) خودتان را اضافه کنید. محل تماشای شما ذخیره می‌شود.
+            زیرنویس فارسی داخل فایل خودش فعال می‌شود؛ با دکمه‌های پلیر می‌توانید زیرنویس دستی، زبان صوتی و سرعت را عوض کنید.
           </span>
         </p>
       </div>

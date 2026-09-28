@@ -200,3 +200,18 @@ html[data-perf="low"] .card-lift:hover {
   transform: none !important;
   box-shadow: none !important;
 }
+
+/* ===== Dedicated player: bigger touch targets in fullscreen ===== */
+.player-fs .ctl-row > button,
+.player-fs .ctl-row > label,
+.player-fs .ctl-row > a {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+}
+.player-fs .ctl-row svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+.player-fs .ctl-row .text-\[11px\] {
+  font-size: 0.8rem;
+}

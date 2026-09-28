@@ -26,11 +26,12 @@ export const metadata: Metadata = {
   description: 'Modern Movie Application | اپلیکیشن مدرن فیلم و سریال',
   manifest: '/manifest.json',
   themeColor: '#0a0a0b',
-  // Explicit empty icons: overrides any cached legacy favicon in browsers.
-  // (Transparent placeholder files also exist for browsers that fetch directly.)
+  // Versioned REAL icon URLs (transparent files): unlike data: URLs,
+  // this forces every browser to (re)fetch and REPLACE any cached
+  // legacy fork icon with an empty one. Never remove the ?v= tag.
   icons: [
-    { rel: 'icon', url: 'data:,' },
-    { rel: 'apple-touch-icon', url: 'data:,' },
+    { rel: 'icon', url: '/favicon.ico?v=2' },
+    { rel: 'apple-touch-icon', url: '/apple-touch-icon.png?v=2' },
   ],
   keywords: ['movie', 'cinema', 'film', 'series', 'فیلم', 'سریال', 'سینما', 'زینگو'],
   authors: [{ name: 'Zingo' }],

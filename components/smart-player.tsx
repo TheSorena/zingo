@@ -16,7 +16,10 @@ import {
   Timer,
   SkipForward,
   Languages,
+  ExternalLink,
+  X,
 } from 'lucide-react';
+import { getDeviceType } from '../lib/utils';
 import {
   probeMkv,
   fetchSubtitleWindow,
@@ -164,6 +167,12 @@ function audioLabel(lang: string, label: string, index: number): string {
   return AUDIO_LANG_FA[key] || (lang ? `${lang}` : `صدا ${index + 1}`);
 }
 
+function mxPlayerIntent(url: string, title: string): string {
+  const m = /^(https?):\/\/(.*)$/i.exec(url);
+  if (!m) return url;
+  return `intent://${m[2]}#Intent;scheme=${m[1].toLowerCase()};package=com.mxtech.videoplayer.ad;S.title=${encodeURIComponent(title)};end`;
+}
+
 function fmt(t: number): string {
   if (!isFinite(t) || t < 0) t = 0;
   const h = Math.floor(t / 3600);
@@ -226,7 +235,9 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   // audio tracks (dual-audio files, e.g. anime JP/EN)
   const [audioOpts, setAudioOpts] = useState<{ index: number; label: string }[]>([]);
   const [audioIdx, setAudioIdx] = useState(0);
+  const [audioNoSwitch, setAudioNoSwitch] = useState(false);
   const audioProbedRef = useRef(false);
+  const audioSourceRef = useRef<'browser' | 'meta' | null>(null);
   // big center play/pause flash on tap
   const [bigIcon, setBigIcon] = useState<'play' | 'pause' | null>(null);
   const bigTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -304,6 +315,8 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
     setSubCount(0);
     setAudioOpts([]);
     setAudioIdx(0);
+    setAudioNoSwitch(false);
+    audioSourceRef.current = null;
     audioProbedRef.current = false;
     try {
       pendingSeekRef.current = v.currentTime > 5 ? v.currentTime : 0;
@@ -392,11 +405,11 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       }
       const meta = await p;
       if (meta.audioTracks.length > 1) {
-        setAudioOpts((prev) =>
-          prev.length > 1
-            ? prev
-            : meta.audioTracks.map((t, i) => ({ index: i, label: audioLabel(t.lang || '', '', i) }))
-        );
+        setAudioOpts((prev) => {
+          if (prev.length > 1 && audioSourceRef.current === 'browser') return prev;
+          audioSourceRef.current = 'meta';
+          return meta.audioTracks.map((t, i) => ({ index: i, label: audioLabel(t.lang || '', '', i) }));
+        });
       }
     } catch {}
   }, [src]);
@@ -406,7 +419,8 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       const v = videoRef.current as any;
       const list = v?.audioTracks;
       if (!list || list.length < 2) {
-        setAudioOpts([]);
+        // never wipe meta-detected tracks: the browser list may just be late
+        if (audioSourceRef.current !== 'meta') setAudioOpts([]);
         return;
       }
       const opts: { index: number; label: string }[] = [];
@@ -415,9 +429,11 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
         opts.push({ index: i, label: audioLabel(t.language || '', t.label || '', i) });
         if (t.enabled) setAudioIdx(i);
       }
+      audioSourceRef.current = 'browser';
+      setAudioNoSwitch(false);
       setAudioOpts(opts);
     } catch {
-      setAudioOpts([]);
+      if (audioSourceRef.current !== 'meta') setAudioOpts([]);
     }
   }, []);
 
@@ -427,9 +443,11 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       const list = v?.audioTracks;
       if (!list || list.length < 2) {
         flashMsg('این مرورگر تغییر ترک صوتی را پشتیبانی نمی‌کند');
+        setAudioNoSwitch(true);
         pokeControls();
         return;
       }
+      setAudioNoSwitch(false);
       const next = (audioIdx + 1) % list.length;
       for (let i = 0; i < list.length; i++) {
         try {
@@ -964,7 +982,9 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
   return (
     <div
       ref={wrapRef}
-      className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black ring-1 ring-border/40 select-none"
+      className={`relative aspect-video w-full overflow-hidden bg-black select-none ${
+        isFs ? 'player-fs rounded-none' : 'rounded-2xl ring-1 ring-border/40'
+      }`}
       onMouseMove={pokeControls}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -992,6 +1012,34 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
           <track key={trackUrl} kind="subtitles" src={trackUrl} srcLang="fa" label="فارسی" default />
         )}
       </video>
+
+      {/* Fullscreen title bar (in normal mode the dialog already shows it) */}
+      {started && isFs && (
+        <div
+          className={`absolute inset-x-0 top-0 z-10 flex items-center gap-2 bg-gradient-to-b from-black/85 via-black/40 to-transparent px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10 transition-all duration-300 ${
+            controls ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
+          }`}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFs();
+            }}
+            aria-label="خروج از تمام صفحه"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20 transition-colors hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <p className="min-w-0 flex-1 truncate text-right text-sm font-extrabold text-white drop-shadow">
+            {title}
+          </p>
+          {subAuto === 'on' && (
+            <span className="shrink-0 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300 ring-1 ring-amber-400/40">
+              زیرنویس
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Preview overlay (custom — never a broken poster) */}
       {!started && (
@@ -1151,7 +1199,9 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
       {/* Controls */}
       {started && (
         <div
-          className={`absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-3 pb-2.5 pt-10 transition-all duration-300 ${
+          className={`absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-3 pt-10 transition-all duration-300 ${
+            isFs ? 'px-4 pb-[max(1rem,env(safe-area-inset-bottom))]' : 'pb-2.5'
+          } ${
             controls ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -1186,20 +1236,20 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
             </div>
           )}
           {/* Seek bar */}
-          <div className="group/bar relative mb-1.5 flex h-5 items-center" dir="ltr">
-            <div className="absolute h-1 w-full overflow-hidden rounded-full bg-white/20">
+          <div className={`group/bar relative mb-1.5 flex items-center ${isFs ? 'h-8' : 'h-5'}`} dir="ltr">
+            <div className={`absolute w-full overflow-hidden rounded-full bg-white/20 ${isFs ? 'h-1.5' : 'h-1'}`}>
               <div
                 className="h-full rounded-full bg-white/30"
                 style={{ width: `${Math.min(100, buffered)}%` }}
               />
             </div>
             <div
-              className="absolute h-1 rounded-full bg-gradient-to-l from-amber-400 to-rose-500"
+              className={`absolute rounded-full bg-gradient-to-l from-amber-400 to-rose-500 ${isFs ? 'h-1.5' : 'h-1'}`}
               style={{ width: `${Math.min(100, progress)}%` }}
             />
             <div
-              className="absolute h-3 w-3 rounded-full bg-white shadow transition-transform group-hover/bar:scale-125"
-              style={{ left: `calc(${Math.min(100, progress)}% - 6px)` }}
+              className={`absolute rounded-full bg-white shadow transition-transform group-hover/bar:scale-125 ${isFs ? 'h-4 w-4' : 'h-3 w-3'}`}
+              style={{ left: `calc(${Math.min(100, progress)}% - ${isFs ? '8px' : '6px'})` }}
             />
             <input
               type="range"
@@ -1226,7 +1276,7 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
             />
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className={`ctl-row flex items-center ${isFs ? 'gap-2' : 'gap-1 sm:gap-1.5'}`}>
             <button
               onClick={togglePlay}
               aria-label={playing ? 'توقف' : 'پخش'}
@@ -1266,6 +1316,19 @@ export function SmartPlayer({ src, title, poster, storageKey, onFirstError, onFa
                 <Languages className="h-4 w-4" />
                 <span className="max-w-16 truncate">{audioOpts[audioIdx]?.label}</span>
               </button>
+            )}
+            {/* MX Player fallback: only when the file truly has 2+ tracks
+                but this browser can't switch them (e.g. some WebViews) */}
+            {audioNoSwitch && audioOpts.length > 1 && getDeviceType() === 'android' && (
+              <a
+                href={mxPlayerIntent(src, title)}
+                rel="noopener noreferrer"
+                title="باز کردن در MX Player برای تعویض زبان"
+                className="flex h-9 items-center gap-1 rounded-full bg-amber-500/20 px-2.5 text-[11px] font-bold text-amber-300 ring-1 ring-amber-400/40 transition-colors hover:bg-amber-500/30"
+              >
+                <ExternalLink className="h-4 w-4" />
+                MX Player
+              </a>
             )}
 
             {/* Auto embedded subtitle (SoftSub inside MKV) */}
